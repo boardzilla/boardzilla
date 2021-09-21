@@ -1,0 +1,25 @@
+#container {
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  img {
+    user-drag: none;
+    -webkit-user-drag: none;
+  }
+}
+
+#context-menu {
+  position: absolute;
+  border: 1px solid black;
+  padding: 0px;
+  background: white;
+  li {
+    display: block;
+    padding: 2px 6px;
+    &:hover {
+      background: #ccf;
+      color: #00c;
+      cursor: pointer;
+    }
+  }
+}

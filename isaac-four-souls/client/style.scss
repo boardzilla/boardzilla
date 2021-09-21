@@ -1,0 +1,20 @@
+.board {
+  width: 303px;
+  height: 303px;
+}
+.card {
+  position: absolute;
+  width: 80px;
+  height: 100px;
+  &[active=true] {
+    transform: rotate(80deg);
+  }
+  img {
+    height: 100%;
+  }
+  &[id]:hover {
+    zoom: 2;
+    margin-left: -20px;
+    margin-top: -20px;
+  }
+}

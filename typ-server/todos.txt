@@ -1,0 +1,65 @@
+X multiple actions (ctx menu)
+- hidden attributes, exclude space/piece, x/y
+- composite actions (hilite intermediates)
+- connection status
+- .mine class on client
+- rseed
+- show errors from server
+
+single giant procedure, can freeze history and rseed and replay state if lost connection
+
+play: {
+  do {
+    // deal
+
+    do {
+      await anyPlayerPlay(passCard)
+    } while (find('passed card').count < 12)
+
+    // pass cards
+
+    setCurrentPlayer(find('#2C').owner())
+    await repeat(13, async {
+      this.delete('led')
+      await playersInTurn(turn => async {
+        await card = currentPlayerPlay(playCard)
+        if (turn === 0) this.set('led', card.suit)
+      })
+      // score trick      
+    })
+    // score hand
+  } while (max(score) < 100)
+}
+
+playCard: card => {
+  // 2C or led suit cards or not:H or whatever
+  return this.choice(card, plays, () => {
+    card.move('played.mine');
+    return this.endTurn();
+
+
+
+
+moves are:
+  movex [el1, el2, el3]
+  movey [el1, el2] [space1, space2]
+  movez boolean
+  moven number
+
+sends: {
+  movex: [$el1, $el2, $el3],
+  movey: [$el1, $el2],
+  movez: 'movez',
+}
+
+appears as:
+  el1 -> ctx-menu [movex, movey] -> [space1, space2]
+  el3 click
+  'movez' button
+
+2nd send: {
+  movey: [$el1, [$space1, $space2]]
+}
+
+
+confirmation step required per move? just add additional arg, chooseAndConfirm()

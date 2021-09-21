@@ -1,0 +1,26 @@
+{
+  "root": true,
+  "env": {
+    "commonjs": true,
+    "browser": true,
+    "es6": true
+  },
+  "extends": "eslint:recommended",
+  "globals": {
+    "window": "readonly",
+    "document": "readonly",
+  },
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": 2018
+  },
+  "plugins": [
+    "react"
+  ],
+  "rules": {
+    "react/jsx-uses-vars": 2,
+  }
+}
