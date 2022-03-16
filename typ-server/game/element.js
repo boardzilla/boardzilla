@@ -1,12 +1,22 @@
 const gameElements = [];
+let idSequence = 0;
+const { times } = require("./utils");
+const jsdom = require("jsdom");
+const { JSDOM } = jsdom;
 
 class GameElement {
   constructor(node, caller = {}) {
     this.node = node;
     this.doc = caller.doc;
     this.game = caller.game;
-    this.id = node.id;
+    this.id = node.id; // TODO reserved id's? game, board...
     this.type = node.nodeName.toLowerCase();
+  }
+
+  _enhanceQuery(q) {
+    return q.replace('.mine', `[player="${this.game.currentPlayer}"]`)
+            .replace(/#(\d)/, '#\\3$1 ')
+            .replace(/([#=])(\d)/, '$1\\3$2 ');
   }
 
   wrap(node) {
@@ -14,7 +24,7 @@ class GameElement {
     if (!node) return null;
     const element = gameElements.find(el => el && el.test(node));
     if (!element) throw Error(`No wrapper for node ${node.nodeName}`);
-    return new element.className(node, this);
+    return new element.className(node, {game: this.game, doc: this.doc});
   }
 
   static wrapNodeAs(index, className, test) {
@@ -52,21 +62,21 @@ class GameElement {
   }
 
   matches(q) {
-    return this.node.matches(q);
+    return this.node.matches(this._enhanceQuery(q));
   }
 
   // return full path to element, e.g. "2-1-3"
   branch() {
     const branch = [];
     let node = this.node;
-    while (node.parentNode && node.parentNode.nodeName.toLowerCase() != 'game') {
+    while (node.parentNode && node.parentNode.parentNode) {
       branch.unshift(Array.from(node.parentNode.childNodes).indexOf(node) + 1);
       node = node.parentNode;
     }
     return branch;
   }
 
-  doc() {
+  root() {
     return this.wrap(this.doc);
   }
 
@@ -87,7 +97,46 @@ class GameElement {
   }
 
   place(pieces, to, opts = {}) {
-    return this.doc.find('#PILE').move(pieces, to, Object.assign({ limit: 1, within: this.node }, opts));
+    return this.root().find('#PILE').move(pieces, to, Object.assign({ limit: 1, within: this.node }, opts));
+  }
+
+  duplicate() {
+    return this.wrap(this.node.parentNode.appendChild(this.node.cloneNode(true)))
+  }
+
+  destroy() {
+    this.node.parentNode.removeChild(this.node)
+  }
+
+  addPiece(name, type, attrs) {
+    return this.addGameElement(name, type, 'piece', attrs);
+  }
+
+  addPieces(num, name, type, attrs) {
+    return times(num, () => this.addPiece(name, type, attrs));
+  }
+
+  addComponent(name, attrs) {
+    if (name == 'counter') { // TODO minimal impl for now
+      const id = this.registerId('counter')
+      this.addPiece('#' + id, 'counter', attrs)
+      this.game.set(id, parseInt(attrs.initialValue) || 0); // TODO this is not namespaced
+    }
+  }
+
+  addGameElement(name, type, className, attrs = {}) {
+    const dom = new JSDOM();
+    const el = dom.window.document.createElement(type);
+    if (name[0] !== '#') throw Error(`id ${name} must start with #`);
+    el.id = name.slice(1);
+    el.className = className;
+    Object.keys(attrs).forEach(attr => el.setAttribute(attr, attrs[attr]));
+    this.node.appendChild(el);
+    return this.wrap(this.node.lastChild);
+  }
+
+  registerId(ns) {
+    return `${ns}-${idSequence}`;
   }
 
   static isSpaceNode(node) {
@@ -105,8 +154,8 @@ class GameElement {
 
   // return element from branch
   pieceAt(key) {
-    return this.board().find(
-      key.split('-').reduce((path, index) => `${path} > *:nth-child(${index})`, 'board')
+    return this.root().find(
+      'game > ' + key.split('-').map(index => `*:nth-child(${index})`).join(' > ')
     );
   }
 

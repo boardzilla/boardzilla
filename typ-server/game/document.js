@@ -4,7 +4,7 @@ const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 
 class GameDocument extends Space {
-  constructor(node, game) {
+  constructor(node, caller) {
     let rootNode = node
     let document
     if (!rootNode) {
@@ -13,15 +13,15 @@ class GameDocument extends Space {
       document = dom.window.document
       rootNode = document.getElementsByTagName('game')[0]
     }
-    super(rootNode, { game, doc: rootNode })
+    super(rootNode, { game: caller.game, doc: rootNode })
     if (document) this.document = document
   }
 
   clone() {
-    return new GameDocument(this.doc.cloneNode(true), this.game);
+    return new GameDocument(this.doc.cloneNode(true), {game: this.game});
   }
 }
 
-GameElement.wrapNodeAs(0, GameDocument, node => !node.parentNode);
+GameElement.wrapNodeAs(0, GameDocument, node => !node.parentNode.parentNode);
 
 module.exports = GameDocument

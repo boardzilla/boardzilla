@@ -1,25 +1,80 @@
+body
+
 #container {
   position: relative;
   user-select: none;
   -webkit-user-select: none;
+  -moz-user-select: none;
+  #game {
+    margin-bottom: 130px;
+  }
+  #messages {
+    position: fixed;
+    width: 100%;
+    left: 0;
+    bottom: 0;
+    z-index: 100;
+    background: #fec;
+    padding: 10px;
+    box-shadow: 0 -2px 10px black;
+    height: 100px;
+    overflow: scroll;
+  }
+  #context-menu {
+    position: absolute;
+    border: 1px solid black;
+    padding: 0px;
+    background: white;
+    li {
+      display: block;
+      padding: 2px 6px;
+      &:hover {
+        background: #ccf;
+        color: #00c;
+        cursor: pointer;
+      }
+    }
+  }
+  .space {
+    position: relative;
+    outline: 1px solid black;
+    &.flipped {
+      transform: scale(-1);
+    }
+    &.deck {
+      & > :not(:last-child) {
+        margin: 2px 0 0 2px;
+      }
+    }
+  }
+  .piece {
+    /* TODO only for canvas spaces */
+    position: absolute;
+    left: 0;
+    top: 0;
+    /* outline: 1px solid blue; */
+    &.controlled {
+      display: inline-block;
+    }
+  }
   img {
     user-drag: none;
     -webkit-user-drag: none;
+    -moz-user-drag: none;
+    pointer-events: none;
+  }
+  .hilited {
+    outline: 5px solid rgba(255,255,0,.5)
   }
 }
 
-#context-menu {
-  position: absolute;
-  border: 1px solid black;
-  padding: 0px;
-  background: white;
-  li {
-    display: block;
-    padding: 2px 6px;
-    &:hover {
-      background: #ccf;
-      color: #00c;
-      cursor: pointer;
-    }
-  }
+.hideDragging {
+  transition: 0.01s;
+  transform: translateX(-9999px);
 }
+
+.react-draggable-dragging, .external-dragging {
+  z-index: 100;
+  position: relative;
+}
+

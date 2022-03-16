@@ -1,6 +1,15 @@
 const GameDocument = require('./document')
-const GameElement = require('./element')
 const EventEmitter = require('events')
+const {times, range} = require('./utils')
+
+class InvalidChoiceError extends Error {}
+class IncompleteActionError extends Error {
+  constructor({choices, prompt}) {
+    super(prompt)
+    this.choices = choices
+    this.prompt = prompt
+  }
+}
 
 class GameInterface extends EventEmitter {
   constructor() {
@@ -9,10 +18,19 @@ class GameInterface extends EventEmitter {
     this.phase = 'setup'
     this.hiddenKeys = []
     this.variables = {}
-    this.allowedMoveElements = ''
-    this.doc = new GameDocument(null, this)
+    this.allowedMoveElements = '' // piece selector that is always valid for moving
+    this.alwaysAllowedPlays = [] // actions that anyone can take at any time
+    this.doc = new GameDocument(null, {game: this})
     this.board = this.doc.board()
     this.pile = this.doc.pile()
+    this.drags = {}
+    this.actions = {}
+    this.currentPlayer = undefined; // 1-indexed from list of players, or undefined if any player can play
+    this.currentActions = [];
+    this.builtinActions = {
+      addCounter: initialValue => initialValue, // TODO? call doc.addCounter?
+      setCounter: (key, value) => this.set(key, value),
+    }
   }
 
   // start game from scratch and run history. returns when game is done
@@ -20,16 +38,26 @@ class GameInterface extends EventEmitter {
     if (this.players.length < this.minPlayers) throw Error("not enough players")
     if (this.phase !== 'setup') throw Error("not ready to start")
     this.variables = this.initialVariables || {}
-    this.setup && this.setup()
-    this.currentPlayer = 0
+    times(this.players.length, player => {
+      const playerMat = this.doc.addSpace('#player-mat', 'area', {player})
+      this.setupPlayerMat && this.setupPlayerMat(playerMat)
+    })
+    this.setupBoard && this.setupBoard(this.board)
+    this.currentPlayer = 1
     this.phase = 'playing'
     this.sequence = 0
     console.log(`I: start()`, history)
     this.lastReplaySequence = history.length ? history[history.length - 1][1] : -1
-    this.updatePlayer() // initial game state with no actions allowed
+    this.updatePlayers() // initial game state with no actions allowed
     this.replay(history)
     await this.play()
-    this.updatePlayer() // final game state with no actions allowed
+    this.updatePlayers() // final game state with no actions allowed
+  }
+
+  playerMat(player) {
+    player = player || this.currentPlayer
+    if (!player) throw Error("playerMat called without a player or a current player")
+    return this.doc.find(`#player-mat[player="${player}"]`)
   }
 
   // add player to game
@@ -38,26 +66,37 @@ class GameInterface extends EventEmitter {
     if (this.phase !== 'setup') throw Error("not able to add players while playing")
     if (this.players.length == this.maxPlayers) throw Error("game already full")
     this.players.push(userId)
-    this.player = this.players.indexOf(this.userId)
   }
 
   getPlayers() {
     return this.players
   }
 
-  // send current player state along with allowed actions
-  updatePlayer(allowedActions, forPlayer) {
-    if (this.sequence <= this.lastReplaySequence) return
-    console.log('I: allowedActions', forPlayer, this.players)
-    this.players.forEach(player => {
+  // send all players state along with allowed actions
+  updatePlayers() {
+    if (this.sequence <= this.lastReplaySequence) return // dont need to update unless at latest
+    times(this.players.length, player => {
       this.emit('update', {
         type: 'state',
-        userId: player,
-        payload: this.getPlayerView(
-          player,
-          forPlayer >= 0 && this.players[forPlayer] !== player ? {} : allowedActions
-        )
+        userId: this.players[player - 1],
+        payload: this.getPlayerView(player)
       })
+    })
+  }
+
+  // send a player specific allowed actions
+  updatePlayer(player, allowedActions = null) {
+    if (this.sequence <= this.lastReplaySequence) return // dont need to update unless at latest
+    const payload = this.getPlayerView(player)
+    if (allowedActions) {
+      payload.allowedActions = allowedActions
+      payload.allowedMoveElements = null
+      payload.allowedDrags = {}
+    }
+    this.emit('update', {
+      type: 'state',
+      userId: this.players[player - 1],
+      payload
     })
   }
 
@@ -125,7 +164,7 @@ class GameInterface extends EventEmitter {
     try {
       if (value instanceof Array) return value.map(v => this.deserialize(v))
       if (value.slice && value.slice(0,4) == '$el(') {
-        return this.board.pieceAt(value.slice(4,-1));
+        return this.doc.pieceAt(value.slice(4,-1))
       }
       return JSON.parse(value)
     } catch(e) {
@@ -134,19 +173,42 @@ class GameInterface extends EventEmitter {
     }
   }
 
-  getPlayerView(player, allowedActions) {
+  getPlayerView(player) {
     const playerView = this.doc.clone()
-    playerView.findNodes(this.hidden(player)).forEach(n => n.replaceWith(this.doc.document.createElement(n.nodeName)))
+    const currentPlayer = this.currentPlayer
+    this.currentPlayer = player
+
+    playerView.findNodes(this.hidden(player)).forEach(n => {
+      if (n.getAttribute('class').match(/\bpiece\b/)) {
+        n.removeAttribute('id') //  piece identity is hidden
+      } else {
+        n.innerHTML = '' // space contents are hidden
+      }
+    })
+
+    playerView.findNodes(".mine").forEach(n => n.classList.add('mine'))
+
+    const allowedDrags = this.currentActions.reduce((drags, action) => {
+      if (this.actions[action].drag) {
+        drags[action] = {
+          pieces: this.serialize(this.doc.findAll(this.actions[action].drag)),
+          spaces: this.serialize(this.doc.findAll(this.actions[action].onto)),
+        }
+      }
+      return drags
+    }, {})
+    this.currentPlayer = currentPlayer
+
     return {
       variables: this.shownVariables(),
       phase: this.phase,
       players: this.players,
       currentPlayer: this.currentPlayer,
       sequence: this.sequence,
-      board: playerView.boardNode().outerHTML,
-      pile: this.doc.pileNode().outerHTML,
+      doc: playerView.node.outerHTML,
       allowedMove: this.allowedMoveElements,
-      allowedActions,
+      allowedActions: this.choicesFromActions(player),
+      allowedDrags,
     }
   }
 
@@ -165,8 +227,9 @@ class GameInterface extends EventEmitter {
   }
 
   async playerPlay(actions, player) {
-    actions = actions instanceof Array ? actions : [actions]
-    return await this.waitForAction(actions, player)
+    this.currentActions = actions instanceof Array ? actions : [actions]
+    this.currentPlayer = player
+    return await this.waitForAction()
   }
 
   async repeat(times, fn) {
@@ -183,69 +246,163 @@ class GameInterface extends EventEmitter {
     })
   }
 
-  // allow movement of pieces by players if match the given selector
+  // allow movement of pieces within their space if match the given selector
   playersMayAlwaysMove(selector) {
     this.allowedMoveElements = selector
   }
 
-  // test list of actions for validity and options, returns object of choices available
-  optionsFromActions(actions) {
-    return actions.reduce((options, action) => {
-      const result = this.testAction(action, [])
-      if (result === false) return
-      if (result === true) {
-        options[action.name] = action.name
-      } else {
-        options[action.name] = result
+  playersMayAlwaysPlay(actions) {
+    this.alwaysAllowedPlays = actions
+  }
+
+  // test list of actions for validity and options, returns object of name:{prompt, choices?}
+  choicesFromActions(player) {
+    if (this.currentPlayer !== undefined && player != this.currentPlayer) return {}
+    return this.currentActions.reduce((choices, action) => { // TODO + alwaysAllowedPlays ?
+      try {
+        const prompt = this.testAction(action, player)
+        //console.log('testAction OK', action)
+        choices[action] = {prompt}
+      } catch(e) {
+        if (e instanceof IncompleteActionError) {
+          //console.log('testAction IncompleteActionError', action, e.choices)
+          choices[action] = {prompt: e.prompt, choices: e.choices}
+        } else {
+          throw e
+        }
       }
-      return options
+      return choices
     }, {})
   }
 
-  // test a given action and args for results
-  // (true = success; false = invalid; array = additional choice required)
-  testAction(action, args) {
+  // test a given action without modifying state, rethrow
+  testAction(action, player) {
     const state = this.getState()
-    const result = action(...args)
-    this.setState(state)
-    return result
+    const currentPlayer = this.currentPlayer
+    this.currentPlayer = player
+    //console.log('-------------------------------------------------TESTACTION', action)
+    try {
+      this.runAction(action)
+    } finally {
+      //console.log('-------------------------------------------------END TESTACTION')
+      this.setState(state)
+      this.currentPlayer = currentPlayer
+    }
   }
 
-  // takes choices, validChoices and resultant action and returns an action that requires a choice from validChoices
-  choose(choice, validChoices, action, prompt) {
+  // function that tries to run an action and delegates to the various main types of actions to determine outcome
+  runAction(action, args=[], argIndex=0) {
+    if (this.builtinActions[action]) {
+      return this.builtinActions[action](...args)
+    }
+
+    if (typeof action == 'string' && this.actions[action]) {
+      action = this.actions[action]
+    }
+    console.log('running action', action)
+
+    if (!action) {
+      throw Error(`No such action: ${action}`)
+    }
+    let nextAction = action.action
+
+    if (action.next) {
+      if (action.action) {
+        throw Error("${action} may not have both 'next' and 'action'")
+      }
+      nextAction = () => this.runAction(action.next, args, argIndex + 1)
+    }
+
+    if (action.drag) {
+      if (!action.onto) {
+        throw Error(`${action} has a 'drag' but no 'onto'`)
+      }
+      this.dragAction(action.drag, action.onto, action.prompt, action.promptOnto, nextAction)(...args)
+    } else if (action.select) {
+      if (action.select instanceof Array) {
+        this.chooseAction(action.select, action.prompt, nextAction, argIndex)(...args)
+      } else if (typeof action.select == 'string') {
+        this.chooseAction(this.doc.findAll(action.select), action.prompt, nextAction)(...args)
+      } else if (typeof action.select == 'function') {
+        this.chooseAction(action.select(...args), action.prompt, nextAction, argIndex)(...args)
+      } else {
+        throw Error(`'select' for ${action} must be a list or a finder`)
+      }
+    } else if (action.max) { // simple numerical
+      this.chooseAction(range(action.min, action.max), action.prompt, nextAction, argIndex)(...args)
+    } else if (nextAction) {
+      nextAction(...args)
+    }
+  }
+
+  dragAction(pieceSelector, spaceSelector, prompt, promptOnto, action) {
+    console.log('dragAction', pieceSelector, this.board.findAll(pieceSelector).length)
+    const fn = this.chooseAction(
+      this.doc.findAll(pieceSelector),
+      prompt,
+      this.chooseAction(
+        this.doc.findAll(spaceSelector),
+        promptOnto || prompt,
+        (piece, space, x, y) => {
+          piece.move(space)
+          piece.set('x', x)
+          piece.set('y', y)
+          if (action) {
+            action(piece, space)
+          }
+        },
+        1
+      )
+    )
+    fn.type = 'drag'
+    return fn
+  }
+
+  // returns a fn (...choices) -> action that throws appropriate choice errors
+  chooseAction(validChoices, prompt, action, argIndex = 0) {
     const choices = this.serialize(validChoices)
-    if (choice === undefined) return choices
-    if (!choices.includes(this.serialize(choice))) {
-      return false
+    return (...args) => {
+      const choice = args[argIndex]
+      if (choice === undefined) {
+        if (validChoices.length == 1 && action && argIndex > 0) {
+          // auto-select simgle choice if not the first arg
+          action(...args, validChoices[0])
+        } else {
+          throw new IncompleteActionError({choices, prompt})
+        }
+      } else {
+        if (!choices.includes(this.serialize(choice))) throw new InvalidChoiceError(`${this.serialize(choice)} not found in ${choices}`)
+        if (action) action(...args)
+      }
+      return prompt
     }
-    try {
-      action()
-    } catch(e) {
-      console.error(`Failed to run ${prompt} with ${choice}`, e)
-      return false
-    }
-    return true
   }
 
   replay(actions) {
-    actions.forEach(action => setImmediate(() => this.emit('action', false, ...action)))
+    actions.forEach(action => setImmediate(
+      () => this.emit('action', false, ...action)
+    ))
   }
 
   receiveAction(userId, sequence, action, ...args) {
     if (this.phase !== 'playing') throw Error("game not active")
-    console.log(`I: receiveAction(${userId}, ${sequence}, ${action}, ${args})`)
+    console.log(`received action (${userId}, ${sequence}, ${action}, ${args})`)
     if (this.listenerCount('action') === 0) {
       console.error(`${this.userId}: no listener`)
       throw Error("No listener")
     }
-    this.emit('action', true, this.players.indexOf(userId), sequence, action, ...args)
+    this.emit('action', true, this.players.indexOf(userId) + 1, sequence, action, ...args)
   }
 
-  // returns a promise that resolves when receiving a valid action from fromPlayer (default any) in the actions list
+  updateUser(userId) {
+    this.updatePlayer(this.players.indexOf(userId) + 1)
+  }
+
+  // core function to listen for actions
+  // returns a promise that resolves when receiving one of currentActions from currentPlayer
   // runs the action upon resolving. if action is partial, it sends a follow-up question
-  async waitForAction(actions, fromPlayer) {
-    console.log(`I: waitForAction(${actions.map(a=>a.name)}, ${fromPlayer})`)
-    this.updatePlayer(this.optionsFromActions(actions), fromPlayer)
+  async waitForAction() {
+    this.updatePlayers()
     return new Promise((resolve, reject) => {
       if (this.listenerCount('action') > 1) {
         console.error("Game play has gotten ahead of itself. You are probably missing an `await` in the play function")
@@ -255,55 +412,77 @@ class GameInterface extends EventEmitter {
         console.log(`I: got action (${player}, ${action}, ${args})`)
         const deserializedArgs = this.deserialize(args)
         if (action == 'moveElement') {
+          // moveElement is a special case that doesn't count as a full action but we need to register it and just keep listening
+          const currentPlayer = this.currentPlayer
+          this.currentPlayer = player
           try {
-            if (realtime) this.registerAction(player, sequence, ['moveElement', ...args])
-            this.sequence++;
             this.moveElement(...deserializedArgs)
-            this.updatePlayer(this.optionsFromActions(actions), fromPlayer)
+            if (realtime) this.registerAction(player, sequence, ['moveElement', ...args])
+            this.sequence++
+            this.updatePlayers()
           } catch(e) {
-            console.error("unable to register action", e)
-            // UNDO?
+            console.error("unable to register move action", e)
+          } finally {
+            this.currentPlayer = currentPlayer
+            // cant update becuase state is unchanged and will be ignored
           }
         } else {
-          const allowedAction = actions.find(a => a.name == action)
-          console.log('I try resolve with', allowedAction, `${fromPlayer}==${player}, ${sequence}==${this.sequence}`)
-          if ((fromPlayer === undefined || player === fromPlayer) && allowedAction && this.sequence === sequence) {
-            const result = allowedAction(...deserializedArgs)
-            console.log('I result', result)
-            if (result === true) {
-              try {
-                console.log(`I: registerAction(${player}, ${sequence}, ${action}, ${args})`)
-                if (realtime) this.registerAction(player, sequence, [action, ...args])
-                this.sequence++;
-                this.removeAllListeners('action')
-                resolve([action, ...deserializedArgs])
-              } catch(e) {
-                console.error("unable to register action", e)
-                // UNDO?
-              }
+          console.log('I try resolve with', action, `${this.currentPlayer}==${player}`, this.sequence, sequence)
+          if (this.sequence !== sequence) {
+            if (sequence <= this.lastReplaySequence) {
+              console.error("Unable to replay history with this game version", this.sequence, sequence)
+              return reject("Unable to replay history with this game version")
             }
-            if (result === false) {
-              // illegal action
+            console.error("Out of sequence", this.sequence, sequence)
+            return
+          }
+          if (this.currentPlayer !== undefined && player !== this.currentPlayer) {
+            return console.error(`Waiting for ${this.currentPlayer} and rejected action from ${player}.`)
+          }
+          if (!this.actions[action] && !this.builtinActions[action]) {
+            return console.error(`No such action ${action}`)
+          }
+          if (!this.alwaysAllowedPlays.concat(this.currentActions).includes(action)) {
+            return console.error(`${action} not allowed yet. Only ${this.alwaysAllowedPlays.concat(this.currentActions)}.join(', ')}`)
+          }
+          const currentPlayer = this.currentPlayer
+          this.currentPlayer = player
+          try {
+            this.runAction(action, deserializedArgs)
+          } catch(e) {
+            if (e instanceof IncompleteActionError) {
+              console.log("got IncompleteActionError", e)
+              this.updatePlayer(player, {[action]: {args, choices: e.choices, prompt: e.prompt}})
+              return
+            } else {
+              throw e // TODO should this throw? who catches? inconsistent with moveElement above. need to figure this out
             }
-            if (result instanceof Array) {
-              this.updatePlayer({[action]: [...args, result]})
-            }
+          } finally {
+            this.currentPlayer = currentPlayer
+          }
+          console.log(`action succeeded registerAction(${player}, ${sequence}, ${action}, ${args})`)
+          try {
+            if (realtime) this.registerAction(player, sequence, [action, ...args])
+            this.sequence++
+            this.removeAllListeners('action')
+            resolve([action, ...deserializedArgs])
+          } catch(e) {
+            console.error("unable to register action", e)
           }
         }
       })
-      console.log(`I: waiting...`)
     })
   }
 
   setCurrentPlayer(player) {
-    if (player >= this.players.length || player < 0) {
-      throw(`No such player #{player}`)
+    if (player > this.players.length || player < 1) {
+      throw(`No such player ${player}`)
     }
     this.currentPlayer = player
   }
 
   endTurn() {
-    this.currentPlayer = (this.currentPlayer + 1) % this.players.length
+    this.currentPlayer = this.currentPlayer % this.players.length + 1
   }
 
   moveElement(el, x, y) {
@@ -311,7 +490,7 @@ class GameInterface extends EventEmitter {
       el.set('x', x)
       el.set('y', y)
     } else {
-      console.error("Illegal moveElement", el.node.outerHTML, this.allowedMoveElements)
+      throw(`Illegal moveElement ${el.node.outerHTML}, ${this.allowedMoveElements}`)
     }
   }
 }

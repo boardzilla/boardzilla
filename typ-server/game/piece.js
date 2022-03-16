@@ -3,7 +3,7 @@ const GameElement = require('./element');
 class Piece extends GameElement {
 
   move(to) {
-    return this.board().move([this], to);
+    return this.root().move([this], to);
   }
 
   remove() {

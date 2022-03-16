@@ -1,16 +1,18 @@
 import React from 'react'
-import { Page, render } from 'typ-client';
-import style from './style.scss';
+import { render } from 'typ-client';
+import './style.scss';
 
-class TicTacToePage extends Page {
-  constructor(props) {
-    super(props);
-    this.components = { card }
-  }
-}
+render({
+  pieces: {
+    card: props => (
+      <img src={`images/${props.type}/${props.id || 'back'}.png`} />
+    ),
+  },
+  counters: {
+    hp: n => '♥'.repeat(n)
+  },
+});
 
-const card = props => (
-  <div {...props}><img src={"images/" + (props.id || 'loot-back') + ".png"} /></div>
-);
 
-render(TicTacToePage);
+// polar-star -> booster
+// anima sola -> the revenant

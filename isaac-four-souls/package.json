@@ -8,6 +8,8 @@
   },
   "dependencies": {
     "typ-client": "link:../typ-client",
-    "typ-server": "link:../typ-server"
+    "typ-server": "link:../typ-server",
+    "eslint": "^7.29.0",
+    "eslint-plugin-react": "^7.24.0"
   }
 }

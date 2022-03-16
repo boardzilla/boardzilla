@@ -1,16 +1,8 @@
 const GameElement = require('./element');
 const Piece = require('./piece');
 const { times } = require("./utils");
-const jsdom = require("jsdom");
-const { JSDOM } = jsdom;
 
 class Space extends GameElement {
-
-  _enhanceQuery(q) {
-    return q.replace('.mine', `[player="${this.game.player}"]`)
-            .replace(/#(\d)/, '#\\3$1 ')
-            .replace(/([#=])(\d)/, '$1\\3$2 ');
-  }
 
   findNode(q = '*') {
     if (q === null) return null;
@@ -70,7 +62,7 @@ class Space extends GameElement {
   }
 
   move(pieces, to, num) {
-    const space = this.board().space(to);
+    const space = this.root().space(to);
     if (!space) throw new Error(`No space found "${to}"`);
     let movables = space ? this.pieces(pieces) : [];
     if (num !== undefined) movables = movables.slice(0, num);
@@ -87,7 +79,7 @@ class Space extends GameElement {
   }
 
   shuffle() {
-    times(this.node.childElementCount - 1).forEach(i =>
+    times(this.node.childElementCount - 1, i =>
       this.node.insertBefore(this.node.children[Math.floor(Math.random() * (this.node.childElementCount - i))], null)
     );
   }
@@ -113,32 +105,11 @@ class Space extends GameElement {
   }
 
   addSpace(name, type, attrs) {
-    this.addGameElement(name, type, 'space', attrs);
+    return this.addGameElement(name, type, 'space', attrs);
   }
 
   addSpaces(num, name, type, attrs) {
-    times(num).forEach(() => this.addSpace(name, type, attrs));
-  }
-
-  addPiece(name, type, attrs) {
-    if (this.node === this.boardNode()) {
-      return this.pile().addPiece(name, type, attrs); // is this really better???
-    }
-    this.addGameElement(name, type, 'piece', attrs);
-  }
-
-  addPieces(num, name, type, attrs) {
-    times(num).forEach(() => this.addPiece(name, type, attrs));
-  }
-
-  addGameElement(name, type, className, attrs = {}) {
-    const dom = new JSDOM();
-    const el = dom.window.document.createElement(type);
-    if (name[0] !== '#') throw Error(`id ${name} must start with #`);
-    el.id = name.slice(1);
-    el.className = className;
-    Object.keys(attrs).forEach(attr => el.setAttribute(attr, attrs[attr]));
-    this.node.appendChild(el);
+    return times(num, () => this.addSpace(name, type, attrs));
   }
 }
 
