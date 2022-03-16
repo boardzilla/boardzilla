@@ -43,7 +43,6 @@ class GameRunner {
         while(running) {
           try {
             console.log(process.pid, "HAS LOCK")
-            let lastLockTime = new Date().getTime()
             const session = await db.Session.findByPk(sessionId)
             const game = session.gameId === -1 ? this.localDevGame : await session.getGame()
             const gameInstance = new GameInterface()
@@ -64,7 +63,16 @@ class GameRunner {
               await publish({type, userId, payload})
             })
 
-            gameInstance.registerAction = async (player, sequence, action) => await session.createAction({player, sequence, action})
+            gameInstance.registerAction = async (player, sequence, action) => {
+              try {
+                await session.createAction({player, sequence, action})
+              } catch(e) {
+                console.error(e);
+                if (!(e instanceof db.Sequelize.UniqueConstraintError)) {
+                  throw e
+                }
+              }
+            }
 
             const publish = async message => {
               await this.redisClient.publish(
@@ -104,6 +112,7 @@ class GameRunner {
                   userId: message.payload.userId,
                   payload: playerViews[message.payload.userId]
                 })
+                case 'update': return gameInstance.updateUser(message.payload.userId)
                 default: return console.log("unknown message", sessionId, message)
               }
             }

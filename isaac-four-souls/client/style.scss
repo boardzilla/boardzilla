@@ -1,9 +1,34 @@
-.board {
-  width: 303px;
-  height: 303px;
+#board {
+  height: 400px;
+  width: 800px;
+  #shop {
+    position: absolute;
+    width: 400px;
+    height: 100px;
+    left: 50px;
+    top: 100px;
+  }
 }
+
+#player-mat {
+  position: relative;
+  height: 200px;
+  width: 800px;
+  #tableau {
+    height: 100px;
+    width: 800px;
+    position: absolute;
+    top: 0px;
+  }
+  #hand {
+    height: 100px;
+    width: 800px;
+    position: absolute;
+    top: 100px;
+  }
+}
+
 .card {
-  position: absolute;
   width: 80px;
   height: 100px;
   &[active=true] {
@@ -11,10 +36,5 @@
   }
   img {
     height: 100%;
-  }
-  &[id]:hover {
-    zoom: 2;
-    margin-left: -20px;
-    margin-top: -20px;
   }
 }

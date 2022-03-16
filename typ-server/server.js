@@ -144,7 +144,7 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
       res.status(404).end('No such game')
     }
     if (!req.params[0]) {
-      res.render('client', {player: req.userId, entry: req.params.id === "local" ? '/local-game/index.js' : 'index.js'})
+      res.render('client', {userId: req.userId, entry: req.params.id === "local" ? '/local-game/index.js' : 'index.js'})
     } else {
       const buf = game.file(`/client/${req.params[0]}`)
       res.type(mime.getType(req.params[0]))
@@ -278,17 +278,18 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
       await db.ElementLock.destroy({where: { sessionId: session.id, userId: sessionUser.userId, element: key }})
       locks = locks.filter(lock => lock.key != key)
       await publish({type: 'locks'})
+      await publish({type: 'drag', payload: {key}})
     }
 
-    const drag = async ({key, x, y}) => {
+    const drag = async ({key, x, y, start, end, endFlip}) => {
       const lock = locks.find(lock => lock.element == key)
       if (!lock || lock.userId != sessionUser.userId) return
-      await publish({type: 'drag', payload: {userId: lock.userId, key, x, y}})
+      await publish({type: 'drag', payload: {userId: lock.userId, key, x, y, start, end, endFlip}})
     }
 
-    const updateElement = ({userId, key, x, y}) => {
+    const updateElement = ({userId, key, x, y, start, end, endFlip}) => {
       if (userId == sessionUser.userId) return
-      ws.send(JSON.stringify({type: 'updateElement', payload: {key, x, y}}))
+      ws.send(JSON.stringify({type: 'updateElement', payload: {key, x, y, start, end, endFlip}}))
     }
 
     const sessionRunner = gameRunner.createSessionRunner(session.id)

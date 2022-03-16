@@ -1,10 +1,59 @@
+DATABASE_URL=postgres://typ@127.0.0.1/typ_development yarn start
+
+X drag onto multiple areas? then cant be both mouse drag and mouse click?
+
 X multiple actions (ctx menu)
-- hidden attributes, exclude space/piece, x/y
-- composite actions (hilite intermediates)
+X hidden attributes, exclude space/piece, x/y
+X composite actions (hilite intermediates)
+X drag-and-drop....?
+- numerical action type
+- undo/reset
 - connection status
-- .mine class on client
+X .mine class on client
 - rseed
 - show errors from server
+- log???
+
+action types: select-array, select-el, drag-onto, select-el-number?, prompt, numerical, text?
+
+connected component
+
+isaac
+X player-mats
+X messages pane fixed with space at bottom
+- prompt action type
+- custom area layouts (X stack, sorted?)
+X find-and-bring-to-top???
+X select-array action type
+X counters up/down
+- layouts [other-player-mats, board, player-mat]
+- rseed
+- undo
+X drag translate x-y
+- toggle-panes
+- values can accept game => fn
+- set up play areas (loot(deck, discard), shop(deck, discard, 1,2,3,4), monsters(deck, discard, 1,2,3,4), bonus, players: hand, play, look-at)
+- deck hidden? or just lot of facedown cards with no visibility?
+- actions
+  - purchase
+  - drag (shop-deck, 1,2,3...) put into shop
+  - drag (mons-deck, 1,2,3...) put into monster, slot
+  - drag (loot-deck, hand) draw
+  - drag (hand, loot-discard) play
+  - drag (shop-1,2 tableau) buy
+  - look at top card (top n)
+    - put back
+    - bottom
+    - take
+  - steal-item
+  - steal-treasure
+  - give, player
+  - discard
+  - show hand, player
+    - take back
+  - take/spend coins
+  - shuffle
+
 
 single giant procedure, can freeze history and rseed and replay state if lost connection
 
@@ -43,23 +92,118 @@ playCard: card => {
 moves are:
   movex [el1, el2, el3]
   movey [el1, el2] [space1, space2]
-  movez boolean
+  movez no-args
   moven number
 
 sends: {
-  movex: [$el1, $el2, $el3],
-  movey: [$el1, $el2],
-  movez: 'movez',
+  movex: choices: [$el1, $el2, $el3], prompt: 'Move X'
+  movey: choices: [$el1, $el2], prompt: 'Move Y'
+  movez: prompt: 'Move Z',
 }
 
 appears as:
-  el1 -> ctx-menu [movex, movey] -> [space1, space2]
+  el1 -> ctx-menu [Move X, Move Y] -> [space1, space2]
   el3 click
-  'movez' button
+  'Move Z' button
 
 2nd send: {
-  movey: [$el1, [$space1, $space2]]
+  movey: args:[$el1], choices: [$space1, $space2], prompt: 'Move Y into space'
+}
+
+appears as:
+  'move Y into space' with $space1, $space2 hilited
+  'cancel' (removes the action, re-requests starting data from server)
+
+
+
+
+
+confirmation step required per move? just add additional arg, chooseAndConfirm() ? acceptable round-trip for this?
+
+drag(pieces, space, prompt, (piece => fn))
+
+function flip(card) {
+  return game.choose(card, game.board.findAll('card'), "Flip", () => {
+    card.set('flipped', !card.get('flipped'))
+  })
+}
+
+const flip = game.simpleAction(
+  "Do Something",
+  () => do something,
+)
+
+const flip = game.pieceAction(
+  "Flip",
+  game.board.findAll('card'),
+  card => card.set('flipped', !card.get('flipped')),
+)
+
+const flip = game.dragAction(
+  "Flip",
+  game.board.findAll('card'),
+  space,
+  card => card.set('flipped', !card.get('flipped')),
+)
+
+actions: {
+  flip: chooseAction(choices, label, choice => action),
+  play: chooseAction(choices, label, chooseAction(choices2, label, (choice, choice2) => action)),
 }
 
 
-confirmation step required per move? just add additional arg, chooseAndConfirm()
+createActions({
+  flip: {
+    prompt: 'Flip me!',
+    select: 'card',
+    action: card => toggle
+  },
+  takeCoins: {
+    prompt: 'Take how many',
+    drag: 'card',
+    onto: 'tableau'
+  },
+  play: {
+    prompt: 'Play this card',
+    promptOnto: 'To which tableau',
+    drag: 'card',
+    onto: 'tableau'
+  },
+  pass: {
+    prompt: 'Pass 3 card',
+    select: 'card',
+    number: 3
+    move: 'pass#mine',
+  },
+  endTurn: {
+    prompt: 'End turn',
+  },
+  spend: {
+    select: 'card',
+    prompt: 'Spend on a card',
+    next: {
+      select: 'resource'
+      prompt: 'Which resource',
+      action: (card, piece) => {card.move(piece)}
+    }
+  }
+])
+
+
+    client holds action, args... as it builds
+    server responds with follow-up choices
+
+    
+chooseAction(cs, f(c -> ?)) -> f(c -> t/f/a)
+
+chooseAction(cs, chooseAction
+
+
+how specify allowed moves
+- allowedMoveElements (within parent)
+- dragAction appends another selector
+- draggableSpaces(el)
+
+spaces have drag properties (free-move, arrangeable, sorted)
+dragging into a free-move has to record relative xy! tricky, come back to this?
+

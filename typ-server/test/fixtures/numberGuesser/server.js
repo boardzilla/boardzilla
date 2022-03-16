@@ -1,6 +1,6 @@
 /* global game */
 
-game.minPlayers = 2
+game.minPlayers = 1
 game.maxPlayers = 2
 
 game.initialVariables = {
@@ -11,18 +11,18 @@ game.initialVariables = {
 
 game.hide("correct")
 
-game.moves = {
-  guess: () => {
-    game.set({ guesses: game.get('guesses') + 1 })
-    return true
+game.actions = {
+  guess: {
+    min: 1,
+    max: 10,
+    next: () => game.set({ guesses: game.get('guesses') + 1 })
   }
 }
 
 game.play = async () => {
   console.log('correct', game.get('correct'))
   while (true) {
-    let [action, guess] = await game.currentPlayerPlay(game.moves.guess)
-    console.log('guess', guess)
+    let [action, guess] = await game.currentPlayerPlay('guess')
     if (guess == game.get('correct')) break;
     console.log('endTurn')
     game.endTurn()
