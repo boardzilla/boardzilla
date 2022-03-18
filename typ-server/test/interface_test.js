@@ -6,6 +6,7 @@ const chai = require('chai')
 const spies = require('chai-spies');
 chai.use(spies);
 const expect = chai.expect;
+const { times } = require("../game/utils");
 
 describe("GameInterface", () => {
   beforeEach(() => {
@@ -144,4 +145,12 @@ describe("GameInterface", () => {
       expect(this.spendSpy).to.have.been.called.with('gold', 2)
     })
   })
+
+  describe("random", () => {
+    it("looks random", () => {
+      times(10, i => this.interface.board.addSpace('#a', 's', {n: i}));
+      this.interface.board.shuffle();
+      console.log(this.interface.board.doc.innerHTML);
+    });
+  });
 })

@@ -64,24 +64,26 @@ class Space extends GameElement {
   move(pieces, to, num) {
     const space = this.root().space(to);
     if (!space) throw new Error(`No space found "${to}"`);
-    let movables = space ? this.pieces(pieces) : [];
+    let movables = this.pieces(pieces);
     if (num !== undefined) movables = movables.slice(0, num);
-    movables.forEach(piece => space.node.insertBefore(piece.node, null));
+    movables.forEach(piece => space.node.appendChild(piece.node));
     return movables;
   }
 
-  add(pieces, num = 1) {
+  add(pieces, num) {
     return this.move(this.pile().pieces(pieces), this, num);
   }
 
   clear(pieces, num) {
-    return this.move(pieces, this.pileNode(), num);
+    return this.move(pieces, this.pile(), num);
   }
 
   shuffle() {
-    times(this.node.childElementCount - 1, i =>
-      this.node.insertBefore(this.node.children[Math.floor(Math.random() * (this.node.childElementCount - i))], null)
-    );
+    times(this.node.childElementCount - 1, i => {
+      const r = this.game.random(this.node.childElementCount + 1 - i);
+      console.log(r, this.node.childElementCount + 1 - i);
+      this.node.insertBefore(this.node.children[r], null)
+    });
   }
 
   lowest(q, fn) {

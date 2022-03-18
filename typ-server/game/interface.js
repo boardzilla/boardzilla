@@ -3,6 +3,7 @@ const EventEmitter = require('events')
 const {times, range} = require('./utils')
 
 class InvalidChoiceError extends Error {}
+class InvalidActionError extends Error {}
 class IncompleteActionError extends Error {
   constructor({choices, prompt}) {
     super(prompt)
@@ -12,8 +13,9 @@ class IncompleteActionError extends Error {
 }
 
 class GameInterface extends EventEmitter {
-  constructor() {
+  constructor(seed) {
     super()
+    this.random = require('random-seed').create(seed);
     this.players = []
     this.phase = 'setup'
     this.hiddenKeys = []
@@ -257,6 +259,7 @@ class GameInterface extends EventEmitter {
 
   // test list of actions for validity and options, returns object of name:{prompt, choices?}
   choicesFromActions(player) {
+    console.log('-------------------------------choicesFromActions', player)
     if (this.currentPlayer !== undefined && player != this.currentPlayer) return {}
     return this.currentActions.reduce((choices, action) => { // TODO + alwaysAllowedPlays ?
       try {
@@ -267,6 +270,9 @@ class GameInterface extends EventEmitter {
         if (e instanceof IncompleteActionError) {
           //console.log('testAction IncompleteActionError', action, e.choices)
           choices[action] = {prompt: e.prompt, choices: e.choices}
+        } else if (e instanceof InvalidActionError) {
+          console.log("skip action", action)
+          return choices // skip
         } else {
           throw e
         }
@@ -275,14 +281,14 @@ class GameInterface extends EventEmitter {
     }, {})
   }
 
-  // test a given action without modifying state, rethrow
+  // test a given action without modifying state, rethrow, returns prompt string
   testAction(action, player) {
     const state = this.getState()
     const currentPlayer = this.currentPlayer
     this.currentPlayer = player
     //console.log('-------------------------------------------------TESTACTION', action)
     try {
-      this.runAction(action)
+      return this.runAction(action)
     } finally {
       //console.log('-------------------------------------------------END TESTACTION')
       this.setState(state)
@@ -290,48 +296,57 @@ class GameInterface extends EventEmitter {
     }
   }
 
-  // function that tries to run an action and delegates to the various main types of actions to determine outcome
+  // function that tries to run an action and delegates to the various main types of actions to determine outcome, returns string prompt
   runAction(action, args=[], argIndex=0) {
     if (this.builtinActions[action]) {
       return this.builtinActions[action](...args)
     }
 
+    let actionName = action && action.prompt
+
     if (typeof action == 'string' && this.actions[action]) {
+      actionName = action
       action = this.actions[action]
     }
-    console.log('running action', action)
+    console.log('running action', actionName)
 
     if (!action) {
-      throw Error(`No such action: ${action}`)
+      throw Error(`No such action: ${actionName}`)
     }
+
+    if (action.if && !action.if()) {
+      throw new InvalidActionError(`${actionName} not allowed due to "if" condition`)
+    }
+
     let nextAction = action.action
 
     if (action.next) {
       if (action.action) {
-        throw Error("${action} may not have both 'next' and 'action'")
+        throw Error("${actionName} may not have both 'next' and 'action'")
       }
       nextAction = () => this.runAction(action.next, args, argIndex + 1)
     }
 
     if (action.drag) {
       if (!action.onto) {
-        throw Error(`${action} has a 'drag' but no 'onto'`)
+        throw Error(`${actionName} has a 'drag' but no 'onto'`)
       }
-      this.dragAction(action.drag, action.onto, action.prompt, action.promptOnto, nextAction)(...args)
+      return this.dragAction(action.drag, action.onto, action.prompt, action.promptOnto, nextAction)(...args)
     } else if (action.select) {
       if (action.select instanceof Array) {
-        this.chooseAction(action.select, action.prompt, nextAction, argIndex)(...args)
+        return this.chooseAction(action.select, action.prompt, nextAction, argIndex)(...args)
       } else if (typeof action.select == 'string') {
-        this.chooseAction(this.doc.findAll(action.select), action.prompt, nextAction)(...args)
+        return this.chooseAction(this.doc.findAll(action.select), action.prompt, nextAction)(...args)
       } else if (typeof action.select == 'function') {
-        this.chooseAction(action.select(...args), action.prompt, nextAction, argIndex)(...args)
+        return this.chooseAction(action.select(...args), action.prompt, nextAction, argIndex)(...args)
       } else {
-        throw Error(`'select' for ${action} must be a list or a finder`)
+        throw Error(`'select' for ${actionName} must be a list or a finder`)
       }
     } else if (action.max) { // simple numerical
-      this.chooseAction(range(action.min, action.max), action.prompt, nextAction, argIndex)(...args)
+      return this.chooseAction(range(action.min, action.max), action.prompt, nextAction, argIndex)(...args)
     } else if (nextAction) {
       nextAction(...args)
+      return action.prompt
     }
   }
 
@@ -419,10 +434,10 @@ class GameInterface extends EventEmitter {
             this.moveElement(...deserializedArgs)
             if (realtime) this.registerAction(player, sequence, ['moveElement', ...args])
             this.sequence++
-            this.updatePlayers()
           } catch(e) {
             console.error("unable to register move action", e)
           } finally {
+            this.updatePlayers()
             this.currentPlayer = currentPlayer
             // cant update becuase state is unchanged and will be ignored
           }

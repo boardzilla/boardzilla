@@ -10,30 +10,30 @@ X drag-and-drop....?
 - undo/reset
 - connection status
 X .mine class on client
-- rseed
+X rseed
 - show errors from server
 - log???
 
 action types: select-array, select-el, drag-onto, select-el-number?, prompt, numerical, text?
 
-connected component
-
 isaac
+X decide on order in dom. whats top? re addPiece, move, etc (last item in children is top item on board)
 X player-mats
 X messages pane fixed with space at bottom
-- prompt action type
-- custom area layouts (X stack, sorted?)
+X prompt action type
+X action conditions? inspect-char-deck: { if: ()=><deck in pile> }
+.. custom area layouts (X stack, sorted?)
 X find-and-bring-to-top???
 X select-array action type
 X counters up/down
-- layouts [other-player-mats, board, player-mat]
-- rseed
+- layouts [other-player-mats, board, player-mat] (just 2-player hard-coded for now)
+X rseed
 - undo
 X drag translate x-y
 - toggle-panes
 - values can accept game => fn
 - set up play areas (loot(deck, discard), shop(deck, discard, 1,2,3,4), monsters(deck, discard, 1,2,3,4), bonus, players: hand, play, look-at)
-- deck hidden? or just lot of facedown cards with no visibility?
+X deck hidden? or just lot of facedown cards with no visibility? (show 2 cards)
 - actions
   - purchase
   - drag (shop-deck, 1,2,3...) put into shop

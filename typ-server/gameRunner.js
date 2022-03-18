@@ -45,7 +45,7 @@ class GameRunner {
             console.log(process.pid, "HAS LOCK")
             const session = await db.Session.findByPk(sessionId)
             const game = session.gameId === -1 ? this.localDevGame : await session.getGame()
-            const gameInstance = new GameInterface()
+            const gameInstance = new GameInterface(session.seed)
             const playerViews = {}
             const vm = new NodeVM({
               console: 'inherit',

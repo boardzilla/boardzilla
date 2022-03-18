@@ -117,7 +117,7 @@ export default class Page extends Component {
         action: [action, ...args]
       },
     );
-    this.setState({actions: null, action: null, args: [], prompt: null, choices: null, filter: null});
+    this.setState({actions: null, action: null, args: [], prompt: null, choices: null, filter: ''});
   }
 
   get(variable) {
@@ -215,13 +215,24 @@ export default class Page extends Component {
   // return available actions association to this element (TODO does this need to go up through parent chain?)
   actionsFor(choice) {
     if (!this.state.data.allowedActions) return []
-    return Object.entries(this.state.data.allowedActions).reduce((actions, [action, result]) => {
+    return Object.entries(this.state.data.allowedActions).reduce((actions, [action, {choices, prompt}]) => {
       let node = choice;
       while (node.length > 4) {
-        if (result.choices.includes(node)) {
-          actions[action] = {choice: node, prompt: result.prompt}
+        if (choices && choices.includes(node)) {
+          actions[action] = {choice: node, prompt}
         }
         node = node.slice(0, -3) + ')'
+      }
+      return actions;
+    }, [])
+  }
+
+  // actions that have no element to click. returns { action: prompt,... }
+  nonBoardActions() {
+    if (!this.state.data.allowedActions) return []
+    return Object.entries(this.state.data.allowedActions).reduce((actions, [action, {choices, prompt}]) => {
+      if (!choices || choices.includes(choice => choice.slice(0,4) != '$el(')) {
+        actions[action] = prompt
       }
       return actions;
     }, [])
@@ -295,7 +306,7 @@ export default class Page extends Component {
       contents = React.createElement(this.components[type], {...props, display: this.counterDisplays[props.display] || (v=>v), ...this.bindMethods('gameAction', 'get')});
     } else if (node.className !== 'piece' || node.childNodes.length) {
       if (node.nodeName == 'deck' && node.childNodes.length) {
-        contents = Array.from(node.childNodes).slice(0,2).reverse().map(child => this.renderGameElement(child, false, flipped || parentFlipped));
+        contents = Array.from(node.childNodes).slice(-2).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
       } else {
         contents = Array.from(node.childNodes).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
       }
@@ -334,6 +345,7 @@ export default class Page extends Component {
     const choice = this.state.args.slice(-1)
     const textChoices = this.state.choices instanceof Array &&
                         this.state.choices.filter(choice => choice.slice(0,4) != '$el(' && choice.toLowerCase().includes(this.state.filter.toLowerCase()));
+    const nonBoardActions = this.nonBoardActions()
     return (
       <div>
       {this.state.prompt && <div id="messages">
@@ -345,6 +357,13 @@ export default class Page extends Component {
         </div>}
         <button onClick={() => this.send('update')}>Cancel</button>
       </div>}
+
+      {nonBoardActions && !this.state.prompt && <div id="messages">
+        {Object.entries(nonBoardActions).map(([action, prompt]) => (
+          <button key={action} onClick={() => this.gameAction(action)}>{prompt}</button>
+        ))}
+      </div>}
+
       {this.state.data.phase === 'playing' && this.state.data.doc && this.renderBoard(xmlToNode(this.state.data.doc))}
 
       {this.state.actions && this.state.ctxpos &&

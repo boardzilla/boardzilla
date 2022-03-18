@@ -67,7 +67,7 @@ game.actions = {
   },
   draw: {
     prompt: "Draw",
-    drag: "deck card:first-child",
+    drag: "deck card:last-child",
     onto: ".mine #tableau",
   },
   drawOne: {
@@ -78,6 +78,16 @@ game.actions = {
       select: deck => deck.findAll("card").map(c => c.id),
       action: (deck, card) => deck.find(`card#${card}`).move('.mine #tableau'),
     }
+  },
+  getCharDeck: {
+    prompt: "Get Characters",
+    if: () => game.pile.find('card[type="character"]'),
+    action: () => game.board.find('#characters').add('card[type="character"]'),
+  },
+  removeCharDeck: {
+    prompt: "Remove Characters",
+    if: () => game.board.find('card[type="character"]'),
+    action: () => game.board.find('#characters').clear('card[type="character"]'),
   },
 };
 
