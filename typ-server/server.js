@@ -155,7 +155,7 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
   app.post('/sessions', async (req, res) => {
     if (!req.userId) return unauthorized(req, res, 'permission denied')
     if (!req.body.gameId) return res.status(400).end('no game specified')
-    const session = await db.Session.create({creatorId: req.userId, gameId: req.body.gameId})
+    const session = await db.Session.create({creatorId: req.userId, gameId: req.body.gameId, seed: String(Math.random())})
     await db.SessionUser.create({userId: req.userId, sessionId: session.id})
     if (req.is('json')) {
       res.json({id: session.id})

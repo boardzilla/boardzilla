@@ -14,9 +14,9 @@ class GameElement {
   }
 
   _enhanceQuery(q) {
-    return q.replace('.mine', `[player="${this.game.currentPlayer}"]`)
-            .replace(/#(\d)/, '#\\3$1 ')
-            .replace(/([#=])(\d)/, '$1\\3$2 ');
+    return q.replace(/\.mine/g, `[player="${this.game.currentPlayer}"]`)
+            .replace(/#(\d)/g, '#\\3$1 ')
+            .replace(/([#=])(\d)/g, '$1\\3$2 ');
   }
 
   wrap(node) {
@@ -96,8 +96,8 @@ class GameElement {
     return this.wrap(this.pileNode());
   }
 
-  place(pieces, to, opts = {}) {
-    return this.root().find('#PILE').move(pieces, to, Object.assign({ limit: 1, within: this.node }, opts));
+  place(pieces, to) {
+    return this.pile().move(pieces, to);
   }
 
   duplicate() {
