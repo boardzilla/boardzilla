@@ -1,7 +1,12 @@
 {
-  "name": "typ",
+	"name": "typ",
 	"scripts": {
 		"postinstall": "yarn --cwd typ-server install",
 		"start": "cd typ-server && node run.js"
-	}
+	},
+	"version": "1.0.0",
+	"main": "index.js",
+	"repository": "git@github.com:joshbuddy/typ.git",
+	"author": "Josh Hull <josh@fireflop.com>",
+	"license": "MIT"
 }
