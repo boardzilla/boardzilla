@@ -1,0 +1,6 @@
+{
+	"scripts": {
+		"postinstall": "yarn --cwd typ-server install",
+		"start": "cd typ-server && node run.js"
+	}
+}
