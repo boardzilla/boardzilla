@@ -2,7 +2,7 @@
 	"name": "typ",
 	"scripts": {
 		"postinstall": "yarn --cwd typ-server install",
-		"start": "cd typ-server && node run.js",
+		"start": "cd isaac-four-souls && yarn start",
 		"heroku-postbuild": "yarn --cwd typ-server sequelize db:migrate"
 	},
 	"version": "1.0.0",
