@@ -36,7 +36,7 @@ export default class Page extends Component {
   }
 
   componentDidMount() {
-    this.webSocket=new ReconnectingWebSocket('ws://' + document.location.host + '/sessions/' + this.props.session);
+    this.webSocket=new ReconnectingWebSocket((location.protocol == 'http:' ? 'ws://' : 'wss://') + document.location.host + '/sessions/' + this.props.session);
 
     this.webSocket.onopen = () => {
       this.refreshInterval = setInterval(() => {
