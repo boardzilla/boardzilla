@@ -14,6 +14,8 @@ game.setupBoard = board => {
   game.playerMat(2).find('#hand').addPiece('#Isaac', 'card', {type: 'character'});
   const charactersDeck = board.addSpace('#characters', 'deck');
   characters.forEach(c => charactersDeck.addPiece("#" + c, 'card', {type: 'character'}))
+  const eternalsDeck = board.addSpace('#eternals', 'deck');
+  eternals.forEach(c => eternalsDeck.addPiece("#" + c, 'card', {type: 'eternal'}))
   const shop = board.addSpace('#shop', 'area');
   shop.addSpace('#shop-deck', 'deck');
   shop.addSpace('#shop-discard', 'deck');
@@ -79,6 +81,11 @@ game.actions = {
       action: (deck, card) => deck.find(`card#${card}`).move('.mine #tableau'),
     }
   },
+  intoCharDeckTop: {
+    prompt: "Put on top of deck",
+    drag: '.mine card[type="character"]',
+    onto: '#characters',
+  },
   getCharDeck: {
     prompt: "Get Characters",
     if: () => game.pile.find('card[type="character"]'),
@@ -88,6 +95,21 @@ game.actions = {
     prompt: "Remove Characters",
     if: () => game.board.find('card[type="character"]'),
     action: () => game.board.find('#characters').clear('card[type="character"]'),
+  },
+  intoEternalDeckTop: {
+    prompt: "Put on top of deck",
+    drag: '.mine card[type="eternal"]',
+    onto: '#eternals',
+  },
+  getEternalDeck: {
+    prompt: "Get Eternals",
+    if: () => game.pile.find('card[type="eternal"]'),
+    action: () => game.board.find('#eternals').add('card[type="eternal"]'),
+  },
+  removeEternalDeck: {
+    prompt: "Remove Eternals",
+    if: () => game.board.find('card[type="eternal"]'),
+    action: () => game.board.find('#eternals').clear('card[type="eternal"]'),
   },
 };
 

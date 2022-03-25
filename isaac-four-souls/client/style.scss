@@ -1,12 +1,28 @@
 #board {
   height: 400px;
   width: 800px;
+  #characters {
+    position: absolute;
+    left: 360px;
+    top: 50px;
+    z-index: 20;
+  }
+  #eternals {
+    position: absolute;
+    left: 360px;
+    top: 250px;
+    z-index: 20;
+  }
   #shop {
     position: absolute;
     width: 400px;
     height: 100px;
     left: 50px;
     top: 100px;
+  }
+  .deck {
+    width: 80px;
+    height: 100px;
   }
 }
 

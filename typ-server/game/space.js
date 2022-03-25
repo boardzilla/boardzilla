@@ -81,7 +81,6 @@ class Space extends GameElement {
   shuffle() {
     times(this.node.childElementCount - 1, i => {
       const r = this.game.random(this.node.childElementCount + 1 - i);
-      console.log(r, this.node.childElementCount + 1 - i);
       this.node.insertBefore(this.node.children[r], null)
     });
   }

@@ -17,6 +17,8 @@ X rseed
 action types: select-array, select-el, drag-onto, select-el-number?, prompt, numerical, text?
 
 isaac
+X zoom
+- mobile viewport #messages visualViewport on resize
 X decide on order in dom. whats top? re addPiece, move, etc (last item in children is top item on board)
 X player-mats
 X messages pane fixed with space at bottom
