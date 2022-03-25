@@ -469,6 +469,8 @@ class GameInterface extends EventEmitter {
               console.log("got IncompleteActionError", e)
               this.updatePlayer(player, {[action]: {args, choices: e.choices, prompt: e.prompt}})
               return
+            } else if (e instanceof InvalidChoiceError) {
+              console.log(e) // TODO send something
             } else {
               throw e // TODO should this throw? who catches? inconsistent with moveElement above. need to figure this out
             }

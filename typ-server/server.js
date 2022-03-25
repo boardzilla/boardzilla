@@ -278,7 +278,6 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
       await db.ElementLock.destroy({where: { sessionId: session.id, userId: sessionUser.userId, element: key }})
       locks = locks.filter(lock => lock.key != key)
       await publish({type: 'locks'})
-      await publish({type: 'drag', payload: {key}})
     }
 
     const drag = async ({key, x, y, start, end, endFlip}) => {
