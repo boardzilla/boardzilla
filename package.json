@@ -1,7 +1,7 @@
 {
 	"name": "typ",
 	"scripts": {
-		"postinstall": "yarn --cwd typ-server install && yarn --cwd typ-client install && yarn --cwd isaac-four-souls install",
+		"postinstall": "yarn --cwd typ-server install --production=false && yarn --cwd typ-client install --production=false && yarn --cwd isaac-four-souls install --production=false",
 		"start": "cd isaac-four-souls && yarn start",
 		"heroku-postbuild": "yarn --cwd typ-server sequelize db:migrate"
 	},
