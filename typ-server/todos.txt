@@ -9,6 +9,7 @@ X drag-and-drop....?
 - numerical action type
 - undo/reset
 - connection status
+- kb shortcuts?
 X .mine class on client
 X rseed
 - show errors from server

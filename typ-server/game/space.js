@@ -61,12 +61,23 @@ class Space extends GameElement {
     return this.findAll(q).filter(el => el instanceof Piece);
   }
 
+  // move pieces to a space, at end of list (on top). use num to limit the number moved
   move(pieces, to, num) {
     const space = this.root().space(to);
     if (!space) throw new Error(`No space found "${to}"`);
     let movables = this.pieces(pieces);
-    if (num !== undefined) movables = movables.slice(0, num);
+    if (num !== undefined) movables = movables.slice(-num);
     movables.forEach(piece => space.node.appendChild(piece.node));
+    return movables;
+  }
+
+  // move pieces to a space, at start of list (on bottom). use num to limit the number moved
+  moveToBottom(pieces, to, num) {
+    const space = this.root().space(to);
+    if (!space) throw new Error(`No space found "${to}"`);
+    let movables = this.pieces(pieces);
+    if (num !== undefined) movables = movables.slice(-num);
+    movables.forEach(piece => space.node.insertBefore(piece.node, space.node.children[0]));
     return movables;
   }
 

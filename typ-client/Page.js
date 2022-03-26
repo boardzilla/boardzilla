@@ -213,6 +213,7 @@ export default class Page extends Component {
 
   handleClick(choice, {x, y}, event) {
     const actions = this.actionsFor(choice);
+    console.log('handleClick', choice, actions)
     if (Object.keys(actions).length == 1) {
       this.gameAction(Object.keys(actions)[0], ...this.state.args, choice);
       event.stopPropagation();

@@ -3,13 +3,13 @@
   width: 800px;
   #characters {
     position: absolute;
-    left: 360px;
+    left: 560px;
     top: 50px;
     z-index: 20;
   }
   #eternals {
     position: absolute;
-    left: 360px;
+    left: 560px;
     top: 250px;
     z-index: 20;
   }
@@ -18,7 +18,44 @@
     width: 400px;
     height: 100px;
     left: 50px;
-    top: 100px;
+    top: 90px;
+    #shop-deck {
+      position: absolute;
+      left: 100px;
+      top: 0;
+    }
+    #shop-discard {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+  }
+  #monsters {
+    position: absolute;
+    width: 400px;
+    height: 100px;
+    left: 50px;
+    top: 210px;
+    #monster-deck {
+      position: absolute;
+      left: 100px;
+      top: 0;
+    }
+    #monster-discard {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+  }
+  #loot-deck {
+    position: absolute;
+    left: 700px;
+    top: 90px;
+  }
+  #loot-discard {
+    position: absolute;
+    left: 700px;
+    top: 210px;
   }
   .deck {
     width: 80px;
