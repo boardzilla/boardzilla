@@ -15,7 +15,7 @@ class IncompleteActionError extends Error {
 class GameInterface extends EventEmitter {
   constructor(seed) {
     super()
-    this.random = require('random-seed').create(seed);
+    this.random = require('random-seed').create(seed)
     this.players = []
     this.phase = 'setup'
     this.hiddenKeys = []
@@ -27,8 +27,8 @@ class GameInterface extends EventEmitter {
     this.pile = this.doc.pile()
     this.drags = {}
     this.actions = {}
-    this.currentPlayer = undefined; // 1-indexed from list of players, or undefined if any player can play
-    this.currentActions = [];
+    this.currentPlayer = undefined // 1-indexed from list of players, or undefined if any player can play
+    this.currentActions = []
     this.builtinActions = {
       addCounter: initialValue => initialValue, // TODO? call doc.addCounter?
       setCounter: (key, value) => this.set(key, value),
@@ -259,9 +259,9 @@ class GameInterface extends EventEmitter {
 
   // test list of actions for validity and options, returns object of name:{prompt, choices?}
   choicesFromActions(player) {
-    console.log('-------------------------------choicesFromActions', player)
+    const start = new Date()
     if (this.currentPlayer !== undefined && player != this.currentPlayer) return {}
-    return this.currentActions.reduce((choices, action) => { // TODO + alwaysAllowedPlays ?
+    const choices = this.currentActions.reduce((choices, action) => {
       try {
         const prompt = this.testAction(action, player)
         //console.log('testAction OK', action)
@@ -279,35 +279,42 @@ class GameInterface extends EventEmitter {
       }
       return choices
     }, {})
+    console.log('-------------------------------choicesFromActions', player, (new Date() - start) / 1000)
+    return choices
   }
 
   // test a given action without modifying state, rethrow, returns prompt string
   testAction(action, player) {
-    const state = this.getState()
     const currentPlayer = this.currentPlayer
     this.currentPlayer = player
     //console.log('-------------------------------------------------TESTACTION', action)
     try {
-      return this.runAction(action)
+      return this.runAction(action, [], 0, true)
     } finally {
       //console.log('-------------------------------------------------END TESTACTION')
-      this.setState(state)
       this.currentPlayer = currentPlayer
     }
   }
 
   // function that tries to run an action and delegates to the various main types of actions to determine outcome, returns string prompt
-  runAction(action, args=[], argIndex=0) {
+  runAction(action, args=[], argIndex=0, test=false) {
     if (this.builtinActions[action]) {
       return this.builtinActions[action](...args)
     }
 
-    let actionName = action && action.prompt
+    let actionName
 
     if (typeof action == 'string' && this.actions[action]) {
       actionName = action
       action = this.actions[action]
+    } else {
+      actionName = action.prompt
     }
+
+    if (!action.prompt) {
+      throw Error(`${actionName} is missing 'prompt'`)
+    }
+
     console.log('running action', actionName)
 
     if (!action) {
@@ -320,11 +327,15 @@ class GameInterface extends EventEmitter {
 
     let nextAction = action.action
 
-    if (action.next) {
-      if (action.action) {
-        throw Error("${actionName} may not have both 'next' and 'action'")
+    if (test) {
+      nextAction = () => {}
+    } else {
+      if (action.next) {
+        if (action.action) {
+          throw Error("${actionName} may not have both 'next' and 'action'")
+        }
+        nextAction = () => this.runAction(action.next, args, argIndex + 1)
       }
-      nextAction = () => this.runAction(action.next, args, argIndex + 1)
     }
 
     if (action.drag) {
@@ -342,7 +353,10 @@ class GameInterface extends EventEmitter {
       } else {
         throw Error(`'select' for ${actionName} must be a list or a finder`)
       }
-    } else if (action.max) { // simple numerical
+    } else if (action.max != undefined || action.min != undefined) { // simple numerical
+      if (action.max == undefined || action.min == undefined) { 
+        throw Error("${actionName} needs both 'min' and 'max'")
+      }
       return this.chooseAction(range(action.min, action.max), action.prompt, nextAction, argIndex)(...args)
     } else if (nextAction) {
       nextAction(...args)
@@ -472,6 +486,7 @@ class GameInterface extends EventEmitter {
             } else if (e instanceof InvalidChoiceError) {
               console.log(e) // TODO send something
             } else {
+              console.log(e)
               throw e // TODO should this throw? who catches? inconsistent with moveElement above. need to figure this out
             }
           } finally {

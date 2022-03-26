@@ -6,6 +6,10 @@ class Piece extends GameElement {
     return this.root().move([this], to);
   }
 
+  moveToBottom(to) {
+    return this.root().moveToBottom([this], to);
+  }
+
   remove() {
     return this.move(this.pileNode());
   }

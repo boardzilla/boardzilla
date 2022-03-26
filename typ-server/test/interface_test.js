@@ -32,14 +32,16 @@ describe("GameInterface", () => {
     }
     game.actions = {
       addSome: {
+        prompt: 'add some counters',
         min: 1,
         max: 3,
         action: n => game.set('tokens', game.get('tokens') + n)
       },
       takeOne: {
+        prompt: 'take one counter',
         action: () => game.set('tokens', game.get('tokens') - 1)
       },
-      hi: {},
+      hi: {prompt: 'hi'},
       spend: {
         options: ['gold', 'silver'],
         prompt: 'Spend resource',

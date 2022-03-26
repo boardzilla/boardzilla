@@ -136,7 +136,7 @@ class GameElement {
   }
 
   registerId(ns) {
-    return `${ns}-${idSequence}`;
+    return `${ns}-${++idSequence}`;
   }
 
   static isSpaceNode(node) {
