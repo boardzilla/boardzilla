@@ -36,6 +36,7 @@ class GameRunner {
       try {
         await lockClient.connect()
         lockClient.on('error', (err) => {
+          console.log(process.pid, "err from lock client", err)
           queueClient.end()
         })
         await lockClient.query("select pg_advisory_lock($1, $2)", [GAME_SESSION_NS, sessionId])
@@ -113,13 +114,36 @@ class GameRunner {
                   payload: playerViews[message.payload.userId]
                 })
                 case 'update': return gameInstance.updateUser(message.payload.userId)
+                case 'reset':
+                  await queueClient.delete(this.sessionEventKey(sessionId))
+                  await db.SessionAction.destroy({
+                    where: {
+                      sessionId
+                    }
+                  })
+                  running = false
+                  break
+                case 'undo':
+                  await queueClient.delete(this.sessionEventKey(sessionId))
+                  const lastAction = await session.getActions({order: ['sequence', 'DESC'], limit: 1})
+                  await db.SessionAction.destroy({
+                    where: {
+                      id: lastAction[0].id
+                    }
+                  })
+                  running = false
+                  break
                 default: return console.log("unknown message", sessionId, message)
               }
             }
 
             while (running) {
-              const data = await queueClient.blpop(this.sessionEventKey(sessionId), 5000)
-              processGameEvent(JSON.parse(data[1]))
+              const data = await queueClient.blpop(this.sessionEventKey(sessionId), 60000)
+              if (data[1]) {
+                processGameEvent(JSON.parse(data[1]))
+              } else {
+                console.log("no game data to process")
+              }
             }
             await queueClient.end()
           } catch (e) {
@@ -127,6 +151,11 @@ class GameRunner {
           }
         }
       } finally {
+        try {
+          await queueClient.end()
+        } catch (e) {
+          console.log("error ending queue client", e)
+        }
         try {
           await lockClient.query("select pg_advisory_unlock($1, $2)", [GAME_SESSION_NS, sessionId])
         } catch (e) {
@@ -136,12 +165,6 @@ class GameRunner {
           await lockClient.end()
         } catch (e) {
           console.log("error ending lock client", e)
-        }
-
-        try {
-          await queueClient.end()
-        } catch (e) {
-          console.log("error ending queue client", e)
         }
       }
     })().catch(e => handle.emit('error', e))
