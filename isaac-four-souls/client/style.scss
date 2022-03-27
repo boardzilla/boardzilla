@@ -1,5 +1,5 @@
 #board {
-  height: 400px;
+  height: 320px;
   width: 800px;
   #characters {
     position: absolute;
@@ -10,52 +10,52 @@
   #eternals {
     position: absolute;
     left: 560px;
-    top: 250px;
+    top: 170px;
     z-index: 20;
   }
   #shop {
     position: absolute;
     width: 400px;
     height: 100px;
-    left: 50px;
-    top: 90px;
-    #shop-deck {
-      position: absolute;
-      left: 100px;
-      top: 0;
-    }
-    #shop-discard {
-      position: absolute;
-      left: 0;
-      top: 0;
-    }
+    left: 210px;
+    top: 50px;
   }
-  #monsters {
+  #treasure {
+    position: absolute;
+    left: 130px;
+    top: 50px;
+  }
+  #treasure-discard {
+    position: absolute;
+    left: 50px;
+    top: 50px;
+  }
+  #dungeon {
     position: absolute;
     width: 400px;
     height: 100px;
-    left: 50px;
-    top: 210px;
-    #monster-deck {
-      position: absolute;
-      left: 100px;
-      top: 0;
-    }
-    #monster-discard {
-      position: absolute;
-      left: 0;
-      top: 0;
-    }
+    left: 210px;
+    top: 170px;
   }
-  #loot-deck {
+  #monsters {
+    position: absolute;
+    left: 130px;
+    top: 170px;
+  }
+  #monsters-discard {
+    position: absolute;
+    left: 50px;
+    top: 170px;
+  }
+  #loot {
     position: absolute;
     left: 700px;
-    top: 90px;
+    top: 50px;
   }
   #loot-discard {
     position: absolute;
     left: 700px;
-    top: 210px;
+    top: 170px;
   }
   .deck {
     width: 80px;
@@ -65,20 +65,24 @@
 
 #player-mat {
   position: relative;
-  height: 200px;
+  height: 240px;
   width: 800px;
   #tableau {
-    height: 100px;
+    height: 120px;
     width: 800px;
     position: absolute;
     top: 0px;
   }
   #hand {
-    height: 100px;
+    height: 120px;
     width: 800px;
     position: absolute;
-    top: 100px;
+    top: 120px;
   }
+}
+
+.counter[display="hp"] {
+  color: red;
 }
 
 .card {
