@@ -115,7 +115,7 @@ class GameRunner {
                 })
                 case 'update': return gameInstance.updateUser(message.payload.userId)
                 case 'reset':
-                  await queueClient.delete(this.sessionEventKey(sessionId))
+                  await queueClient.del(this.sessionEventKey(sessionId))
                   await db.SessionAction.destroy({
                     where: {
                       sessionId
@@ -124,7 +124,7 @@ class GameRunner {
                   running = false
                   break
                 case 'undo':
-                  await queueClient.delete(this.sessionEventKey(sessionId))
+                  await queueClient.del(this.sessionEventKey(sessionId))
                   const lastAction = await session.getActions({order: ['sequence', 'DESC'], limit: 1})
                   await db.SessionAction.destroy({
                     where: {
