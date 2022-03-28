@@ -122,6 +122,12 @@ class GameElement {
       this.addPiece('#' + id, 'counter', attrs)
       this.game.set(id, parseInt(attrs.initialValue) || 0); // TODO this is not namespaced
     }
+    if (name == 'die') { // TODO minimal impl for now
+      const id = this.registerId('die')
+      this.addPiece('#' + id, 'die', attrs)
+      this.game.set(`${id}-faces`, attrs.faces);
+      this.game.set(id, attrs.faces);
+    }
   }
 
   addGameElement(name, type, className, attrs = {}) {

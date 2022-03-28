@@ -252,7 +252,7 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
     }
 
     const sendPlayerLocks = async () => {
-      const payload = await session.getElementLocks().map(lock => ({user: lock.userId, key: lock.element}))
+      const payload = await session.getElementLocks().reduce((locks, lock) => {locks[lock.element] = lock.userId; return locks;}, {})
       ws.send(JSON.stringify({type: 'updateLocks', payload}))
     }
 
@@ -262,7 +262,6 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
       try {
         await db.ElementLock.destroy({where: {
           sessionId: session.id,
-          element: key,
           updatedAt: {[Sequelize.Op.lt]: new Date() - 60000}
         }})
         locks.push(await db.ElementLock.create({ sessionId: session.id, userId: sessionUser.userId, element: key }))
