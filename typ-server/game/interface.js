@@ -1,6 +1,6 @@
 const GameDocument = require('./document')
 const EventEmitter = require('events')
-const {times, range} = require('./utils')
+const {times, range, asyncTimes} = require('./utils')
 
 class InvalidChoiceError extends Error {}
 class InvalidActionError extends Error {}
@@ -234,15 +234,9 @@ class GameInterface extends EventEmitter {
     return await this.waitForAction()
   }
 
-  async repeat(times, fn) {
-    for (let i=0; i<times; i++) {
-      await fn(i)
-    }
-  }
-
   // runs provided async block for each player, starting with the current
   async playersInTurn(fn) {
-    await this.repeat(this.players.length, async turn => {
+    await asyncTimes(this.players.length, async turn => {
       await fn(turn)
       this.endTurn()
     })
@@ -354,7 +348,7 @@ class GameInterface extends EventEmitter {
         throw Error(`'select' for ${actionName} must be a list or a finder`)
       }
     } else if (action.max != undefined || action.min != undefined) { // simple numerical
-      if (action.max == undefined || action.min == undefined) { 
+      if (action.max == undefined || action.min == undefined) {
         throw Error("${actionName} needs both 'min' and 'max'")
       }
       return this.chooseAction(range(action.min, action.max), action.prompt, nextAction, argIndex)(...args)

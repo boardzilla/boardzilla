@@ -18,7 +18,13 @@ X rseed
 action types: select-array, select-el, drag-onto, select-el-number?, prompt, numerical, text?
 
 isaac
+- dice
+- coin counters
+- drag bug
+- addCounter
+- bonus souls
 X zoom
+- https://github.com/WebReflection/linkedom
 - mobile viewport #messages visualViewport on resize
 X decide on order in dom. whats top? re addPiece, move, etc (last item in children is top item on board)
 X player-mats
