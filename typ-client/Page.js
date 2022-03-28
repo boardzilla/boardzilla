@@ -4,6 +4,7 @@ import Draggable from 'react-draggable';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import {throttle, elementByKey, parentKey, zoneForKey, choiceHasKey, keyFromChoice, choiceFromKey, zoneForPoint, xmlToNode, branch, keyFromEl, isFlipped, pieceAt} from './utils';
 import Counter from './Counter';
+import Die from './Die';
 import './style.scss';
 
 const DRAG_TOLERANCE = 1
@@ -28,6 +29,7 @@ export default class Page extends Component {
     };
     this.components = {
       counter: Counter,
+      die: Die,
     };
     if (props.components) {
       this.components = {...this.components, ...props.components};
@@ -213,6 +215,7 @@ export default class Page extends Component {
 
   handleClick(choice, {x, y}, event) {
     const actions = this.actionsFor(choice);
+    this.setState({dragging: null});
     if (Object.keys(actions).length == 1) {
       this.gameAction(Object.keys(actions)[0], ...this.state.args, choice);
       event.stopPropagation();
@@ -330,7 +333,11 @@ export default class Page extends Component {
       }
     }
 
-    let position = this.state.positions[key];
+    const externallyControlled = this.state.locks[key] && this.state.locks[key] !== this.props.userId;
+    let position;
+    if (externallyControlled) {
+      position = this.state.positions[key];
+    }
     if (node.parentNode.nodeName != 'deck' || attributes.moved) {
       const x = attributes.x;
       const y = attributes.y;
@@ -343,7 +350,7 @@ export default class Page extends Component {
       props.onTouchEnd = e => this.handleClick(choiceFromKey(key), {x: e.changedTouches[0].pageX, y: e.changedTouches[0].pageY}, e)
       return (
         <Draggable
-          disabled={this.state.locks[key] && this.state.locks[key] !== this.props.userId}
+          disabled={externallyControlled}
           onDrag={(e, data) => this.dragging(key, data.x, data.y, e)}
           onStop={(e, data) => this.stopDrag(key, data.x, data.y, e)}
           key={key}
@@ -379,7 +386,7 @@ export default class Page extends Component {
       {this.state.prompt && <div id="messages">
         <div id="prompt">
           {this.state.prompt}
-          {textChoices.length > 0 && <input placeholder="Filter" onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
+          {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFoces onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
         </div>
         {textChoices && <div>
           {textChoices.map(choice => (

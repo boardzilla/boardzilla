@@ -7,6 +7,7 @@ game.setupPlayerMat = mat => {
   const tableau = mat.addSpace('#tableau', 'area');
   mat.addSpace('#hand', 'area');
   tableau.addComponent('counter', {display: 'hp', initialValue: 2});
+  tableau.addComponent('die', {faces: 6});
 };
 
 game.setupBoard = board => {
@@ -33,8 +34,8 @@ game.setupBoard = board => {
 game.hidden = () => `card[flipped], #player-mat:not(.mine) #hand card, #loot card, #treasure card, #monsters card`;
 
 game.play = async () => {
-  game.playersMayAlwaysMove('.mine card, .mine counter, #shop card, #dungeon card');
-  game.playersMayAlwaysPlay(['setCounter']);
+  game.playersMayAlwaysMove('.mine card, .mine counter, .mine die, #shop card, #dungeon card');
+  game.playersMayAlwaysPlay(['setCounter', 'rollDie']);
   const allActions = Object.keys(game.actions);
   while(true) {
     await game.anyPlayerPlay(allActions);

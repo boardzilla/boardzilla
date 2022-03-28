@@ -18,7 +18,7 @@ X rseed
 action types: select-array, select-el, drag-onto, select-el-number?, prompt, numerical, text?
 
 isaac
-- dice
+X dice
 - coin counters
 - drag bug
 - addCounter

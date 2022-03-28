@@ -69,9 +69,6 @@ class GameRunner {
                 await session.createAction({player, sequence, action})
               } catch(e) {
                 console.error(e);
-                if (!(e instanceof db.Sequelize.UniqueConstraintError)) {
-                  throw e
-                }
               }
             }
 

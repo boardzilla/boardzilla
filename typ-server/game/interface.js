@@ -32,6 +32,7 @@ class GameInterface extends EventEmitter {
     this.builtinActions = {
       addCounter: initialValue => initialValue, // TODO? call doc.addCounter?
       setCounter: (key, value) => this.set(key, value),
+      rollDie: key => this.set(key, this.random(this.get(`${key}-faces`)) + 1),
     }
   }
 
