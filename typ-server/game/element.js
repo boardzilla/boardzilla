@@ -1,13 +1,10 @@
 const gameElements = [];
-let idSequence = 0;
 const { times } = require("./utils");
-const jsdom = require("jsdom");
-const { JSDOM } = jsdom;
 
 class GameElement {
   constructor(node, caller = {}) {
     this.node = node;
-    this.doc = caller.doc;
+    this.document = caller.document;
     this.game = caller.game;
     this.id = node.id; // TODO reserved id's? game, board...
     this.type = node.nodeName.toLowerCase();
@@ -24,7 +21,7 @@ class GameElement {
     if (!node) return null;
     const element = gameElements.find(el => el && el.test(node));
     if (!element) throw Error(`No wrapper for node ${node.nodeName}`);
-    return new element.className(node, {game: this.game, doc: this.doc});
+    return new element.className(node, {game: this.game, document: this.document});
   }
 
   static wrapNodeAs(index, className, test) {
@@ -77,11 +74,11 @@ class GameElement {
   }
 
   root() {
-    return this.wrap(this.doc);
+    return this.wrap(this.document);
   }
 
   boardNode() {
-    return this.doc.children[0];
+    return this.document.getRootNode().children[0];
   }
 
   board() {
@@ -89,7 +86,7 @@ class GameElement {
   }
 
   pileNode() {
-    return this.doc.children[1];
+    return this.document.getRootNode().children[1];
   }
 
   pile() {
@@ -118,12 +115,12 @@ class GameElement {
 
   addComponent(name, attrs) {
     if (name == 'counter') { // TODO minimal impl for now
-      const id = this.registerId('counter')
+      const id = this.game.registerId('counter')
       this.addPiece('#' + id, 'counter', attrs)
       this.game.set(id, parseInt(attrs.initialValue) || 0); // TODO this is not namespaced
     }
     if (name == 'die') { // TODO minimal impl for now
-      const id = this.registerId('die')
+      const id = this.game.registerId('die')
       this.addPiece('#' + id, 'die', attrs)
       this.game.set(`${id}-faces`, attrs.faces);
       this.game.set(id, attrs.faces);
@@ -131,18 +128,13 @@ class GameElement {
   }
 
   addGameElement(name, type, className, attrs = {}) {
-    const dom = new JSDOM();
-    const el = dom.window.document.createElement(type);
+    const el = this.document.createElement(type);
     if (name[0] !== '#') throw Error(`id ${name} must start with #`);
     el.id = name.slice(1);
     el.className = className;
     Object.keys(attrs).forEach(attr => el.setAttribute(attr, attrs[attr]));
     this.node.appendChild(el);
     return this.wrap(this.node.lastChild);
-  }
-
-  registerId(ns) {
-    return `${ns}-${++idSequence}`;
   }
 
   static isSpaceNode(node) {

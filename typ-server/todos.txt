@@ -19,12 +19,13 @@ action types: select-array, select-el, drag-onto, select-el-number?, prompt, num
 
 isaac
 X dice
+- https://github.com/WebReflection/linkedom
+- sequence breaking
 - coin counters
-- drag bug
+X drag bug
 - addCounter
 - bonus souls
 X zoom
-- https://github.com/WebReflection/linkedom
 - mobile viewport #messages visualViewport on resize
 X decide on order in dom. whats top? re addPiece, move, etc (last item in children is top item on board)
 X player-mats
