@@ -104,3 +104,21 @@
     height: 100%;
   }
 }
+
+.coins {
+  color: white;
+  width: 25px;
+  display: inline-block;
+  font-size: 15px;
+  padding: 0px 2px;
+  text-align: center;
+  position: relative;
+  font-weight: bold;
+  font-family: sans-serif;
+  img.penny {
+    width: 20px;
+    position: absolute;
+    z-index: -1;
+    left: 5px;
+  }
+}

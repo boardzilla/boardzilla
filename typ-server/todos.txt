@@ -19,8 +19,8 @@ action types: select-array, select-el, drag-onto, select-el-number?, prompt, num
 
 isaac
 X dice
-- https://github.com/WebReflection/linkedom
-- sequence breaking
+X https://github.com/WebReflection/linkedom
+X sequence breaking
 - coin counters
 X drag bug
 - addCounter

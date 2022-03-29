@@ -136,12 +136,11 @@ export default class Page extends Component {
     const el = xml.querySelector(
       key.split('-').reduce((path, index) => `${path} > *:nth-child(${index})`, 'game')
     );
-    this.setState(state => {
-      for (const attr in attributes) {
-        el.setAttribute(attr, attributes[attr]);
-      }
-      return ({data: Object.assign({}, state.data, {doc: xml.outerHTML})});
-    })
+    if (!el) return;
+    for (const attr in attributes) {
+      el.setAttribute(attr, attributes[attr]);
+    }
+    this.setState(state => ({data: Object.assign({}, state.data, {doc: xml.outerHTML})}));
   }
 
   updatePosition(key, x, y) {
@@ -275,6 +274,7 @@ export default class Page extends Component {
   }
 
   renderGameElement(node, flipped, parentFlipped, frozen) {
+    if (!node || !node.attributes) return;
     const attributes = Array.from(node.attributes).
                              filter(attr => attr.name !== 'class' && attr.name !== 'id').
                              reduce((attrs, attr) => Object.assign(attrs, { [attr.name]: isNaN(attr.value) ? attr.value : +attr.value }), {});
@@ -374,14 +374,14 @@ export default class Page extends Component {
                         this.state.choices.filter(choice => !choiceHasKey(choice) && choice.toLowerCase().includes(this.state.filter.toLowerCase()));
     const nonBoardActions = this.nonBoardActions()
     return (
-      <div className={classNames({zoomed: this.state.zoomed})}>
-      {this.state.prompt && <div id="messages">
+      <div>
+        {this.state.prompt && <div id="messages">
         <div id="prompt">
           {this.state.prompt}
           {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
         </div>
         {textChoices && <div>
-          {textChoices.map(choice => (
+          {Array.from(new Set(textChoices)).sort().map(choice => (
             <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, choice)}>{JSON.parse(choice)}</button>
           ))}
         </div>}

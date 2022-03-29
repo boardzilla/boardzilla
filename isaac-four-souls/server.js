@@ -7,6 +7,7 @@ game.setupPlayerMat = mat => {
   const tableau = mat.addSpace('#tableau', 'area');
   mat.addSpace('#hand', 'area');
   tableau.addComponent('counter', {display: 'hp', initialValue: 2});
+  tableau.addComponent('counter', {display: 'coin', initialValue: 3});
   tableau.addComponent('die', {faces: 6});
 };
 

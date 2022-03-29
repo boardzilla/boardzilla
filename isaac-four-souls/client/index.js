@@ -9,7 +9,10 @@ render({
     ),
   },
   counters: {
-    hp: n => '♥'.repeat(n)
+    hp: n => '♥'.repeat(n),
+    coin: n => <span class="coins">{
+      Array.from(Array(n)).map((_, i) => <img src="images/penny.png" className="penny" style={{top: (i*-4)+"px"}}/>)
+    }{n}</span>
   },
 });
 
