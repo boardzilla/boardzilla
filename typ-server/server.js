@@ -313,7 +313,6 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
     })
 
     const subscriber = redis.createClient(redisUrl)
-    subscriber.subscribe(gameRunner.sessionEventKey(session.id))
     subscriber.on("message", async (channel, data) => {
       const message = JSON.parse(data)
       console.log(`S ${req.userId}: redis message`, message.type, message.userId)
@@ -329,6 +328,9 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
         default: return ws.send(data)
       }
     })
+    subscriber.on("subscribe", () => {
+      redisClient.rpush(sessionEventKey, JSON.stringify({type: 'refresh', payload: {userId: req.userId}}))
+    })
 
     ws.on("close", async () => {
       await subscriber.end(true)
@@ -341,8 +343,7 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
       console.error("error in ws", error)
     })
 
-    // TODO why need a time out to prevent state from being published too soon?
-    setTimeout(() => redisClient.rpush(sessionEventKey, JSON.stringify({type: 'refresh', payload: {userId: req.userId}})), 100)
+    subscriber.subscribe(gameRunner.sessionEventKey(session.id))
   }
   wss.on("connection", onWssConnection)
 
