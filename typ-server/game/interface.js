@@ -49,13 +49,14 @@ class GameInterface extends EventEmitter {
     })
     this.setupBoard && this.setupBoard(this.board)
     this.currentPlayer = 1
-    this.phase = 'playing'
+    this.phase = 'replay'
     this.sequence = 0
     console.log(`I: start()`, history)
     this.lastReplaySequence = history.length ? history[history.length - 1][1] : -1
     this.updatePlayers() // initial game state with no actions allowed
     this.replay(history)
     this.phase = 'ready'
+    console.log(`I: ready`)
     this.emit('ready')
     await this.play()
     this.updatePlayers() // final game state with no actions allowed
@@ -418,7 +419,7 @@ class GameInterface extends EventEmitter {
   }
 
   receiveAction(userId, sequence, action, ...args) {
-    if (this.phase !== 'playing') throw Error("game not active")
+    if (this.phase !== 'ready') throw Error("game not active")
     console.log(`received action (${userId}, ${sequence}, ${action}, ${args})`)
     if (this.listenerCount('action') === 0) {
       console.error(`${this.userId}: no listener`)

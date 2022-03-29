@@ -108,7 +108,7 @@ export default class Page extends Component {
   }
 
   send(action, payload) {
-    payload = payload || {}
+    payload = payload || {};
     this.webSocket.send(JSON.stringify({type: action, payload}));
   }
 
@@ -394,7 +394,7 @@ export default class Page extends Component {
         ))}
       </div>}
 
-      {this.state.data.phase === 'playing' && this.state.data.doc && this.renderBoard(xmlToNode(this.state.data.doc))}
+      {this.state.data.phase === 'ready' && this.state.data.doc && this.renderBoard(xmlToNode(this.state.data.doc))}
 
       {this.state.actions && this.state.ctxpos &&
        <ul

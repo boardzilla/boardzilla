@@ -34,6 +34,7 @@ class GameRunner {
       const lockClient = process.env.NODE_ENV === 'production' ? new Client({connectionString: this.postgresUrl, ssl: {require: true, rejectUnauthorized: false}}) : new Client(this.postgresUrl)
       queueClient = asyncRedis.decorate(await this.redisClient.duplicate())
       try {
+        console.log("R waiting for lock")
         await lockClient.connect()
         lockClient.on('error', (err) => {
           console.log(process.pid, "err from lock client", err)
@@ -99,7 +100,7 @@ class GameRunner {
             })
 
             await new Promise((resolve, reject) => {
-              if (gameInstance.state === 'ready') return resolve()
+              if (gameInstance.phase === 'ready') return resolve()
               gameInstance.once('ready', resolve)
             })
 
