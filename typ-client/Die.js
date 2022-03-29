@@ -9,5 +9,5 @@ export default ({id, get, faces, gameAction}) => {
       gameAction('rollDie', `"${id}"`);
     };
 
-  return <button onClick={() => roll()}>{override || get(id)}</button>
+  return <button onClick={roll} onTouchEnd={roll}>{override || get(id)}</button>
 };
