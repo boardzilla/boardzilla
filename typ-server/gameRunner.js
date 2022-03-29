@@ -25,7 +25,7 @@ class GameRunner {
     handle.stop = async() => {
       running = false
       try {
-        await queueClient.end()
+        await queueClient.end(true)
       } catch (e) {
         console.error("error stopping queue client")
       }
@@ -37,8 +37,9 @@ class GameRunner {
         await lockClient.connect()
         lockClient.on('error', (err) => {
           console.log(process.pid, "err from lock client", err)
-          queueClient.end()
+          queueClient.end(true)
         })
+
         await lockClient.query("select pg_advisory_lock($1, $2)", [GAME_SESSION_NS, sessionId])
 
         while(running) {
@@ -102,7 +103,7 @@ class GameRunner {
             }
 
             const processGameEvent = async (message) => {
-              console.log(`R ${process.pid} processGameEvent`, message.type)
+              console.log(`R ${process.pid} processGameEvent`, message.type, message.payload.userId)
               switch(message.type) {
                 case 'action': return gameAction(message.payload.userId, message.payload.sequence, ...message.payload.action)
                 case 'refresh': return publish({
@@ -142,26 +143,26 @@ class GameRunner {
                 console.log("no game data to process")
               }
             }
-            await queueClient.end()
+            await queueClient.end(true)
           } catch (e) {
             console.error(`${process.pid} ERROR IN GAME RUNNER LOOP`, e)
           }
         }
       } finally {
         try {
-          await queueClient.end()
-        } catch (e) {
-          console.log("error ending queue client", e)
-        }
-        try {
           await lockClient.query("select pg_advisory_unlock($1, $2)", [GAME_SESSION_NS, sessionId])
         } catch (e) {
-          console.log("error unlocking", e)
+          console.error("error unlocking", e)
         }
         try {
           await lockClient.end()
         } catch (e) {
-          console.log("error ending lock client", e)
+          console.error("error ending lock client", e)
+        }
+        try {
+          await queueClient.end(true)
+        } catch (e) {
+          console.error("error ending queue client", e)
         }
       }
     })().catch(e => handle.emit('error', e))

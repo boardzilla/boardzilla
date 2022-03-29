@@ -40,14 +40,6 @@ export default class Page extends Component {
   componentDidMount() {
     this.webSocket=new ReconnectingWebSocket((location.protocol == 'http:' ? 'ws://' : 'wss://') + document.location.host + '/sessions/' + this.props.session);
 
-    this.webSocket.onopen = () => {
-      this.refreshInterval = setInterval(() => {
-        this.send('refresh');
-      }, 3000);
-    };
-    this.webSocket.onclose = () => {
-      clearInterval(this.refreshInterval);
-    }
     this.webSocket.onmessage = e => {
       const res = JSON.parse(e.data);
       console.log("Received", res);
@@ -107,8 +99,8 @@ export default class Page extends Component {
         this.setState({dragOver: keyFromEl(el)})
       }
     });
-    document.addEventListener('keydown', e => e.key == "Shift" && this.setState({'zoomed': true}));
-    document.addEventListener('keyup', e => e.key == "Shift" && this.setState({'zoomed': false}));
+    document.addEventListener('keydown', e => e.key == "z" && this.setState({'zoomed': true}));
+    document.addEventListener('keyup', e => e.key == "z" && this.setState({'zoomed': false}));
     /* window.visualViewport.addEventListener('resize', console.log);
      * window.visualViewport.addEventListener('scroll', console.log);
      * document.addEventListener('wheel', console.log); */
@@ -386,7 +378,7 @@ export default class Page extends Component {
       {this.state.prompt && <div id="messages">
         <div id="prompt">
           {this.state.prompt}
-          {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFoces onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
+          {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
         </div>
         {textChoices && <div>
           {textChoices.map(choice => (

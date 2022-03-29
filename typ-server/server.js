@@ -242,13 +242,9 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
 
     const session = await sessionUser.getSession()
     let locks = []
-    let lastPlayerView = null
 
     const sendPlayerView = async jsonData => {
-      if (jsonData !== lastPlayerView) {
-        ws.send(jsonData)
-        lastPlayerView = jsonData
-      }
+      ws.send(jsonData)
     }
 
     const sendPlayerLocks = async () => {
@@ -335,15 +331,18 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
     })
 
     ws.on("close", async () => {
-      await subscriber.end()
+      await subscriber.end(true)
       await sessionRunner.stop()
     })
 
     ws.on("error", async error => {
-      await subscriber.end()
+      await subscriber.end(true)
       await sessionRunner.stop()
       console.error("error in ws", error)
     })
+
+    // TODO why need a time out to prevent state from being published too soon?
+    setTimeout(() => redisClient.rpush(sessionEventKey, JSON.stringify({type: 'refresh', payload: {userId: req.userId}})), 100)
   }
   wss.on("connection", onWssConnection)
 

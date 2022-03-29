@@ -34,6 +34,7 @@ class GameInterface extends EventEmitter {
       setCounter: (key, value) => this.set(key, value),
       rollDie: key => this.set(key, this.random(this.get(`${key}-faces`)) + 1),
     }
+    this.idSequence = 0
   }
 
   // start game from scratch and run history. returns when game is done
@@ -41,6 +42,7 @@ class GameInterface extends EventEmitter {
     if (this.players.length < this.minPlayers) throw Error("not enough players")
     if (this.phase !== 'setup') throw Error("not ready to start")
     this.variables = this.initialVariables || {}
+    this.idSequence = 0
     times(this.players.length, player => {
       const playerMat = this.doc.addSpace('#player-mat', 'area', {player})
       this.setupPlayerMat && this.setupPlayerMat(playerMat)
@@ -78,6 +80,7 @@ class GameInterface extends EventEmitter {
   // send all players state along with allowed actions
   updatePlayers() {
     if (this.sequence <= this.lastReplaySequence) return // dont need to update unless at latest
+    console.log('I: updatePlayers')
     times(this.players.length, player => {
       this.emit('update', {
         type: 'state',
@@ -113,6 +116,10 @@ class GameInterface extends EventEmitter {
 
   delete(key) {
     delete this.variables[key]
+  }
+
+  registerId(ns) {
+    return `${ns}-${++this.idSequence}`;
   }
 
   hide(key) {
@@ -441,7 +448,7 @@ class GameInterface extends EventEmitter {
           this.currentPlayer = player
           try {
             this.moveElement(...deserializedArgs)
-            if (realtime) this.registerAction(player, sequence, ['moveElement', ...args])
+            if (realtime) this.registerAction(player, this.sequence, ['moveElement', ...args])
             this.sequence++
           } catch(e) {
             console.error("unable to register move action", e)
@@ -457,8 +464,7 @@ class GameInterface extends EventEmitter {
               console.error("Unable to replay history with this game version", this.sequence, sequence)
               return reject("Unable to replay history with this game version")
             }
-            console.error("Out of sequence", this.sequence, sequence)
-            return
+            console.log("Out of sequence - trying anyways", this.sequence, sequence)
           }
           if (this.currentPlayer !== undefined && player !== this.currentPlayer) {
             return console.error(`Waiting for ${this.currentPlayer} and rejected action from ${player}.`)
@@ -489,7 +495,7 @@ class GameInterface extends EventEmitter {
           }
           console.log(`action succeeded registerAction(${player}, ${sequence}, ${action}, ${args})`)
           try {
-            if (realtime) this.registerAction(player, sequence, [action, ...args])
+            if (realtime) this.registerAction(player, this.sequence, [action, ...args])
             this.sequence++
             this.removeAllListeners('action')
             resolve([action, ...deserializedArgs])

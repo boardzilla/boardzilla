@@ -65,7 +65,7 @@ game.actions = {
   },
   play: {
     prompt: "Play",
-    drag: ".mine #hand card, #dungeon card, #characters card:last-child, #eternals card:last-child, #bonusSouls card",
+    drag: ".mine #hand card, #dungeon card, #characters card, #eternals card, #bonusSouls card",
     onto: ".mine #tableau"
   },
   remove: {
@@ -76,7 +76,7 @@ game.actions = {
   },
   draw: {
     prompt: "Draw",
-    drag: "#loot card:last-child, #loot-discard card:last-child",
+    drag: "#loot card, #loot-discard card",
     onto: ".mine #hand",
   },
   drawMultiple: {
@@ -100,12 +100,12 @@ game.actions = {
   },
   purchase: {
     prompt: "Purchase",
-    drag: "#shop card, #treasure card:last-child",
+    drag: "#shop card, #treasure card",
     onto: ".mine #tableau",
   },
   intoLootDeckTop: {
     prompt: "Put on top of deck",
-    drag: '.mine card[type="loot"], #loot-discard card:last-child',
+    drag: '.mine card[type="loot"], #loot-discard card',
     onto: '#loot',
   },
   intoLootDeckBottom: {
@@ -115,7 +115,7 @@ game.actions = {
   },
   discardLoot: {
     prompt: "Discard",
-    drag: '.mine card[type="loot"], #loot card:last-child',
+    drag: '.mine card[type="loot"], #loot card',
     onto: '#loot-discard',
   },
   playTreasure: {
