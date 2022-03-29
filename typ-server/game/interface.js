@@ -55,6 +55,8 @@ class GameInterface extends EventEmitter {
     this.lastReplaySequence = history.length ? history[history.length - 1][1] : -1
     this.updatePlayers() // initial game state with no actions allowed
     this.replay(history)
+    this.phase = 'ready'
+    this.emit('ready')
     await this.play()
     this.updatePlayers() // final game state with no actions allowed
   }

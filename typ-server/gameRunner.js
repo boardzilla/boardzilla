@@ -91,7 +91,17 @@ class GameRunner {
             ))
             console.log(`R restarting runner loop ${userIds}`)
 
-            await gameInstance.start(history)
+            gameInstance.start(history).then(() => {
+              // TODO handle this promise resolution (end of game)
+            }).catch(e => {
+              console.error('ERROR DURING PLAY', e)
+              // TODO not enough players but this should be an explicit start command
+            })
+
+            await new Promise((resolve, reject) => {
+              if (gameInstance.state === 'ready') return resolve()
+              gameInstance.once('ready', resolve)
+            })
 
             const gameAction = (userId, sequence, action, ...args) => {
               gameInstance.receiveAction(userId, sequence, action, ...args)
