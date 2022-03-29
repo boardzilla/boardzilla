@@ -21,7 +21,7 @@ isaac
 X dice
 X https://github.com/WebReflection/linkedom
 X sequence breaking
-- coin counters
+X coin counters
 X drag bug
 - addCounter
 - bonus souls

@@ -143,8 +143,12 @@ export default class Page extends Component {
     this.setState(state => ({data: Object.assign({}, state.data, {doc: xml.outerHTML})}));
   }
 
+  setVariable(key, value) {
+    this.setState(state => ({data: Object.assign({}, state.data, {variables: Object.assign({}, state.data.variables, {[key]: value})})}));
+  }
+
   updatePosition(key, x, y) {
-    this.setState(state => ({positions: Object.assign({}, state.positions, {[key]: x !== undefined ? {x, y} : undefined })}));
+      this.setState(state => ({positions: Object.assign({}, state.positions, {[key]: x !== undefined ? {x, y} : undefined })}));
   }
 
   dragging(key, x, y, event) {
@@ -316,7 +320,7 @@ export default class Page extends Component {
 
     let contents = node.id;
     if (this.components[type]) {
-      contents = React.createElement(this.components[type], {...props, display: this.counterDisplays[props.display] || (v=>v), ...this.bindMethods('gameAction', 'get')});
+      contents = React.createElement(this.components[type], {...props, display: this.counterDisplays[props.display] || (v=>v), ...this.bindMethods('gameAction', 'get', 'setVariable')});
     } else if (!node.classList.contains('piece') || node.childNodes.length) {
       if (node.nodeName == 'deck' && node.childNodes.length) {
         contents = Array.from(node.childNodes).slice(-2).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
