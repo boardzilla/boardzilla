@@ -31,7 +31,7 @@ class GameRunner {
       }
     }
     (async () => {
-      const lockClient = process.env.NODE_ENV === 'production' ? new Client({connectionString: this.postgresUrl, ssl: {require: true, rejectUnauthorized: false}}) : new Client(this.postgresUrl)
+      const lockClient = process.env.NODE_ENV === 'production' ? new Client({connectionString: this.postgresUrl, connectionTimeoutMillis: 3000, ssl: {require: true, rejectUnauthorized: false}}) : new Client(this.postgresUrl)
       queueClient = asyncRedis.decorate(await this.redisClient.duplicate())
       try {
         console.log("R waiting for lock")
