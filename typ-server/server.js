@@ -2,8 +2,7 @@ const url = require('url')
 const WebSocket = require("ws")
 const express = require("express")
 const http = require("http")
-const redis = require("redis");
-const asyncRedis = require("async-redis");
+const Redis = require("ioredis");
 const bodyParser = require('body-parser')
 const jwt = require("jsonwebtoken")
 const { Sequelize } = require('sequelize')
@@ -17,7 +16,7 @@ const path = require('path')
 module.exports = ({secretKey, redisUrl, ...devGame }) => {
   const app = express()
   const server = http.createServer(app)
-  const redisClient = asyncRedis.createClient(redisUrl)
+  const redisClient = new Redis(redisUrl)
 
   let localDevGame, webpackCompiler
 
@@ -252,7 +251,7 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
       ws.send(JSON.stringify({type: 'updateLocks', payload}))
     }
 
-    const publish = async message => redisClient.publish(gameRunner.sessionEventKey(session.id), JSON.stringify(message))
+    const publish = async message => await redisClient.publish(gameRunner.sessionEventKey(session.id), JSON.stringify(message))
     
     const requestLock = async (key) => {
       try {
@@ -312,7 +311,7 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
       }
     })
 
-    const subscriber = redis.createClient(redisUrl)
+    const subscriber = new Redis(redisUrl)
     subscriber.on("message", async (channel, data) => {
       const message = JSON.parse(data)
       console.log(`S ${req.userId}: redis message`, message.type, message.userId)
@@ -328,22 +327,26 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
         default: return ws.send(data)
       }
     })
-    subscriber.on("subscribe", () => {
-      redisClient.rpush(sessionEventKey, JSON.stringify({type: 'refresh', payload: {userId: req.userId}}))
-    })
 
     ws.on("close", async () => {
-      await subscriber.quit()
       await sessionRunner.stop()
+      await subscriber.quit()
     })
 
     ws.on("error", async error => {
-      await subscriber.quit()
       await sessionRunner.stop()
+      await subscriber.quit()
       console.error("error in ws", error)
     })
 
-    subscriber.subscribe(gameRunner.sessionEventKey(session.id))
+    subscriber.subscribe(gameRunner.sessionEventKey(session.id), async err => {
+      if (err) {
+        await sessionRunner.stop()
+        return ws.close(1011) // internal error
+      }
+
+      redisClient.rpush(sessionEventKey, JSON.stringify({type: 'refresh', payload: {userId: req.userId}}))
+    })
   }
   wss.on("connection", onWssConnection)
 
