@@ -3,7 +3,7 @@ const WebSocket = require("ws")
 const express = require("express")
 const http = require("http")
 const redis = require("redis");
-const asyncRedis = require("async-redis");
+//const asyncRedis = require("async-redis");
 const bodyParser = require('body-parser')
 const jwt = require("jsonwebtoken")
 const { Sequelize } = require('sequelize')
@@ -14,10 +14,11 @@ const GameRunner = require('./gameRunner')
 const cookieParser = require('cookie-parser')
 const path = require('path')
 
-module.exports = ({secretKey, redisUrl, ...devGame }) => {
+module.exports = async ({secretKey, redisUrl, ...devGame }) => {
   const app = express()
   const server = http.createServer(app)
-  const redisClient = asyncRedis.createClient(redisUrl)
+  const redisClient = redis.createClient({url: redisUrl})
+  await redisClient.connect()
 
   let localDevGame, webpackCompiler
 
@@ -29,6 +30,7 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
 
   const postgresUrl = process.env['DATABASE_URL']
   const gameRunner = new GameRunner(postgresUrl, redisUrl, localDevGame)
+  await gameRunner.start()
 
   app.set('view engine', 'ejs')
   app.set('views', __dirname + '/views')
@@ -303,7 +305,7 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
           case 'drag': return await drag(message.payload)
           default: {
             message.payload.userId = req.userId
-            const out = await redisClient.rpush(sessionEventKey, JSON.stringify(message))
+            const out = await redisClient.rPush(sessionEventKey, JSON.stringify(message))
             return out
           }
         }
@@ -312,8 +314,27 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
       }
     })
 
-    const subscriber = redis.createClient(redisUrl)
-    subscriber.on("message", async (channel, data) => {
+    const subscriber = redis.createClient({url: redisUrl})
+    subscriber.on("subscribe", () => {
+      console.log("SUBSCRIBE! Pushing...")
+      redisClient.rPush(sessionEventKey, JSON.stringify({type: 'refresh', payload: {userId: req.userId}}))
+    })
+    subscriber.on("error", (err) => {
+      console.log("ERRRRR!", err)
+    })
+
+    ws.on("close", async () => {
+      await sessionRunner.stop()
+      await subscriber.disconnect()
+    })
+
+    ws.on("error", async error => {
+      await sessionRunner.stop()
+      await subscriber.disconnect()
+      console.error("error in ws", error)
+    })
+    await subscriber.connect()
+    await subscriber.subscribe(gameRunner.sessionEventKey(session.id), async (data) => {
       const message = JSON.parse(data)
       console.log(`S ${req.userId}: redis message`, message.type, message.userId)
       // TODO better as seperate channels for each user and all users?
@@ -328,22 +349,6 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
         default: return ws.send(data)
       }
     })
-    subscriber.on("subscribe", () => {
-      redisClient.rpush(sessionEventKey, JSON.stringify({type: 'refresh', payload: {userId: req.userId}}))
-    })
-
-    ws.on("close", async () => {
-      await subscriber.end(true)
-      await sessionRunner.stop()
-    })
-
-    ws.on("error", async error => {
-      await subscriber.end(true)
-      await sessionRunner.stop()
-      console.error("error in ws", error)
-    })
-
-    subscriber.subscribe(gameRunner.sessionEventKey(session.id))
   }
   wss.on("connection", onWssConnection)
 

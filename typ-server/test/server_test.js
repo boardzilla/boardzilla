@@ -36,8 +36,9 @@ describe("Server", () => {
   })
 
   beforeEach(done => {
-    const app = createServer({secretKey: SECRET_KEY, redisUrl: REDIS_URL})
-    this.server = app.listen(3000, done)
+    createServer({secretKey: SECRET_KEY, redisUrl: REDIS_URL}).then(app => {
+      this.server = app.listen(3000, done)
+    })
   })
 
   beforeEach(async () => {

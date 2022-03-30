@@ -1,4 +1,4 @@
-const asyncRedis = require("async-redis");
+const redis = require("redis");
 const { NodeVM } = require('vm2')
 const GameInterface = require('./game/interface')
 const db = require('./models')
@@ -11,7 +11,11 @@ class GameRunner {
     this.postgresUrl = postgresUrl
     this.redisUrl = redisUrl
     this.localDevGame = localDevGame
-    this.redisClient = asyncRedis.createClient(redisUrl)
+    this.redisClient = redis.createClient({url: redisUrl})
+  }
+
+  async start() {
+    await this.redisClient.connect()
   }
 
   sessionEventKey(sessionId) {
@@ -25,23 +29,26 @@ class GameRunner {
     handle.stop = async() => {
       running = false
       try {
-        await queueClient.end(true)
+        if (queueClient && queueClient.isOpen) {
+          await queueClient.disconnect()
+        }
       } catch (e) {
-        console.error("error stopping queue client")
+        console.error("error while stopping queue client")
       }
     }
     (async () => {
       const lockClient = process.env.NODE_ENV === 'production' ? new Client({connectionString: this.postgresUrl, connectionTimeoutMillis: 3000, ssl: {require: true, rejectUnauthorized: false}}) : new Client(this.postgresUrl)
-      queueClient = asyncRedis.decorate(await this.redisClient.duplicate())
+      queueClient = redis.createClient({url: this.redisUrl})
       try {
         console.log("R waiting for lock")
         await lockClient.connect()
         lockClient.on('error', (err) => {
           console.log(process.pid, "err from lock client", err)
-          queueClient.end(true)
+          queueClient.disconnect()
         })
 
         await lockClient.query("select pg_advisory_lock($1, $2)", [GAME_SESSION_NS, sessionId])
+        await queueClient.connect()
 
         while(running) {
           try {
@@ -142,14 +149,15 @@ class GameRunner {
             }
 
             while (running) {
-              const data = await queueClient.blpop(this.sessionEventKey(sessionId), 60000)
+              console.log("queueClient", queueClient)
+              const data = await queueClient.blPop(this.sessionEventKey(sessionId), 60000)
               if (data[1]) {
                 processGameEvent(JSON.parse(data[1]))
               } else {
                 console.log("no game data to process")
               }
             }
-            await queueClient.end(true)
+            await queueClient.disconnect()
           } catch (e) {
             console.error(`${process.pid} ERROR IN GAME RUNNER LOOP`, e)
           }
@@ -166,7 +174,7 @@ class GameRunner {
           console.error("error ending lock client", e)
         }
         try {
-          await queueClient.end(true)
+          await queueClient.disconnect()
         } catch (e) {
           console.error("error ending queue client", e)
         }

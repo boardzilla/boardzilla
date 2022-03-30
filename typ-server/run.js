@@ -4,5 +4,6 @@ const secretKey = process.env.SECRET_KEY || "some secret"
 const port = parseInt(process.env.PORT || 3000)
 process.env.NODE_ENV = 'development'
 
-const server = createServer({redisUrl, secretKey/* , name: 'local game', path: '/Users/ahull/typ-server/test/fixtures/numberGuesser/' */})
-server.listen(port)
+createServer({redisUrl, secretKey/* , name: 'local game', path: '/Users/ahull/typ-server/test/fixtures/numberGuesser/' */}).then(server => {
+	server.listen(port)
+}).catch(e => console.error("error starting!", e))

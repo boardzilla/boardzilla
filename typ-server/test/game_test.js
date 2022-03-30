@@ -27,8 +27,10 @@ describe("Playing a game", () => {
   })
 
   beforeEach((done) => {
-    const app = createServer({secretKey: SECRET_KEY, redisUrl: "redis://localhost:6379"})
-    this.server = app.listen(3000, done)
+    createServer({secretKey: SECRET_KEY, redisUrl: "redis://localhost:6379"}).then(app => {
+      this.server = app
+      app.listen(3000, done)
+    })
   })
 
   beforeEach(async () => {

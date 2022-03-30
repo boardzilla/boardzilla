@@ -5,8 +5,9 @@ class TypServer {
     const secretKey = process.env.SECRET_KEY || "some secret"
     const port = parseInt(process.env.PORT || 3000)
 
-    const express = createServer({redisUrl, secretKey, name, path })
-    express.listen(port);
+    createServer({redisUrl, secretKey, name, path}).then(server => {
+      server.listen(port)
+    }).catch(e => console.error("error starting!", e))
   }
 }
 
