@@ -160,17 +160,23 @@ class GameRunner {
         await queueClient.quit()
       } finally {
         try {
+          console.log("unlocking")
           await lockClient.query("select pg_advisory_unlock($1, $2)", [GAME_SESSION_NS, sessionId])
+          console.log("done unlocking")
         } catch (e) {
           console.error("error unlocking", e)
         }
         try {
+          console.log("ending pg lock conn")
           await lockClient.end()
+          console.log("done ending pg lock conn")
         } catch (e) {
           console.error("error ending lock client", e)
         }
         try {
+          console.log("disconnecting queue client")
           queueClient.disconnect()
+          console.log("done disconnecting queue client")
         } catch (e) {
           console.error("error ending queue client", e)
         }
