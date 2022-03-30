@@ -333,12 +333,12 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
     })
 
     ws.on("close", async () => {
-      await subscriber.end(true)
+      await subscriber.quit()
       await sessionRunner.stop()
     })
 
     ws.on("error", async error => {
-      await subscriber.end(true)
+      await subscriber.quit()
       await sessionRunner.stop()
       console.error("error in ws", error)
     })

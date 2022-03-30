@@ -34,7 +34,6 @@ export default class Page extends Component {
     if (props.components) {
       this.components = {...this.components, ...props.components};
     }
-    this.counterDisplays = props.counterDisplays;
   }
 
   componentDidMount() {
@@ -100,7 +99,14 @@ export default class Page extends Component {
       }
     });
     document.addEventListener('keydown', e => e.key == "z" && this.setState({'zoomed': true}));
-    document.addEventListener('keyup', e => e.key == "z" && this.setState({'zoomed': false}));
+    document.addEventListener('keyup', e => {
+      if (this.state.mouseOver) {
+        const key = choiceFromKey(this.state.mouseOver);
+        const action = Object.entries(this.actionsFor(key)).find(([_, a]) => a.key == e.key);
+        if (action) return this.gameAction(action[0], key);
+      }
+      if (e.key == "z") this.setState({'zoomed': false});
+    });
     /* window.visualViewport.addEventListener('resize', console.log);
      * window.visualViewport.addEventListener('scroll', console.log);
      * document.addEventListener('wheel', console.log); */
@@ -136,16 +142,19 @@ export default class Page extends Component {
     const el = xml.querySelector(
       key.split('-').reduce((path, index) => `${path} > *:nth-child(${index})`, 'game')
     );
-    this.setState(state => {
-      for (const attr in attributes) {
-        el.setAttribute(attr, attributes[attr]);
-      }
-      return ({data: Object.assign({}, state.data, {doc: xml.outerHTML})});
-    })
+    if (!el) return;
+    for (const attr in attributes) {
+      el.setAttribute(attr, attributes[attr]);
+    }
+    this.setState(state => ({data: Object.assign({}, state.data, {doc: xml.outerHTML})}));
+  }
+
+  setVariable(key, value) {
+    this.setState(state => ({data: Object.assign({}, state.data, {variables: Object.assign({}, state.data.variables, {[key]: value})})}));
   }
 
   updatePosition(key, x, y) {
-    this.setState(state => ({positions: Object.assign({}, state.positions, {[key]: x !== undefined ? {x, y} : undefined })}));
+      this.setState(state => ({positions: Object.assign({}, state.positions, {[key]: x !== undefined ? {x, y} : undefined })}));
   }
 
   dragging(key, x, y, event) {
@@ -222,11 +231,11 @@ export default class Page extends Component {
   // return available actions association to this element {action: {choice, prompt},...}
   actionsFor(choice) {
     if (!this.state.data.allowedActions) return []
-    return Object.entries(this.state.data.allowedActions).reduce((actions, [action, {choices, prompt}]) => {
+    return Object.entries(this.state.data.allowedActions).reduce((actions, [action, {choices, prompt, key}]) => {
       let node = choice;
       while (keyFromChoice(node)) {
         if (choices && choices.includes(node)) {
-          actions[action] = {choice: node, prompt};
+          actions[action] = {choice: node, prompt, key};
         }
         node = choiceFromKey(parentKey(keyFromChoice(node)));
       }
@@ -275,6 +284,7 @@ export default class Page extends Component {
   }
 
   renderGameElement(node, flipped, parentFlipped, frozen) {
+    if (!node || !node.attributes) return;
     const attributes = Array.from(node.attributes).
                              filter(attr => attr.name !== 'class' && attr.name !== 'id').
                              reduce((attrs, attr) => Object.assign(attrs, { [attr.name]: isNaN(attr.value) ? attr.value : +attr.value }), {});
@@ -310,20 +320,26 @@ export default class Page extends Component {
       }
       if (node.classList.contains('piece')) {
         props.onMouseEnter=() => this.setState({mouseOver: key});
-        props.onMouseLeave=() => this.setState({mouseOver: null});
+        props.onMouseLeave=() => this.setState({mouseOver: null}); // TODO parent if is also piece
       }
     }
 
-    let contents = node.id;
-    if (this.components[type]) {
-      contents = React.createElement(this.components[type], {...props, display: this.counterDisplays[props.display] || (v=>v), ...this.bindMethods('gameAction', 'get')});
-    } else if (!node.classList.contains('piece') || node.childNodes.length) {
+    let contents;
+    if (!node.classList.contains('piece') || node.childNodes.length) {
       if (node.nodeName == 'deck' && node.childNodes.length) {
         contents = Array.from(node.childNodes).slice(-2).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
       } else {
         contents = Array.from(node.childNodes).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
       }
     }
+    if (this.components[type]) {
+      contents = React.createElement(
+        this.components[type],
+        {...props, display: this.props.counterDisplays[props.display] || (v=>v), ...this.bindMethods('gameAction', 'get', 'setVariable')},
+        contents
+      );
+    }
+    contents = contents || node.id;
 
     const externallyControlled = this.state.locks[key] && this.state.locks[key] !== this.props.userId;
     let position;
@@ -374,26 +390,29 @@ export default class Page extends Component {
                         this.state.choices.filter(choice => !choiceHasKey(choice) && choice.toLowerCase().includes(this.state.filter.toLowerCase()));
     const nonBoardActions = this.nonBoardActions()
     return (
-      <div className={classNames({zoomed: this.state.zoomed})}>
+      <div data-players={this.state.data.players && this.state.data.players.length}>
       {this.state.prompt && <div id="messages">
         <div id="prompt">
-          {this.state.prompt}
-          {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
+        {this.state.prompt}
+        {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
         </div>
         {textChoices && <div>
-          {textChoices.map(choice => (
+          {Array.from(new Set(textChoices)).sort().map(choice => (
             <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, choice)}>{JSON.parse(choice)}</button>
           ))}
         </div>}
         <button onClick={() => this.send('update')}>Cancel</button>
       </div>}
 
-      {nonBoardActions && !this.state.prompt && <div id="messages">
-        {Object.entries(nonBoardActions).map(([action, prompt]) => (
+      {!this.state.prompt && <div id="messages">
+        <button onClick={() => this.send('undo')}>Undo</button>
+        <button onClick={() => confirm("Reset and lose all game history? This cannot be undone") && this.send('reset')}>Reset</button>
+        {nonBoardActions && Object.entries(nonBoardActions).map(([action, prompt]) => (
           <button key={action} onClick={() => this.gameAction(action)}>{prompt}</button>
         ))}
       </div>}
 
+      {this.props.background}
       {this.state.data.phase === 'ready' && this.state.data.doc && this.renderBoard(xmlToNode(this.state.data.doc))}
 
       {this.state.actions && this.state.ctxpos &&

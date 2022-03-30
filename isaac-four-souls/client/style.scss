@@ -1,106 +1,139 @@
-#board {
-  height: 320px;
-  width: 800px;
-  #characters {
-    position: absolute;
-    left: 560px;
-    top: 50px;
-    z-index: 20;
+.table {
+  width: 1000px;
+  height: 560px;
+  top: 120px;
+  left: 0;
+  position: absolute;
+  background-image: url("images/wood.jpeg");
+}
+
+#container {
+  #board {
+    height: 320px;
+    width: 1000px;
+    #characters {
+      position: absolute;
+      left: 920px;
+      top: 50px;
+      z-index: 20;
+    }
+    #eternals {
+      position: absolute;
+      left: 920px;
+      top: 170px;
+      z-index: 20;
+    }
+    #shop {
+      position: absolute;
+      width: 400px;
+      height: 100px;
+      left: 210px;
+      top: 50px;
+    }
+    #treasure {
+      position: absolute;
+      left: 130px;
+      top: 50px;
+    }
+    #treasure-discard {
+      position: absolute;
+      left: 50px;
+      top: 50px;
+    }
+    #dungeon {
+      position: absolute;
+      width: 400px;
+      height: 100px;
+      left: 210px;
+      top: 170px;
+    }
+    #monsters {
+      position: absolute;
+      left: 130px;
+      top: 170px;
+    }
+    #monsters-discard {
+      position: absolute;
+      left: 50px;
+      top: 170px;
+    }
+    #loot {
+      position: absolute;
+      left: 700px;
+      top: 50px;
+    }
+    #loot-discard {
+      position: absolute;
+      left: 700px;
+      top: 170px;
+    }
+    .deck {
+      width: 80px;
+      height: 100px;
+    }
   }
-  #eternals {
-    position: absolute;
-    left: 560px;
-    top: 170px;
-    z-index: 20;
+
+  #player-mat {
+    position: relative;
+    height: 240px;
+    width: 1000px;
+    #tableau {
+      height: 120px;
+      width: 1000px;
+      position: absolute;
+      top: 0px;
+    }
+    #hand {
+      height: 120px;
+      width: 1000px;
+      position: absolute;
+      top: 120px;
+    }
   }
-  #shop {
-    position: absolute;
-    width: 400px;
-    height: 100px;
-    left: 210px;
-    top: 50px;
+
+  .counter[display="hp"] {
+    color: red;
   }
-  #treasure {
-    position: absolute;
-    left: 130px;
-    top: 50px;
+
+  .die button {
+    width: 25px;
+    height: 25px;
+    background: #c00;
+    color: white;
+    border: none;
+    border-radius: 4px;
   }
-  #treasure-discard {
-    position: absolute;
-    left: 50px;
-    top: 50px;
-  }
-  #dungeon {
-    position: absolute;
-    width: 400px;
-    height: 100px;
-    left: 210px;
-    top: 170px;
-  }
-  #monsters {
-    position: absolute;
-    left: 130px;
-    top: 170px;
-  }
-  #monsters-discard {
-    position: absolute;
-    left: 50px;
-    top: 170px;
-  }
-  #loot {
-    position: absolute;
-    left: 700px;
-    top: 50px;
-  }
-  #loot-discard {
-    position: absolute;
-    left: 700px;
-    top: 170px;
-  }
-  .deck {
+
+  .card {
     width: 80px;
     height: 100px;
+    &[active=true] {
+      transform: rotate(80deg);
+    }
+    img {
+      height: 100px;
+    }
+    .counter {
+      top: -10px;
+      left: 5px;
+    }
   }
-}
 
-#player-mat {
-  position: relative;
-  height: 240px;
-  width: 800px;
-  #tableau {
-    height: 120px;
-    width: 800px;
-    position: absolute;
-    top: 0px;
-  }
-  #hand {
-    height: 120px;
-    width: 800px;
-    position: absolute;
-    top: 120px;
-  }
-}
-
-.counter[display="hp"] {
-  color: red;
-}
-
-.die button {
-  width: 25px;
-  height: 25px;
-  background: #c00;
-  color: white;
-  border: none;
-  border-radius: 4px;
-}
-
-.card {
-  width: 80px;
-  height: 100px;
-  &[active=true] {
-    transform: rotate(80deg);
-  }
-  img {
-    height: 100%;
+  .coins {
+    color: white;
+    width: 25px;
+    display: inline-block;
+    font-size: 15px;
+    padding: 0px 2px;
+    text-align: center;
+    position: relative;
+    font-weight: bold;
+    font-family: sans-serif;
+    img.penny {
+      width: 20px;
+      position: absolute;
+      z-index: -1;
+      left: 5px;
+    }
   }
 }

@@ -1,6 +1,6 @@
 const typServer = require("typ-server");
 
 typServer.run({
-  name: 'my game',
+  name: 'Four Souls',
   path: __dirname,
 })

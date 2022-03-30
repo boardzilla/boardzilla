@@ -113,7 +113,7 @@ class GameElement {
     return times(num, () => this.addPiece(name, type, attrs));
   }
 
-  addComponent(name, attrs) {
+  addComponent(name, attrs = {}) {
     if (name == 'counter') { // TODO minimal impl for now
       const id = this.game.registerId('counter')
       this.addPiece('#' + id, 'counter', attrs)

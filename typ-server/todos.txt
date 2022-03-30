@@ -7,9 +7,9 @@ X hidden attributes, exclude space/piece, x/y
 X composite actions (hilite intermediates)
 X drag-and-drop....?
 - numerical action type
-- undo/reset
+X undo/reset
 - connection status
-- kb shortcuts?
+X kb shortcuts?
 X .mine class on client
 X rseed
 - show errors from server
@@ -18,13 +18,16 @@ X rseed
 action types: select-array, select-el, drag-onto, select-el-number?, prompt, numerical, text?
 
 isaac
+X undo/reset UI
+- prevent interrupting partial actions?
 X dice
-- https://github.com/WebReflection/linkedom
-- sequence breaking
-- coin counters
+X https://github.com/WebReflection/linkedom
+X sequence breaking
+X coin counters
 X drag bug
-- addCounter
+X addCounter
 - bonus souls
+- reorg actions logically under destination?
 X zoom
 - mobile viewport #messages visualViewport on resize
 X decide on order in dom. whats top? re addPiece, move, etc (last item in children is top item on board)
@@ -38,11 +41,10 @@ X select-array action type
 X counters up/down
 - layouts [other-player-mats, board, player-mat] (just 2-player hard-coded for now)
 X rseed
-- undo
 X drag translate x-y
 - toggle-panes
 - values can accept game => fn
-- set up play areas (loot(deck, discard), shop(deck, discard, 1,2,3,4), monsters(deck, discard, 1,2,3,4), bonus, players: hand, play, look-at)
+X set up play areas (loot(deck, discard), shop(deck, discard, 1,2,3,4), monsters(deck, discard, 1,2,3,4), bonus, players: hand, play, look-at)
 X deck hidden? or just lot of facedown cards with no visibility? (show 2 cards)
 - actions
   - purchase

@@ -41,9 +41,12 @@ const config = {
           "sass-loader",
         ],
       },
+      {
+        test: /\.(gif|jpe?g|png|svg)$/,
+        loader: 'url-loader',
+      },
     ],
   },
-
   resolve: {
     extensions: ['*', '.js', '.jsx'],
   },
