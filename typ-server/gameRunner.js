@@ -19,21 +19,26 @@ class GameRunner {
   }
 
   createSessionRunner(sessionId) {
-    let queueClient
+    let queueClient, lockClient
     let running = true
     const handle = new EventEmitter()
     handle.stop = async() => {
       console.log("stopping session runner")
       running = false
       try {
-        if (!queueClient) return
-        await queueClient.disconnect()
+        if (queueClient) await queueClient.disconnect()
+      } catch (e) {
+        console.error("error stopping queue client")
+      }
+
+      try {
+        if (lockClient) await lockClient.end()
       } catch (e) {
         console.error("error stopping queue client")
       }
     }
     (async () => {
-      const lockClient = process.env.NODE_ENV === 'production' ? new Client({connectionString: this.postgresUrl, connectionTimeoutMillis: 3000, ssl: {require: true, rejectUnauthorized: false}}) : new Client(this.postgresUrl)
+      lockClient = process.env.NODE_ENV === 'production' ? new Client({connectionString: this.postgresUrl, connectionTimeoutMillis: 3000, ssl: {require: true, rejectUnauthorized: false}}) : new Client(this.postgresUrl)
       try {
         console.log("R waiting for lock")
         await lockClient.connect()
