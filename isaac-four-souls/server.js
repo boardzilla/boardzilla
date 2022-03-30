@@ -3,12 +3,11 @@ game.minPlayers = 1;
 game.maxPlayers = 4;
 
 game.setupPlayerMat = mat => {
-  mat.addSpace('#look-at', 'area');
   const tableau = mat.addSpace('#tableau', 'area');
   mat.addSpace('#hand', 'area');
   tableau.addComponent('counter', {display: 'hp', initialValue: 2});
-  tableau.addComponent('counter', {display: 'coin', initialValue: 3});
-  tableau.addComponent('die', {faces: 6});
+  tableau.addComponent('counter', {display: 'coin', initialValue: 3, x: 710, y: 90});
+  tableau.addComponent('die', {faces: 6, x: 760, y: 5});
 };
 
 game.setupBoard = board => {
@@ -56,13 +55,15 @@ game.actions = {
     action: card => card.set('flipped', !card.get('flipped'))
   },
   activate: {
-    select: "card:not([active]):not([flipped])",
+    select: ".mine #tableau card:not([active]):not([flipped])",
     prompt: "Activate",
+    key: "x",
     action: card => card.set('active', true)
   },
   deactivate: {
     prompt: "Deactivate",
-    select: "card[active]:not([flipped])",
+    select: ".mine #tableau card[active]:not([flipped])",
+    key: "x",
     action: card => card.set('active', false)
   },
   play: {
@@ -78,7 +79,8 @@ game.actions = {
   },
   draw: {
     prompt: "Draw",
-    drag: "#loot card, #loot-discard card",
+    drag: "#loot card:nth-last-child(-n+2), #loot-discard card",
+    key: "d",
     onto: ".mine #hand",
   },
   drawMultiple: {
@@ -97,12 +99,13 @@ game.actions = {
     next: {
       prompt: "Select card",
       select: deck => deck.findAll("card").map(c => c.id),
-      action: (deck, card) => deck.find(`card#${card}`).move('.mine #hand'),
+      action: (deck, card) => deck.find(`card#${card}`).move('.mine #tableau'),
     }
   },
   purchase: {
     prompt: "Purchase",
-    drag: "#shop card, #treasure card",
+    drag: "#shop card, #treasure card:nth-last-child(-n+2)",
+    key: "s",
     onto: ".mine #tableau",
   },
   intoLootDeckTop: {
@@ -117,7 +120,7 @@ game.actions = {
   },
   discardLoot: {
     prompt: "Discard",
-    drag: '.mine card[type="loot"], #loot card',
+    drag: '.mine card[type="loot"], #loot card:nth-last-child(-n+2)',
     onto: '#loot-discard',
   },
   playTreasure: {

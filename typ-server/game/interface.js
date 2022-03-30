@@ -266,14 +266,14 @@ class GameInterface extends EventEmitter {
     const start = new Date()
     if (this.currentPlayer !== undefined && player != this.currentPlayer) return {}
     const choices = this.currentActions.reduce((choices, action) => {
+      const key = (this.builtinActions[action] || this.actions[action]).key
       try {
         const prompt = this.testAction(action, player)
         //console.log('testAction OK', action)
-        choices[action] = {prompt}
+        choices[action] = {prompt, key}
       } catch(e) {
         if (e instanceof IncompleteActionError) {
-          //console.log('testAction IncompleteActionError', action, e.choices)
-          choices[action] = {prompt: e.prompt, choices: e.choices}
+          choices[action] = {prompt: e.prompt, choices: e.choices, key}
         } else if (e instanceof InvalidActionError) {
           console.log("skip action", action)
           return choices // skip
@@ -318,6 +318,7 @@ class GameInterface extends EventEmitter {
     if (!action.prompt) {
       throw Error(`${actionName} is missing 'prompt'`)
     }
+    const prompt = action.prompt + (action.key ? ` (${action.key.toUpperCase()})` : '')
 
     console.log('running action', actionName)
 
@@ -346,14 +347,14 @@ class GameInterface extends EventEmitter {
       if (!action.onto) {
         throw Error(`${actionName} has a 'drag' but no 'onto'`)
       }
-      return this.dragAction(action.drag, action.onto, action.prompt, action.promptOnto, nextAction)(...args)
+      return this.dragAction(action.drag, action.onto, prompt, action.promptOnto, nextAction)(...args)
     } else if (action.select) {
       if (action.select instanceof Array) {
-        return this.chooseAction(action.select, action.prompt, nextAction, argIndex)(...args)
+        return this.chooseAction(action.select, prompt, nextAction, argIndex)(...args)
       } else if (typeof action.select == 'string') {
-        return this.chooseAction(this.doc.findAll(action.select), action.prompt, nextAction)(...args)
+        return this.chooseAction(this.doc.findAll(action.select), prompt, nextAction)(...args)
       } else if (typeof action.select == 'function') {
-        return this.chooseAction(action.select(...args), action.prompt, nextAction, argIndex)(...args)
+        return this.chooseAction(action.select(...args), prompt, nextAction, argIndex)(...args)
       } else {
         throw Error(`'select' for ${actionName} must be a list or a finder`)
       }
@@ -361,10 +362,10 @@ class GameInterface extends EventEmitter {
       if (action.max == undefined || action.min == undefined) {
         throw Error("${actionName} needs both 'min' and 'max'")
       }
-      return this.chooseAction(range(action.min, action.max), action.prompt, nextAction, argIndex)(...args)
+      return this.chooseAction(range(action.min, action.max), prompt, nextAction, argIndex)(...args)
     } else if (nextAction) {
       nextAction(...args)
-      return action.prompt
+      return prompt
     }
   }
 

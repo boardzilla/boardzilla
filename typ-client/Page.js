@@ -99,7 +99,14 @@ export default class Page extends Component {
       }
     });
     document.addEventListener('keydown', e => e.key == "z" && this.setState({'zoomed': true}));
-    document.addEventListener('keyup', e => e.key == "z" && this.setState({'zoomed': false}));
+    document.addEventListener('keyup', e => {
+      if (this.state.mouseOver) {
+        const key = choiceFromKey(this.state.mouseOver);
+        const action = Object.entries(this.actionsFor(key)).find(([_, a]) => a.key == e.key);
+        if (action) return this.gameAction(action[0], key);
+      }
+      if (e.key == "z") this.setState({'zoomed': false});
+    });
     /* window.visualViewport.addEventListener('resize', console.log);
      * window.visualViewport.addEventListener('scroll', console.log);
      * document.addEventListener('wheel', console.log); */
@@ -224,11 +231,11 @@ export default class Page extends Component {
   // return available actions association to this element {action: {choice, prompt},...}
   actionsFor(choice) {
     if (!this.state.data.allowedActions) return []
-    return Object.entries(this.state.data.allowedActions).reduce((actions, [action, {choices, prompt}]) => {
+    return Object.entries(this.state.data.allowedActions).reduce((actions, [action, {choices, prompt, key}]) => {
       let node = choice;
       while (keyFromChoice(node)) {
         if (choices && choices.includes(node)) {
-          actions[action] = {choice: node, prompt};
+          actions[action] = {choice: node, prompt, key};
         }
         node = choiceFromKey(parentKey(keyFromChoice(node)));
       }
@@ -313,7 +320,7 @@ export default class Page extends Component {
       }
       if (node.classList.contains('piece')) {
         props.onMouseEnter=() => this.setState({mouseOver: key});
-        props.onMouseLeave=() => this.setState({mouseOver: null});
+        props.onMouseLeave=() => this.setState({mouseOver: null}); // TODO parent if is also piece
       }
     }
 
@@ -383,11 +390,11 @@ export default class Page extends Component {
                         this.state.choices.filter(choice => !choiceHasKey(choice) && choice.toLowerCase().includes(this.state.filter.toLowerCase()));
     const nonBoardActions = this.nonBoardActions()
     return (
-      <div>
-        {this.state.prompt && <div id="messages">
+      <div data-players={this.state.data.players && this.state.data.players.length}>
+      {this.state.prompt && <div id="messages">
         <div id="prompt">
-          {this.state.prompt}
-          {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
+        {this.state.prompt}
+        {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
         </div>
         {textChoices && <div>
           {Array.from(new Set(textChoices)).sort().map(choice => (

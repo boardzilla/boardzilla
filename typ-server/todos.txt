@@ -9,7 +9,7 @@ X drag-and-drop....?
 - numerical action type
 X undo/reset
 - connection status
-- kb shortcuts?
+X kb shortcuts?
 X .mine class on client
 X rseed
 - show errors from server
@@ -25,7 +25,7 @@ X https://github.com/WebReflection/linkedom
 X sequence breaking
 X coin counters
 X drag bug
-- addCounter
+X addCounter
 - bonus souls
 - reorg actions logically under destination?
 X zoom
