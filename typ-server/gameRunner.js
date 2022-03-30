@@ -1,7 +1,7 @@
 const { NodeVM } = require('vm2')
 const GameInterface = require('./game/interface')
 const db = require('./models')
-const { Client } = require('pg')
+const { Client } = require('pg').native
 const EventEmitter = require('events')
 const GAME_SESSION_NS = 4901
 const Redis = require("ioredis")
