@@ -23,6 +23,7 @@ class GameRunner {
     let running = true
     const handle = new EventEmitter()
     handle.stop = async() => {
+      console.log("stopping session runner")
       running = false
       try {
         if (!queueClient) return
