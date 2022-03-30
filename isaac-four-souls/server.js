@@ -6,8 +6,8 @@ game.setupPlayerMat = mat => {
   const tableau = mat.addSpace('#tableau', 'area');
   mat.addSpace('#hand', 'area');
   tableau.addComponent('counter', {display: 'hp', initialValue: 2});
-  tableau.addComponent('counter', {display: 'coin', initialValue: 3, x: 710, y: 90});
-  tableau.addComponent('die', {faces: 6, x: 760, y: 5});
+  tableau.addComponent('counter', {display: 'coin', initialValue: 3, x: 910, y: 90});
+  tableau.addComponent('die', {faces: 6, x: 960, y: 5});
 };
 
 game.setupBoard = board => {
@@ -30,12 +30,15 @@ game.setupBoard = board => {
   board.addSpace('#monsters-discard', 'deck');
   board.addSpace('#dungeon', 'area');
   board.addComponent('counter', {display: 'hp'});
+
+  let bonusY = 20;
+  bonusSouls.forEach(c => board.addPiece("#" + c, 'card', {type: 'bonusSoul', x:840, y:(bonusY += 50)}))
 };
 
 game.hidden = () => `card[flipped], #player-mat:not(.mine) #hand card, #loot card, #treasure card, #monsters card`;
 
 game.play = async () => {
-  game.playersMayAlwaysMove('.mine card, .mine counter, #board counter, .mine die, #shop card, #dungeon card');
+  game.playersMayAlwaysMove('.mine card, .mine counter, #board counter, .mine die, #shop card, #dungeon card, #board card[type="bonusSoul"]');
   game.playersMayAlwaysPlay(['setCounter', 'rollDie']);
   const allActions = Object.keys(game.actions);
   while(true) {
@@ -68,7 +71,7 @@ game.actions = {
   },
   play: {
     prompt: "Play",
-    drag: ".mine #hand card, #dungeon card, #characters card, #eternals card, #bonusSouls card",
+    drag: ".mine #hand card, #dungeon card, #characters card, #eternals card, card[type='bonusSoul']",
     onto: ".mine #tableau"
   },
   remove: {
@@ -79,7 +82,7 @@ game.actions = {
   },
   draw: {
     prompt: "Draw",
-    drag: "#loot card:nth-last-child(-n+2), #loot-discard card",
+    drag: "deck card:nth-last-child(-n+2), #loot-discard card",
     key: "d",
     onto: ".mine #hand",
   },
@@ -142,6 +145,11 @@ game.actions = {
     prompt: "Put at bottom of deck",
     select: 'card[type="monsters"]',
     action: card => card.moveToBottom('#monsters')
+  },
+  discardBonus: {
+    prompt: "Discard",
+    drag: ".mine card[type='bonusSoul']",
+    onto: "#board",
   },
   intoCharDeckTop: {
     prompt: "Put on top of deck",
@@ -386,7 +394,7 @@ const loot = {
   "Get-Out-of-Jail-Card": 1,
   "Gold-Key": 1,
   "Rainbow-Tapeworm": 1,
-}
+};
 
 const treasure = [
   "The-Battery",
@@ -686,4 +694,10 @@ const monsters = [
   "Curse-of-Tiny-Hands",
   "Curse-of-Blood-Lust",
   "Curse-of-Impulse",
-]
+];
+
+const bonusSouls = [
+  "Soul-of-Greed",
+  "Soul-of-Gluttony",
+  "Soul-of-Guppy",
+];

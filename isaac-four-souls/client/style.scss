@@ -1,5 +1,5 @@
 .table {
-  width: 800px;
+  width: 1000px;
   height: 560px;
   top: 120px;
   left: 0;
@@ -10,16 +10,16 @@
 #container {
   #board {
     height: 320px;
-    width: 800px;
+    width: 1000px;
     #characters {
       position: absolute;
-      left: 560px;
+      left: 920px;
       top: 50px;
       z-index: 20;
     }
     #eternals {
       position: absolute;
-      left: 560px;
+      left: 920px;
       top: 170px;
       z-index: 20;
     }
@@ -76,16 +76,16 @@
   #player-mat {
     position: relative;
     height: 240px;
-    width: 800px;
+    width: 1000px;
     #tableau {
       height: 120px;
-      width: 800px;
+      width: 1000px;
       position: absolute;
       top: 0px;
     }
     #hand {
       height: 120px;
-      width: 800px;
+      width: 1000px;
       position: absolute;
       top: 120px;
     }
