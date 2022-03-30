@@ -3,10 +3,12 @@ import { render } from 'typ-client';
 import './style.scss';
 
 render({
+  background: <div className="table"/>,
   pieces: {
-    card: props => (
+    card: props => <div>
       <img src={`images/${props.type}/${props.id || 'back'}.png`} />
-    ),
+      {props.children}
+    </div>,
   },
   counters: {
     hp: n => '♥'.repeat(n),

@@ -34,7 +34,6 @@ export default class Page extends Component {
     if (props.components) {
       this.components = {...this.components, ...props.components};
     }
-    this.counterDisplays = props.counterDisplays;
   }
 
   componentDidMount() {
@@ -318,16 +317,22 @@ export default class Page extends Component {
       }
     }
 
-    let contents = node.id;
-    if (this.components[type]) {
-      contents = React.createElement(this.components[type], {...props, display: this.counterDisplays[props.display] || (v=>v), ...this.bindMethods('gameAction', 'get', 'setVariable')});
-    } else if (!node.classList.contains('piece') || node.childNodes.length) {
+    let contents;
+    if (!node.classList.contains('piece') || node.childNodes.length) {
       if (node.nodeName == 'deck' && node.childNodes.length) {
         contents = Array.from(node.childNodes).slice(-2).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
       } else {
         contents = Array.from(node.childNodes).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
       }
     }
+    if (this.components[type]) {
+      contents = React.createElement(
+        this.components[type],
+        {...props, display: this.props.counterDisplays[props.display] || (v=>v), ...this.bindMethods('gameAction', 'get', 'setVariable')},
+        contents
+      );
+    }
+    contents = contents || node.id;
 
     const externallyControlled = this.state.locks[key] && this.state.locks[key] !== this.props.userId;
     let position;
@@ -392,12 +397,15 @@ export default class Page extends Component {
         <button onClick={() => this.send('update')}>Cancel</button>
       </div>}
 
-      {nonBoardActions && !this.state.prompt && <div id="messages">
-        {Object.entries(nonBoardActions).map(([action, prompt]) => (
+      {!this.state.prompt && <div id="messages">
+        <button onClick={() => this.send('undo')}>Undo</button>
+        <button onClick={() => confirm("Reset and lose all game history? This cannot be undone") && this.send('reset')}>Reset</button>
+        {nonBoardActions && Object.entries(nonBoardActions).map(([action, prompt]) => (
           <button key={action} onClick={() => this.gameAction(action)}>{prompt}</button>
         ))}
       </div>}
 
+      {this.props.background}
       {this.state.data.phase === 'ready' && this.state.data.doc && this.renderBoard(xmlToNode(this.state.data.doc))}
 
       {this.state.actions && this.state.ctxpos &&

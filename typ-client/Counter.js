@@ -8,9 +8,9 @@ export default ({id, get, display, gameAction, setVariable}) => {
   };
   return (
     <div>
-      <button onClick={() => set(-1)} onTouchEnd={() => set(-1)}>-</button>
+      <button onClick={e => {set(-1); e.stopPropagation()}} onTouchEnd={() => set(-1)}>-</button>
       {display(get(id))}
-      <button onClick={() => set(1)} onTouchEnd={() => set(1)}>+</button>
+      <button onClick={e => {set(1); e.stopPropagation()}} onTouchEnd={() => set(1)}>+</button>
     </div>
   );
 }

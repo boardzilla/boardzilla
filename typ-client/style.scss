@@ -36,7 +36,6 @@
   }
   .space {
     position: relative;
-    outline: 1px solid black;
     &.flipped {
       transform: scale(-1);
     }
@@ -95,6 +94,12 @@
 
 .counter {
   white-space: nowrap;
+  button:first-child {
+    margin-right: 4px;
+  }
+  button:last-child {
+    margin-left: 4px;
+  }
 }
 
 #choiceFilter {

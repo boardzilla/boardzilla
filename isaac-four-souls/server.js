@@ -30,12 +30,13 @@ game.setupBoard = board => {
   monsters.forEach(c => monsterDeck.addPiece("#" + c, 'card', {type: 'monster'}))
   board.addSpace('#monsters-discard', 'deck');
   board.addSpace('#dungeon', 'area');
+  board.addComponent('counter', {display: 'hp'});
 };
 
 game.hidden = () => `card[flipped], #player-mat:not(.mine) #hand card, #loot card, #treasure card, #monsters card`;
 
 game.play = async () => {
-  game.playersMayAlwaysMove('.mine card, .mine counter, .mine die, #shop card, #dungeon card');
+  game.playersMayAlwaysMove('.mine card, .mine counter, #board counter, .mine die, #shop card, #dungeon card');
   game.playersMayAlwaysPlay(['setCounter', 'rollDie']);
   const allActions = Object.keys(game.actions);
   while(true) {
@@ -143,6 +144,16 @@ game.actions = {
     prompt: "Put on top of deck",
     drag: '.mine card[type="character"]',
     onto: '#characters',
+  },
+  addCounter: {
+    prompt: "Add a counter",
+    select: ".mine card",
+    action: card => card.addComponent('counter'),
+  },
+  removeCounter: {
+    prompt: "Remove counter",
+    select: ".mine card counter",
+    action: counter => counter.destroy(),
   },
   getCharDeck: {
     prompt: "Get characters",

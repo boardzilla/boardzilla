@@ -1,4 +1,4 @@
-const asyncRedis = require("async-redis");
+const asyncRedis = require("async-redis")
 const { NodeVM } = require('vm2')
 const GameInterface = require('./game/interface')
 const db = require('./models')
@@ -25,7 +25,7 @@ class GameRunner {
     handle.stop = async() => {
       running = false
       try {
-        await queueClient.end(true)
+        await queueClient.quit()
       } catch (e) {
         console.error("error stopping queue client")
       }
@@ -38,7 +38,7 @@ class GameRunner {
         await lockClient.connect()
         lockClient.on('error', (err) => {
           console.log(process.pid, "err from lock client", err)
-          queueClient.end(true)
+          queueClient.quit()
         })
 
         await lockClient.query("select pg_advisory_lock($1, $2)", [GAME_SESSION_NS, sessionId])
@@ -70,7 +70,7 @@ class GameRunner {
               try {
                 await session.createAction({player, sequence, action})
               } catch(e) {
-                console.error(e);
+                console.error(e)
               }
             }
 
@@ -112,7 +112,7 @@ class GameRunner {
               console.log(`R ${process.pid} processGameEvent`, message.type, message.payload.userId)
               switch(message.type) {
                 case 'action': return gameAction(message.payload.userId, message.payload.sequence, ...message.payload.action)
-                case 'refresh': return publish({
+                case 'refresh': return await publish({
                   type: 'state',
                   userId: message.payload.userId,
                   payload: playerViews[message.payload.userId]
@@ -125,34 +125,33 @@ class GameRunner {
                       sessionId
                     }
                   })
-                  running = false
-                  break
+                  return true
                 case 'undo':
                   await queueClient.del(this.sessionEventKey(sessionId))
-                  const lastAction = await session.getActions({order: ['sequence', 'DESC'], limit: 1})
+                  const lastAction = await session.getActions({order: [['sequence', 'DESC']], limit: 1})
                   await db.SessionAction.destroy({
                     where: {
                       id: lastAction[0].id
                     }
                   })
-                  running = false
-                  break
+                  return true
                 default: return console.log("unknown message", sessionId, message)
               }
             }
 
-            while (running) {
+            let restarting = false
+            while (running && !restarting) {
               const data = await queueClient.blpop(this.sessionEventKey(sessionId), 60000)
               if (data[1]) {
-                processGameEvent(JSON.parse(data[1]))
+                restarting = await processGameEvent(JSON.parse(data[1]))
               } else {
                 console.log("no game data to process")
               }
             }
-            await queueClient.end(true)
           } catch (e) {
             console.error(`${process.pid} ERROR IN GAME RUNNER LOOP`, e)
           }
+          console.log("R ending game loop")
         }
       } finally {
         try {
@@ -166,7 +165,7 @@ class GameRunner {
           console.error("error ending lock client", e)
         }
         try {
-          await queueClient.end(true)
+          await queueClient.quit()
         } catch (e) {
           console.error("error ending queue client", e)
         }
