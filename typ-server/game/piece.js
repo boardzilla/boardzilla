@@ -3,11 +3,11 @@ const GameElement = require('./element');
 class Piece extends GameElement {
 
   move(to) {
-    return this.root().move([this], to);
+    return this.root().move([this], to || this.parent());
   }
 
   moveToBottom(to) {
-    return this.root().moveToBottom([this], to);
+    return this.root().moveToBottom([this], to || this.parent());
   }
 
   remove() {

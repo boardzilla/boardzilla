@@ -6,39 +6,45 @@ game.setupPlayerMat = mat => {
   const tableau = mat.addSpace('#tableau', 'area');
   mat.addSpace('#hand', 'area');
   tableau.addComponent('counter', {display: 'hp', initialValue: 2});
-  tableau.addComponent('counter', {display: 'coin', initialValue: 3, x: 910, y: 90});
-  tableau.addComponent('die', {faces: 6, x: 960, y: 5});
+  tableau.addComponent('counter', {display: 'coin', initialValue: 3, x: 100, y: 0});
+  tableau.addComponent('die', {faces: 6, x: 200, y: 0});
 };
 
 game.setupBoard = board => {
   const charactersDeck = board.addSpace('#characters', 'deck');
   characters.forEach(c => charactersDeck.addPiece("#" + c, 'card', {type: 'character'}))
+  charactersDeck.shuffle()
   const eternalsDeck = board.addSpace('#eternals', 'deck');
   eternals.forEach(c => eternalsDeck.addPiece("#" + c, 'card', {type: 'eternal'}))
+  eternalsDeck.shuffle()
 
   const lootDeck = board.addSpace('#loot', 'deck');
   Object.keys(loot).forEach(c => lootDeck.addPieces(loot[c], "#" + c, 'card', {type: 'loot'}))
+  lootDeck.shuffle()
   board.addSpace('#loot-discard', 'deck');
 
   const treasureDeck = board.addSpace('#treasure', 'deck');
   treasure.forEach(c => treasureDeck.addPiece("#" + c, 'card', {type: 'treasure'}))
+  treasureDeck.shuffle()
   board.addSpace('#treasure-discard', 'deck');
   board.addSpace('#shop', 'area');
 
   const monsterDeck = board.addSpace('#monsters', 'deck');
   monsters.forEach(c => monsterDeck.addPiece("#" + c, 'card', {type: 'monster'}))
+  monsterDeck.shuffle()
   board.addSpace('#monsters-discard', 'deck');
   board.addSpace('#dungeon', 'area');
   board.addComponent('counter', {display: 'hp'});
 
-  let bonusY = 20;
-  bonusSouls.forEach(c => board.addPiece("#" + c, 'card', {type: 'bonusSoul', x:840, y:(bonusY += 50)}))
+  const bonus = board.addSpace('#bonusSouls', 'area');
+  let bonusY = 0;
+  bonusSouls.forEach(c => bonus.addPiece("#" + c, 'card', {type: 'bonusSoul', x:0, y:(bonusY += 40)}))
 };
 
-game.hidden = () => `card[flipped], #player-mat:not(.mine) #hand card, #loot card, #treasure card, #monsters card`;
+game.hidden = () => `card[flipped], #player-mat:not(.mine) #hand card, #loot card, #treasure card, #monsters card, #characters card, #eternals card`;
 
 game.play = async () => {
-  game.playersMayAlwaysMove('.mine card, .mine counter, #board counter, .mine die, #shop card, #dungeon card, #board card[type="bonusSoul"]');
+  game.playersMayAlwaysMove('.mine card, .mine counter, #board counter, .mine die, #shop card, #dungeon card, #bonusSouls card');
   game.playersMayAlwaysPlay(['setCounter', 'rollDie']);
   const allActions = Object.keys(game.actions);
   while(true) {
@@ -71,14 +77,13 @@ game.actions = {
   },
   play: {
     prompt: "Play",
-    drag: ".mine #hand card, #dungeon card, #characters card, #eternals card, card[type='bonusSoul']",
+    drag: ".mine #hand card, #dungeon card, #characters card, #eternals card, #bonusSouls card",
     onto: ".mine #tableau"
   },
   remove: {
     prompt: "Put back in your hand",
-    promptOnto: "Which hand",
     drag: "#tableau card",
-    onto: "#hand",
+    onto: ".mine #hand",
   },
   draw: {
     prompt: "Draw",
@@ -143,13 +148,13 @@ game.actions = {
   },
   intoMonsterDeckBottom: {
     prompt: "Put at bottom of deck",
-    select: 'card[type="monsters"]',
+    select: 'card[type="monster"]',
     action: card => card.moveToBottom('#monsters')
   },
   discardBonus: {
     prompt: "Discard",
     drag: ".mine card[type='bonusSoul']",
-    onto: "#board",
+    onto: "#bonusSoul",
   },
   intoCharDeckTop: {
     prompt: "Put on top of deck",

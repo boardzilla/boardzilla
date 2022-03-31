@@ -1,3 +1,7 @@
+body {
+  font-family: "sans-serif";
+}
+
 #container {
   position: relative;
   user-select: none;
@@ -11,7 +15,7 @@
     width: 100%;
     left: 0;
     bottom: 0;
-    z-index: 100;
+    z-index: 200;
     background: #fec;
     padding: 10px;
     box-shadow: 0 -2px 10px black;
@@ -76,6 +80,9 @@
   margin-right: auto;
   width: 100px;
   z-index: 1000;
+  .piece {
+    transform: none !important;
+  }
 }
 
 .hideDragging {

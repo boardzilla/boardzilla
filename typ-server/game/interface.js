@@ -456,8 +456,8 @@ class GameInterface extends EventEmitter {
           } catch(e) {
             console.error("unable to register move action", e)
           } finally {
-            this.updatePlayers()
             this.currentPlayer = currentPlayer
+            this.updatePlayers()
             // cant update becuase state is unchanged and will be ignored
           }
         } else {
@@ -525,6 +525,7 @@ class GameInterface extends EventEmitter {
     if (el.matches(this.allowedMoveElements)) {
       el.set('x', x)
       el.set('y', y)
+      el.move()
     } else {
       throw(`Illegal moveElement ${el.node.outerHTML}, ${this.allowedMoveElements}`)
     }
