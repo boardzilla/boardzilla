@@ -20,7 +20,7 @@ class GameRunner {
   }
 
   createSessionRunner(sessionId) {
-    const serverLocator = simple()(process.env.ZK_CONNECTION_STRING);
+    const serverLocator = simple()(process.env.ZK_CONNECTION_STRING)
     const lock = new zkLock.ZookeeperLock({
       serverLocator,
       pathPrefix: 'game-runner-',
