@@ -1,7 +1,8 @@
+const zkLock = require('zk-lock')
+const simple = require('locators').simple
 const { NodeVM } = require('vm2')
 const GameInterface = require('./game/interface')
 const db = require('./models')
-const { Client } = require('pg')
 const EventEmitter = require('events')
 const GAME_SESSION_NS = 4901
 const Redis = require("ioredis")
@@ -19,30 +20,49 @@ class GameRunner {
   }
 
   createSessionRunner(sessionId) {
-    let queueClient, lockClient
+    const serverLocator = simple()(process.env.ZK_CONNECTION_STRING)
+    const lock = new zkLock.ZookeeperLock({
+      serverLocator,
+      pathPrefix: 'game-runner-',
+      sessionTimeout: 2000
+    })
+
+    let queueClient
     let running = true
+    let locked = false
+
+    const cleanup = async () => {
+      try {
+        console.log("ending pg lock conn")
+        await lock.unlock()
+        console.log("done ending pg lock conn")
+      } catch (e) {
+        console.error("error ending lock client", e)
+      }
+      if (queueClient) {
+        try {
+          console.log("disconnecting queue client")
+          queueClient.disconnect()
+          console.log("done disconnecting queue client")
+        } catch (e) {
+          console.error("error ending queue client", e)
+        }
+      }
+    }
+
+    lock.on('lost', cleanup)
+
     const handle = new EventEmitter()
     handle.stop = async() => {
       console.log("stopping session runner")
       running = false
-      try {
-        if (queueClient) await queueClient.disconnect()
-      } catch (e) {
-        console.error("error stopping queue client")
-      }
-
-      try {
-        if (lockClient) await lockClient.end()
-      } catch (e) {
-        console.error("error stopping queue client")
-      }
+      await cleanup()
     }
     (async () => {
-      lockClient = process.env.NODE_ENV === 'production' ? new Client({connectionString: this.postgresUrl, connectionTimeoutMillis: 3000, ssl: {require: true, rejectUnauthorized: false}}) : new Client(this.postgresUrl)
       try {
-        console.log("R waiting for lock")
-        await lockClient.connect()
-        await lockClient.query("select pg_advisory_lock($1, $2)", [GAME_SESSION_NS, sessionId])
+        await lock.lock(`${sessionId}`)
+
+        locked = true
 
         queueClient = this.redisClient.duplicate()
 
@@ -165,28 +185,10 @@ class GameRunner {
           console.log("R ending game loop")
         }
         await queueClient.quit()
+      } catch(e) {
+        console.log("error in game runner loop", e)
       } finally {
-        try {
-          console.log("unlocking")
-          await lockClient.query("select pg_advisory_unlock($1, $2)", [GAME_SESSION_NS, sessionId])
-          console.log("done unlocking")
-        } catch (e) {
-          console.error("error unlocking", e)
-        }
-        try {
-          console.log("ending pg lock conn")
-          await lockClient.end()
-          console.log("done ending pg lock conn")
-        } catch (e) {
-          console.error("error ending lock client", e)
-        }
-        try {
-          console.log("disconnecting queue client")
-          queueClient.disconnect()
-          console.log("done disconnecting queue client")
-        } catch (e) {
-          console.error("error ending queue client", e)
-        }
+        await cleanup()
       }
     })().catch(e => handle.emit('error', e))
     return handle
