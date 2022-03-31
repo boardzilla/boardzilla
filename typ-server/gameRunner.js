@@ -1,17 +1,17 @@
-const asyncRedis = require("async-redis")
 const { NodeVM } = require('vm2')
 const GameInterface = require('./game/interface')
 const db = require('./models')
-const { Client } = require('pg')
+const { Client } = require('pg').native
 const EventEmitter = require('events')
 const GAME_SESSION_NS = 4901
+const Redis = require("ioredis")
 
 class GameRunner {
   constructor(postgresUrl, redisUrl, localDevGame) {
     this.postgresUrl = postgresUrl
     this.redisUrl = redisUrl
     this.localDevGame = localDevGame
-    this.redisClient = asyncRedis.createClient(redisUrl)
+    this.redisClient = new Redis(redisUrl)
   }
 
   sessionEventKey(sessionId) {
@@ -19,29 +19,32 @@ class GameRunner {
   }
 
   createSessionRunner(sessionId) {
-    let queueClient
+    let queueClient, lockClient
     let running = true
     const handle = new EventEmitter()
     handle.stop = async() => {
+      console.log("stopping session runner")
       running = false
       try {
-        await queueClient.quit()
+        if (queueClient) await queueClient.disconnect()
+      } catch (e) {
+        console.error("error stopping queue client")
+      }
+
+      try {
+        if (lockClient) await lockClient.end()
       } catch (e) {
         console.error("error stopping queue client")
       }
     }
     (async () => {
-      const lockClient = process.env.NODE_ENV === 'production' ? new Client({connectionString: this.postgresUrl, connectionTimeoutMillis: 3000, ssl: {require: true, rejectUnauthorized: false}}) : new Client(this.postgresUrl)
-      queueClient = asyncRedis.decorate(await this.redisClient.duplicate())
+      lockClient = process.env.NODE_ENV === 'production' ? new Client({connectionString: this.postgresUrl, connectionTimeoutMillis: 3000, ssl: {require: true, rejectUnauthorized: false}}) : new Client(this.postgresUrl)
       try {
         console.log("R waiting for lock")
         await lockClient.connect()
-        lockClient.on('error', (err) => {
-          console.log(process.pid, "err from lock client", err)
-          queueClient.quit()
-        })
-
         await lockClient.query("select pg_advisory_lock($1, $2)", [GAME_SESSION_NS, sessionId])
+
+        queueClient = this.redisClient.duplicate()
 
         while(running) {
           try {
@@ -111,13 +114,19 @@ class GameRunner {
             const processGameEvent = async (message) => {
               console.log(`R ${process.pid} processGameEvent`, message.type, message.payload.userId)
               switch(message.type) {
-                case 'action': return gameAction(message.payload.userId, message.payload.sequence, ...message.payload.action)
-                case 'refresh': return await publish({
-                  type: 'state',
-                  userId: message.payload.userId,
-                  payload: playerViews[message.payload.userId]
-                })
-                case 'update': return gameInstance.updateUser(message.payload.userId)
+                case 'action': 
+                  gameAction(message.payload.userId, message.payload.sequence, ...message.payload.action)
+                  return false
+                case 'refresh':
+                  await publish({
+                    type: 'state',
+                    userId: message.payload.userId,
+                    payload: playerViews[message.payload.userId]
+                  })
+                  return false
+                case 'update':
+                  gameInstance.updateUser(message.payload.userId)
+                  return false
                 case 'reset':
                   await queueClient.del(this.sessionEventKey(sessionId))
                   await db.SessionAction.destroy({
@@ -135,13 +144,14 @@ class GameRunner {
                     }
                   })
                   return true
-                default: return console.log("unknown message", sessionId, message)
+                default:
+                  throw Error(`unknown command ${message}`)
               }
             }
 
             let restarting = false
             while (running && !restarting) {
-              const data = await queueClient.blpop(this.sessionEventKey(sessionId), 60000)
+              const data = await queueClient.blpop(this.sessionEventKey(sessionId), 0)
               if (data[1]) {
                 restarting = await processGameEvent(JSON.parse(data[1]))
               } else {
@@ -153,19 +163,26 @@ class GameRunner {
           }
           console.log("R ending game loop")
         }
+        await queueClient.quit()
       } finally {
         try {
+          console.log("unlocking")
           await lockClient.query("select pg_advisory_unlock($1, $2)", [GAME_SESSION_NS, sessionId])
+          console.log("done unlocking")
         } catch (e) {
           console.error("error unlocking", e)
         }
         try {
+          console.log("ending pg lock conn")
           await lockClient.end()
+          console.log("done ending pg lock conn")
         } catch (e) {
           console.error("error ending lock client", e)
         }
         try {
-          await queueClient.quit()
+          console.log("disconnecting queue client")
+          queueClient.disconnect()
+          console.log("done disconnecting queue client")
         } catch (e) {
           console.error("error ending queue client", e)
         }

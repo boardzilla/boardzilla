@@ -4,7 +4,7 @@
     "dialect": "postgres"
   },
   "test": {
-    "use_env_variable": "DATABASE_URL",
+    "database": "typ_test",
     "dialect": "postgres"
   },
   "production": {
