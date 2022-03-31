@@ -21,28 +21,58 @@ class GameRunner {
   createSessionRunner(sessionId) {
     let queueClient, lockClient
     let running = true
+    let locked = false
+
+    const cleanup = async () => {
+      if (locked) {
+        try {
+          console.log("unlocking")
+          await lockClient.query("select pg_advisory_unlock($1, $2)", [GAME_SESSION_NS, sessionId])
+          console.log("done unlocking")
+        } catch (e) {
+          console.error("error unlocking", e)
+        }
+      }
+      try {
+        console.log("ending pg lock conn")
+        await lockClient.end()
+        console.log("done ending pg lock conn")
+      } catch (e) {
+        console.error("error ending lock client", e)
+      }
+      if (queueClient) {
+        try {
+          console.log("disconnecting queue client")
+          queueClient.disconnect()
+          console.log("done disconnecting queue client")
+        } catch (e) {
+          console.error("error ending queue client", e)
+        }
+      }
+    }
+
     const handle = new EventEmitter()
     handle.stop = async() => {
       console.log("stopping session runner")
       running = false
-      try {
-        if (queueClient) await queueClient.disconnect()
-      } catch (e) {
-        console.error("error stopping queue client")
-      }
-
-      try {
-        if (lockClient) await lockClient.end()
-      } catch (e) {
-        console.error("error stopping queue client")
-      }
+      await cleanup()
     }
     (async () => {
       lockClient = process.env.NODE_ENV === 'production' ? new Client({connectionString: this.postgresUrl, connectionTimeoutMillis: 3000, ssl: {require: true, rejectUnauthorized: false}}) : new Client(this.postgresUrl)
       try {
         console.log("R waiting for lock")
         await lockClient.connect()
-        await lockClient.query("select pg_advisory_lock($1, $2)", [GAME_SESSION_NS, sessionId])
+        console.log("R done waiting for lock")
+        console.log("R going to lock loop")
+        while (!locked) {
+          const res = await lockClient.query("select pg_try_advisory_lock($1, $2)", [GAME_SESSION_NS, sessionId])
+          locked = res.rows[0].pg_try_advisory_lock
+          if (!locked) {
+            await new Promise((resolve, reject) => {
+              setTimeout(resolve, 500)
+            })
+          }
+        }
 
         queueClient = this.redisClient.duplicate()
 
@@ -165,28 +195,10 @@ class GameRunner {
           console.log("R ending game loop")
         }
         await queueClient.quit()
+      } catch(e) {
+        console.log("error in game runner loop", e)
       } finally {
-        try {
-          console.log("unlocking")
-          await lockClient.query("select pg_advisory_unlock($1, $2)", [GAME_SESSION_NS, sessionId])
-          console.log("done unlocking")
-        } catch (e) {
-          console.error("error unlocking", e)
-        }
-        try {
-          console.log("ending pg lock conn")
-          await lockClient.end()
-          console.log("done ending pg lock conn")
-        } catch (e) {
-          console.error("error ending lock client", e)
-        }
-        try {
-          console.log("disconnecting queue client")
-          queueClient.disconnect()
-          console.log("done disconnecting queue client")
-        } catch (e) {
-          console.error("error ending queue client", e)
-        }
+        await cleanup()
       }
     })().catch(e => handle.emit('error', e))
     return handle
