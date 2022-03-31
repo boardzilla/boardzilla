@@ -65,6 +65,7 @@ export default class Page extends Component {
               const [action, details] = Object.entries(res.payload.allowedActions)[0];
               this.setState({action, args: details.args, prompt: details.prompt, choices: details.choices});
             }
+            document.getElementsByTagName('body')[0].dataset.players = this.state.data.players && this.state.data.players.length
           }
           break;
         case "updateLocks":
@@ -406,7 +407,7 @@ export default class Page extends Component {
                         this.state.choices.filter(choice => !choiceHasKey(choice) && choice.toLowerCase().includes(this.state.filter.toLowerCase()));
     const nonBoardActions = this.nonBoardActions()
     return (
-      <div data-players={this.state.data.players && this.state.data.players.length}>
+      <div>
       {this.state.prompt && <div id="messages">
         <div id="prompt">
         {this.state.prompt}

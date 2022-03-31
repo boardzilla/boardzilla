@@ -13,7 +13,7 @@ body {
   }
 }
 
-#game {
+#container {
   position: absolute;
   left: 0;
   top: 0;
@@ -103,7 +103,7 @@ body {
     top: 0;
     height: 240px;
     width: 1000px;
-    #container & {
+    [data-players="3"] &, [data-players="4"] & {
       width: 700px;
     }
     &.mine {

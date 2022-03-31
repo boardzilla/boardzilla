@@ -15,20 +15,19 @@ X rseed
 - show errors from server
 - log???
 - debug
+- EJS front pages
+- game file packaging
 
 action types: select-array, select-el, drag-onto, select-el-number?, prompt, numerical, text?
 
 isaac
-- game file packaging
 - reorg actions logically under destination?
 X moves sends blank actions
 X prevent interrupting partial actions?
-- layouts [other-player-mats, board, player-mat] (just 2-player hard-coded for now)
+X layouts [other-player-mats, board, player-mat] (just 2-player hard-coded for now)
 X monster stack or move placement, remove z-index
-- +/-n counters?
 X reset rseed
 X onMouseEnter revealed card
-- counter max
 X undo/reset UI
 X dice
 X https://github.com/WebReflection/linkedom
@@ -50,30 +49,15 @@ X select-array action type
 X counters up/down
 X rseed
 X drag translate x-y
-- toggle-panes
 - values can accept game => fn
 X set up play areas (loot(deck, discard), shop(deck, discard, 1,2,3,4), monsters(deck, discard, 1,2,3,4), bonus, players: hand, play, look-at)
 X deck hidden? or just lot of facedown cards with no visibility? (show 2 cards)
-- actions
-  - purchase
-  - drag (shop-deck, 1,2,3...) put into shop
-  - drag (mons-deck, 1,2,3...) put into monster, slot
-  - drag (loot-deck, hand) draw
-  - drag (hand, loot-discard) play
-  - drag (shop-1,2 tableau) buy
-  - look at top card (top n)
-    - put back
-    - bottom
-    - take
-  - steal-item
-  - steal-treasure
-  - give, player
-  - discard
-  - show hand, player
-    - take back
-  - take/spend coins
-  - shuffle
 
+nice to haves
+- better dice, server comms
+- counter max
+- +/-n counters?
+- toggle-panes
 
 single giant procedure, can freeze history and rseed and replay state if lost connection
 

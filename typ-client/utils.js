@@ -42,7 +42,7 @@ export const branch = node => {
   return branch;
 };
 
-export const keyFromEl = el => el.getAttribute('data-key') || el.parentNode && keyFromEl(el.parentNode);
+export const keyFromEl = el => el.dataset.key || el.parentNode && keyFromEl(el.parentNode);
 
 export const isFlipped = el => el.matches('.flipped, .flipped *');
 
