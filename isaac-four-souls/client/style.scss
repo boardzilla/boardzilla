@@ -1,3 +1,6 @@
+body {
+  height: 930px;
+}
 .table {
   width: 1000px;
   height: 560px;
@@ -5,21 +8,35 @@
   left: 0;
   position: absolute;
   background-image: url("images/wood.jpeg");
+  [data-players="3"] &, [data-players="4"] & {
+    width: 1400px;
+  }
 }
 
-#container {
+#game {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 800px;
+  width: 1000px;
+  [data-players="3"] &, [data-players="4"] & {
+    width: 1400px;
+  }
   #board {
+    position: absolute;
+    left: 0;
+    top: 240px;
     height: 320px;
-    width: 1000px;
+    width: 100%;
     #characters {
       position: absolute;
-      left: 920px;
+      right: 20px;
       top: 50px;
       z-index: 20;
     }
     #eternals {
       position: absolute;
-      left: 920px;
+      right: 20px;
       top: 170px;
       z-index: 20;
     }
@@ -59,13 +76,20 @@
     }
     #loot {
       position: absolute;
-      left: 700px;
+      right: 220px;
       top: 50px;
     }
     #loot-discard {
       position: absolute;
-      left: 700px;
+      left: 220px;
       top: 170px;
+    }
+    #bonusSouls {
+      position: absolute;
+      right: 100px;
+      top: 20px;
+      width: 100px;
+      height: 280px;
     }
     .deck {
       width: 80px;
@@ -74,18 +98,29 @@
   }
 
   #player-mat {
-    position: relative;
+    position: absolute;
+    left: 0;
+    top: 0;
     height: 240px;
     width: 1000px;
+    #container & {
+      width: 700px;
+    }
+    &.mine {
+      top: 560px;
+    }
+    &:not(.mine):nth-child(2) {
+      left: 700px;
+    }
     #tableau {
       height: 120px;
-      width: 1000px;
+      width: 100%;
       position: absolute;
       top: 0px;
     }
     #hand {
       height: 120px;
-      width: 1000px;
+      width: 100%;
       position: absolute;
       top: 120px;
     }
@@ -108,7 +143,7 @@
     width: 80px;
     height: 100px;
     &[active=true] {
-      transform: rotate(80deg);
+      transform: rotate(90deg);
     }
     img {
       height: 100px;

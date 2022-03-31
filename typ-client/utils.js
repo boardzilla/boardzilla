@@ -24,6 +24,8 @@ export const zoneForEl = el => {
   return el.parentNode ? el : null;
 };
 
+export const elForPoint = (x, y) => keyFromEl(document.elementFromPoint(x, y));
+
 export const zoneForPoint = (x, y) => {
   let el = zoneForEl(document.elementFromPoint(x, y));
   if (el) return {el, x: x - el.getBoundingClientRect().x, y: y - el.getBoundingClientRect().y};
@@ -40,7 +42,7 @@ export const branch = node => {
   return branch;
 };
 
-export const keyFromEl = el => el.getAttribute('data-key');
+export const keyFromEl = el => el.getAttribute('data-key') || el.parentNode && keyFromEl(el.parentNode);
 
 export const isFlipped = el => el.matches('.flipped, .flipped *');
 

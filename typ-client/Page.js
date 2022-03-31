@@ -2,7 +2,22 @@ import React, { Component } from 'react';
 import classNames from 'classnames';
 import Draggable from 'react-draggable';
 import ReconnectingWebSocket from 'reconnecting-websocket';
-import {throttle, elementByKey, parentKey, zoneForKey, choiceHasKey, keyFromChoice, choiceFromKey, zoneForPoint, xmlToNode, branch, keyFromEl, isFlipped, pieceAt} from './utils';
+import {
+  throttle,
+  elementByKey,
+  parentKey,
+  zoneForKey,
+  choiceHasKey,
+  keyFromChoice,
+  choiceFromKey,
+  elForPoint,
+  zoneForPoint,
+  xmlToNode,
+  branch,
+  keyFromEl,
+  isFlipped,
+  pieceAt
+} from './utils';
 import Counter from './Counter';
 import Die from './Die';
 import './style.scss';
@@ -49,8 +64,6 @@ export default class Page extends Component {
             if (Object.entries(res.payload.allowedActions).length == 1) {
               const [action, details] = Object.entries(res.payload.allowedActions)[0];
               this.setState({action, args: details.args, prompt: details.prompt, choices: details.choices});
-            } else {
-              this.setState({action: null, args: [], prompt: null, choices: null});
             }
           }
           break;
@@ -98,10 +111,12 @@ export default class Page extends Component {
         this.setState({dragOver: keyFromEl(el)})
       }
     });
+    document.addEventListener('mousemove', e => this.setState({mouse: {x: e.clientX, y: e.clientY}}));
     document.addEventListener('keydown', e => e.key == "z" && this.setState({'zoomed': true}));
     document.addEventListener('keyup', e => {
-      if (this.state.mouseOver) {
-        const key = choiceFromKey(this.state.mouseOver);
+      const el = elForPoint(this.state.mouse.x, this.state.mouse.y)
+      if (el) {
+        const key = choiceFromKey(el);
         const action = Object.entries(this.actionsFor(key)).find(([_, a]) => a.key == e.key);
         if (action) return this.gameAction(action[0], key);
       }
@@ -216,6 +231,7 @@ export default class Page extends Component {
 
   handleClick(choice, {x, y}, event) {
     const actions = this.actionsFor(choice);
+    console.log(actions, choice)
     this.setState({dragging: null});
     if (Object.keys(actions).length == 1) {
       this.gameAction(Object.keys(actions)[0], ...this.state.args, choice);
@@ -277,9 +293,9 @@ export default class Page extends Component {
 
   renderBoard(board) {
     return <div id="game">
-      {this.renderGameElement(board.querySelector(`#player-mat:not([player="${this.player()}"])`), true)} {/* TODO assumed 2 player */}
+      {[...board.querySelectorAll(`#player-mat:not(.mine)`)].map(mat => this.renderGameElement(mat, mat.getAttribute('player') < 4))}
       {this.renderGameElement(board.querySelector('#board'))}
-      {this.renderGameElement(board.querySelector(`#player-mat[player="${this.player()}"]`))}
+      {this.renderGameElement(board.querySelector(`#player-mat.mine`))}
     </div>
   }
 
@@ -397,11 +413,11 @@ export default class Page extends Component {
         {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
         </div>
         {textChoices && <div>
-          {Array.from(new Set(textChoices)).sort().map(choice => (
-            <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, choice)}>{JSON.parse(choice)}</button>
-          ))}
+         {Array.from(new Set(textChoices)).sort().map(choice => (
+           <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, choice)}>{JSON.parse(choice)}</button>
+         ))}
         </div>}
-        <button onClick={() => this.send('update')}>Cancel</button>
+        <button onClick={() => {this.setState({action: null, args: [], prompt: null, choices: null}); this.send('update')}}>Cancel</button>
       </div>}
 
       {!this.state.prompt && <div id="messages">

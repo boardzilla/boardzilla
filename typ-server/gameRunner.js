@@ -134,6 +134,7 @@ class GameRunner {
                       sessionId
                     }
                   })
+                  await db.Session.update({seed: String(Math.random())}, {where: {id: sessionId}})
                   return true
                 case 'undo':
                   await queueClient.del(this.sessionEventKey(sessionId))

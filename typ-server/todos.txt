@@ -14,20 +14,29 @@ X .mine class on client
 X rseed
 - show errors from server
 - log???
+- debug
 
 action types: select-array, select-el, drag-onto, select-el-number?, prompt, numerical, text?
 
 isaac
+- game file packaging
+- reorg actions logically under destination?
+X moves sends blank actions
+X prevent interrupting partial actions?
+- layouts [other-player-mats, board, player-mat] (just 2-player hard-coded for now)
+X monster stack or move placement, remove z-index
+- +/-n counters?
+X reset rseed
+X onMouseEnter revealed card
+- counter max
 X undo/reset UI
-- prevent interrupting partial actions?
 X dice
 X https://github.com/WebReflection/linkedom
 X sequence breaking
 X coin counters
 X drag bug
 X addCounter
-- bonus souls
-- reorg actions logically under destination?
+X bonus souls
 X zoom
 - mobile viewport #messages visualViewport on resize
 X decide on order in dom. whats top? re addPiece, move, etc (last item in children is top item on board)
@@ -39,7 +48,6 @@ X action conditions? inspect-char-deck: { if: ()=><deck in pile> }
 X find-and-bring-to-top???
 X select-array action type
 X counters up/down
-- layouts [other-player-mats, board, player-mat] (just 2-player hard-coded for now)
 X rseed
 X drag translate x-y
 - toggle-panes
