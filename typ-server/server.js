@@ -213,10 +213,12 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
   app.get('/sessions/:id', async (req, res) => {
     if (!req.userId) return unauthorized(req, res, 'permission denied')
     const session = await db.Session.findByPk(req.params.id, {
-      include: {
+      include: [{
         model: db.SessionUser,
         include: db.User,
-      }
+      },{
+        model: db.Game,
+      }]
     })
     if (req.is('json')) {
       res.json(session)
