@@ -1,17 +1,30 @@
-<form method="POST">
-  <label for="name">Name</label>
-  <input name="name">
-  <br/>
-  <label for="password">Password</label>
-  <input name="password" type="password">
-  <br/>
-  <label for="email">Email</label>
-  <input name="email">
-  <br/>
-  <input type="submit" value="Login">
-  <input type="submit" value="Register" onclick="this.form.action='/users'">
-</form>
-  
+<%- include('partials/header') %>
+
 <% if (message) { %>
   <div class="error"><%= message %></div>
 <% } %>
+
+<h2>Register</h2>
+<form method="POST" action="/users">
+  <label for="name">Name</label>
+  <input name="name">
+  <label for="password">Password</label>
+  <input name="password" type="password">
+  <label for="email">Email</label>
+  <input name="email">
+  <input type="submit" value="Register">
+</form>
+
+<hr>
+
+<h2>Login</h2>
+<form method="POST" action="/login">
+  <label for="name">Name</label>
+  <input name="name">
+  <label for="password">Password</label>
+  <input name="password" type="password">
+  <input type="submit" value="Login">
+</form>
+  
+
+<%- include('partials/footer') %>
