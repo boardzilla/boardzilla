@@ -30,8 +30,18 @@ class GameInterface extends EventEmitter {
     this.currentPlayer = undefined // 1-indexed from list of players, or undefined if any player can play
     this.currentActions = []
     this.builtinActions = {
-      setCounter: (key, value) => this.set(key, value),
-      rollDie: key => this.set(key, this.random(this.get(`${key}-faces`)) + 1),
+      setCounter: (key, value) => {
+        const counter = this.doc.find(`counter#${key}`);
+        if (counter) counter.set('value', value);
+      },
+      rollDie: key => {
+        const die = this.doc.find(`die#${key}`);
+        if (die) {
+          die.set('number', this.random(die.get('faces')) + 1);
+          die.set('rolls', die.get('rolls') + 1);
+          console.log(die.get('faces'), die.get('rolls'), die.get('number'))
+        }
+      },
     }
     this.idSequence = 0
   }
@@ -370,7 +380,6 @@ class GameInterface extends EventEmitter {
   }
 
   dragAction(pieceSelector, spaceSelector, prompt, promptOnto, action) {
-    console.log('dragAction', pieceSelector, this.board.findAll(pieceSelector).length)
     const fn = this.chooseAction(
       this.doc.findAll(pieceSelector),
       prompt,

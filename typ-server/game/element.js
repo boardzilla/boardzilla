@@ -114,16 +114,13 @@ class GameElement {
   }
 
   addComponent(name, attrs = {}) {
-    if (name == 'counter') { // TODO minimal impl for now
+    if (name == 'counter') {
       const id = this.game.registerId('counter')
-      this.addPiece('#' + id, 'counter', attrs)
-      this.game.set(id, parseInt(attrs.initialValue) || 0); // TODO this is not namespaced
+      this.addPiece('#' + id, 'counter', Object.assign({value: parseInt(attrs.initialValue) || 0}, attrs))
     }
-    if (name == 'die') { // TODO minimal impl for now
+    if (name == 'die') {
       const id = this.game.registerId('die')
-      this.addPiece('#' + id, 'die', attrs)
-      this.game.set(`${id}-faces`, attrs.faces);
-      this.game.set(id, attrs.faces);
+      this.addPiece('#' + id, 'die', Object.assign({number: 1, rolls: 0}, attrs))
     }
   }
 

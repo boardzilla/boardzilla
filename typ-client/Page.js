@@ -232,7 +232,6 @@ export default class Page extends Component {
 
   handleClick(choice, {x, y}, event) {
     const actions = this.actionsFor(choice);
-    console.log(actions, choice)
     this.setState({dragging: null});
     if (Object.keys(actions).length == 1) {
       this.gameAction(Object.keys(actions)[0], ...this.state.args, choice);
@@ -352,7 +351,7 @@ export default class Page extends Component {
     if (this.components[type]) {
       contents = React.createElement(
         this.components[type],
-        {...props, display: this.props.counterDisplays[props.display] || (v=>v), ...this.bindMethods('gameAction', 'get', 'setVariable')},
+        {...props, display: this.props.counterDisplays[props.display] || (v=>v), ...this.bindMethods('gameAction')},
         contents
       );
     }
