@@ -1,10 +1,10 @@
-<html>
-  <form method="POST" action="/sessions">
-    <select name="gameId">
-      <% games.forEach(game => { %>
-        <option value="<%=game.maxId%>"><%=game.name%></option>
-      <% }) %>
-    </select>
-    <input type="submit">Create session</input>
-  </form>
-</html>
+<%- include('partials/header') %>
+<form method="POST" action="/sessions">
+  <select name="gameId">
+    <% games.forEach(game => { %>
+      <option value="<%=game.maxId%>"><%=game.name%></option>
+    <% }) %>
+  </select>
+  <input type="submit" value="Create session"></input>
+</form>
+<%- include('partials/footer') %>

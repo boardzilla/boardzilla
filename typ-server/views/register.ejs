@@ -1,13 +1,14 @@
 <%- include('partials/header') %>
 
-<h2>Login</h2>
-<form method="POST" action="/login">
+<h2>Register</h2>
+<form method="POST" action="/users">
   <label for="name">Name</label>
   <input name="name" required>
   <label for="password">Password</label>
   <input name="password" type="password" required>
-  <input type="submit" value="Login">
+  <label for="email">Email</label>
+  <input name="email" type="email" required>
+  <input type="submit" value="Register">
 </form>
-  
 
 <%- include('partials/footer') %>

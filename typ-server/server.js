@@ -14,6 +14,11 @@ const cookieParser = require('cookie-parser')
 const path = require('path')
 
 module.exports = ({secretKey, redisUrl, ...devGame }) => {
+  function loginUser(user, res) {
+    const token = jwt.sign({id: user.id}, secretKey)
+    res.cookie('jwt',token)
+  }
+
   const app = express()
   const server = http.createServer(app)
   const redisClient = new Redis(redisUrl)
@@ -35,6 +40,15 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
   app.use(bodyParser.urlencoded({ extended: true }))
   app.use(cookieParser())
   app.use((req, res, next) => {
+    res.locals.info = req.cookies.info
+    res.locals.error = req.cookies.error
+    res.clearCookie('info')
+    res.clearCookie('error')
+    next()
+  })
+
+  app.use((req, res, next) => {
+    res.locals.user = null
     try {
       verifyToken(req, (error, user) => {
         if (error) {
@@ -42,12 +56,14 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
         }
         if (user) {
           req.userId = user.id
+          res.locals.user = user
         }
+        return next()
       })
     } catch (error) {
       console.error("verifyToken: ", error)
+      return next()
     }
-    return next()
   })
 
   function verifyToken(req, callback) {
@@ -60,33 +76,68 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
     if (!token) {
       return callback()
     }
-    jwt.verify(token, secretKey, { ignoreExpiration: true }, callback)
+    jwt.verify(token, secretKey, { ignoreExpiration: true }, (err, user) => {
+      if (err) return callback(err, null)
+      db.User.findOne({ where: {id: user.id} }).then(user => callback(null, user)).catch(e => callback(e, null))
+    })
   }
 
   function unauthorized(req, res, message) {
-    if (req.is('json')) {
-      res.status(401).end(message)
-    } else {
-      res.cookie('flash', message)
-      res.redirect('/login')
-    }
+    res.cookie('error', message)
+    res.redirect('/login')
   }
 
   app.post('/users', async (req, res) => {
-    const name = req.body.name || ''
-    const rawPassword = req.body.password || ''
-    const email = req.body.email || ''
+    const name = req.body.name
+    const rawPassword = req.body.password
+    const email = req.body.email
+
+    if (rawPassword === null || rawPassword === '') {
+      return res.status(400).end("password required")
+    }
+
+    if (name === null || name === '') {
+      return res.status(400).end("name required")
+    }
+
+    if (email === null || email === '') {
+      return res.status(400).end("email required")
+    }
 
     const password = await bcrypt.hash(rawPassword, 10)
+    try {
+      const user = await db.User.create({name, password, email})
 
-    const user = await db.User.create({name, password, email})
-    res.status(201).json({id: user.id})
+      loginUser(user, res)    
+
+      res.cookie('info', "Registered successfully!")
+      res.redirect('/')
+    } catch (e) {
+      if (e instanceof Sequelize.UniqueConstraintError) {
+        switch(e.errors[0].path) {
+          case 'name':
+            res.cookie('error', "Username taken")
+            break
+          case 'email':
+            res.cookie('error', "Email taken")
+            break
+          default:
+            console.error("error", e)
+            res.cookie('error', "Unknown error")
+        }
+        res.render('register')
+      } else {
+        throw e
+      }
+    }
   })
 
   app.get('/login', async (req, res) => {
-    const message = req.cookies.flash
-    res.clearCookie('flash')
-    res.render('login', { message })
+    res.render('login')
+  })
+
+  app.get('/register', async (req, res) => {
+    res.render('register')
   })
 
   app.post('/login', async (req, res) => {
@@ -96,13 +147,9 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
     if (!user) return unauthorized(req, res, 'incorrect login')
     const correctPassword = await bcrypt.compare(password, user.password)
     if (!correctPassword) return unauthorized(req, res, 'incorrect login')
-    const token = jwt.sign({id: user.id}, secretKey)
-    if (req.is('json')) {
-      res.json({token})
-    } else {
-      res.cookie('jwt',token)
-      res.redirect("/")
-    }
+    loginUser(user, res)    
+    res.cookie('info', "Logged in successfully!")
+    res.redirect("/")
   })
 
   app.get('/logout', async (req, res) => {
