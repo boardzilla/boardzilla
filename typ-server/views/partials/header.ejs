@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+    <style>
+      body {
+        margin-top: 0;
+      }
+
+    	.navbar {
+        padding: 0.5em;
+        background-color: #444;
+        color: #aaa;
+        margin-top: 0;    		
+    	}
+
+      .login {
+        float: right;
+      }
+
+      .error {
+        margin: 1em;
+        padding: 1em;
+        background-color: #faa;
+      }
+
+      .info {
+        margin: 1em;
+        padding: 1em;
+        background-color: #aaf;
+      }
+    </style>
+  </head>
+
+  <body>
+  	<div class="navbar">
+  		thankyoupartner
+
+      <div class="login">
+        <% if (user) { %>
+          Welcome <%= user.name %>! <a href="/logout">Logout</a>
+        <% } else { %>
+          <a href="/login">Login</a> / <a href="/register">Register</a>
+        <% } %>
+      </div>
+  	</div>
+
+    <% if (error) { %>
+      <div class="error"><%= error %></div>
+    <% } %>
+
+    <% if (info) { %>
+      <div class="info"><%= info %></div>
+    <% } %>
+

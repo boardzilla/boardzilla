@@ -1,6 +1,6 @@
 {
   "development": {
-    "use_env_variable": "DATABASE_URL",
+    "database": "typ_development",
     "dialect": "postgres"
   },
   "test": {

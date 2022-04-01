@@ -1,17 +1,21 @@
-<html>
-  <body>
-   <h1>Sessions</h1>
-   <ul>
-     <% sessions.forEach(session => { %>
-       <li>
-         <a href="/sessions/<%= session.id %>">
-           <%=session.gameId === -1 ? 'Local Game' : session.Game.name %>
-         </a>
-         <%=session.creator.name %> <%=session.lastState && session.lastState.phase %> <%=session.createdAt %>
-       </li>
-     <% }) %>
-   </ul>
+<%- include('partials/header') %>
 
-   <p><a href="/sessions/new">create session</a></p>
-  </body>
-</html>
+<h1>Games</h1>
+<% if (sessions.length === 0) { %>
+<p>You currently have no games running.</p>
+<% } %>
+
+<ul>
+ <% sessions.forEach(session => { %>
+   <li>
+     <a href="/sessions/<%= session.id %>">
+       <%=session.gameId === -1 ? 'Local Game' : session.Game.name %>
+     </a>
+     <%=session.creator.name %> <%=session.lastState && session.lastState.phase %> <%=session.createdAt %>
+   </li>
+ <% }) %>
+</ul>
+
+<p><button onclick="window.location.href='/sessions/new';">Create new game</button></p>
+
+<%- include('partials/footer') %>
