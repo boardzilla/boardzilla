@@ -15,7 +15,7 @@ body {
 
 #container {
   position: absolute;
-  left: 0;
+  left: 10px;
   top: 0;
   height: 800px;
   width: 1000px;
@@ -126,17 +126,27 @@ body {
     }
   }
 
-  .counter[display="hp"] {
-    color: red;
+  .counter[display="hp"] img {
+    width: 18px;
+    margin: 0 1px;
+    position: relative;
+    top: 4px;
   }
 
-  .die button {
-    width: 25px;
-    height: 25px;
-    background: #c00;
-    color: white;
-    border: none;
-    border-radius: 4px;
+  [player="1"] .d6 .die-face {
+    background-color: #e33;
+  }
+
+  [player="2"] .d6 .die-face {
+    background-color: #3e3;
+  }
+
+  [player="3"] .d6 .die-face {
+    background-color: #33e;
+  }
+
+  [player="4"] .d6 .die-face {
+    background-color: #993;
   }
 
   .card {
@@ -156,7 +166,7 @@ body {
 
   .coins {
     color: white;
-    width: 25px;
+    width: 35px;
     display: inline-block;
     font-size: 15px;
     padding: 0px 2px;
@@ -165,7 +175,7 @@ body {
     font-weight: bold;
     font-family: sans-serif;
     img.penny {
-      width: 20px;
+      width: 30px;
       position: absolute;
       z-index: -1;
       left: 5px;

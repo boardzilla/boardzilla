@@ -54,7 +54,7 @@ X set up play areas (loot(deck, discard), shop(deck, discard, 1,2,3,4), monsters
 X deck hidden? or just lot of facedown cards with no visibility? (show 2 cards)
 
 nice to haves
-- better dice, server comms
+X better dice, server comms
 - counter max
 - +/-n counters?
 - toggle-panes
