@@ -28,6 +28,6 @@ export default ({id, number, rolls, faces, gameAction}) => {
       </ol>
     );
   }
-  
+
   return <button onClick={roll} onTouchEnd={roll} style={override && {transform: `rotate(${Math.random() * 360}deg)`}} >{override || number}</button>
 };

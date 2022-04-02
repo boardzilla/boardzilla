@@ -388,8 +388,8 @@ class GameInterface extends EventEmitter {
         promptOnto || prompt,
         (piece, space, x, y) => {
           piece.move(space)
-          piece.set('x', x)
-          piece.set('y', y)
+          if (x !== undefined) piece.set('x', x)
+          if (y !== undefined) piece.set('y', y)
           if (action) {
             action(piece, space)
           }
@@ -532,9 +532,9 @@ class GameInterface extends EventEmitter {
 
   moveElement(el, x, y) {
     if (el.matches(this.allowedMoveElements)) {
+      el.move()
       el.set('x', x)
       el.set('y', y)
-      el.move()
     } else {
       throw(`Illegal moveElement ${el.node.outerHTML}, ${this.allowedMoveElements}`)
     }
