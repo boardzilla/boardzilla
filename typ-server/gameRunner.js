@@ -107,13 +107,13 @@ class GameRunner {
             const serverBuffer = game.file("/server.js")
             vm.run(serverBuffer.toString())
 
-            const userIds = await session.getSessionUsers().map(u => u.userId)
-            userIds.forEach(userId => gameInstance.addPlayer(userId))
+            const users = await session.getSessionUsers().map(su => su.getUser())
+            users.forEach(user => gameInstance.addPlayer(user.id, user.name))
 
             const history = (await session.getActions({order: ['sequence']})).map(action => (
               [action.player, action.sequence, ...action.action]
             ))
-            console.log(`R restarting runner loop ${userIds}`)
+            console.log(`R restarting runner loop`)
 
             gameInstance.start(history).then(() => {
               // TODO handle this promise resolution (end of game)

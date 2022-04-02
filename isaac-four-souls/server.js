@@ -83,7 +83,7 @@ game.actions = {
   },
   remove: {
     prompt: "Put back in your hand",
-    drag: "#tableau card",
+    drag: ".mine #tableau card",
     onto: ".mine #hand",
   },
   draw: {
@@ -173,13 +173,13 @@ game.actions = {
     prompt: "Discard",
     key: "f",
     drag: 'card[type="monster"]',
-    onto: '#monster-discard',
+    onto: '#monsters-discard',
   },
   intoMonsterDeck: {
     prompt: "Put top of deck",
     key: "t",
     drag: 'card[type="monster"]',
-    onto: '#monster',
+    onto: '#monsters',
   },
   intoMonsterDeckBottom: {
     prompt: "Put at bottom of deck",
@@ -201,15 +201,26 @@ game.actions = {
   },
   giveTreasure: {
     prompt: "Give to player",
+    promptOnto: "Which player",
     key: "g",
     drag: ".mine #tableau card",
     onto: "#player-mat:not(.mine) #tableau",
   },
   giveLoot: {
     prompt: "Give to player",
+    promptOnto: "Which player",
     key: "g",
     drag: ".mine #hand card",
     onto: "#player-mat:not(.mine) #hand",
+  },
+  giveAllLoot: {
+    prompt: "Give all cards to player",
+    select: ".mine #hand card",
+    next: {
+      prompt: "Which player?",
+      select: "#player-mat:not(.mine) #hand",
+      action: (from, to) => from.parent().move('card', to),
+    },
   },
   addCounter: {
     prompt: "Add counter",

@@ -78,11 +78,12 @@ class GameInterface extends EventEmitter {
   }
 
   // add player to game
-  addPlayer(userId) {
-    if (this.players.includes(userId)) return
+  addPlayer(userId, username) {
+    console.log('addPlayer', arguments)
+    if (this.players.find(p => p[0] == userId)) return
     if (this.phase !== 'setup') throw Error("not able to add players while playing")
     if (this.players.length == this.maxPlayers) throw Error("game already full")
-    this.players.push(userId)
+    this.players.push([userId, username])
   }
 
   getPlayers() {
@@ -96,7 +97,7 @@ class GameInterface extends EventEmitter {
     times(this.players.length, player => {
       this.emit('update', {
         type: 'state',
-        userId: this.players[player - 1],
+        userId: this.players[player - 1][0],
         payload: this.getPlayerView(player)
       })
     })
@@ -113,7 +114,7 @@ class GameInterface extends EventEmitter {
     }
     this.emit('update', {
       type: 'state',
-      userId: this.players[player - 1],
+      userId: this.players[player - 1][0],
       payload
     })
   }
@@ -330,7 +331,7 @@ class GameInterface extends EventEmitter {
     }
     const prompt = action.prompt + (action.key ? ` (${action.key.toUpperCase()})` : '')
 
-    console.log('running action', actionName)
+    console.log('running action', actionName, argIndex)
 
     if (!action) {
       throw Error(`No such action: ${actionName}`)
@@ -362,7 +363,7 @@ class GameInterface extends EventEmitter {
       if (action.select instanceof Array) {
         return this.chooseAction(action.select, prompt, nextAction, argIndex)(...args)
       } else if (typeof action.select == 'string') {
-        return this.chooseAction(this.doc.findAll(action.select), prompt, nextAction)(...args)
+        return this.chooseAction(this.doc.findAll(action.select), prompt, nextAction, argIndex)(...args)
       } else if (typeof action.select == 'function') {
         return this.chooseAction(action.select(...args), prompt, nextAction, argIndex)(...args)
       } else {
@@ -434,11 +435,11 @@ class GameInterface extends EventEmitter {
       console.error(`${this.userId}: no listener`)
       throw Error("No listener")
     }
-    this.emit('action', true, this.players.indexOf(userId) + 1, sequence, action, ...args)
+    this.emit('action', true, this.players.findIndex(p => p[0] == userId) + 1, sequence, action, ...args)
   }
 
   updateUser(userId) {
-    this.updatePlayer(this.players.indexOf(userId) + 1)
+    this.updatePlayer(this.players.findIndex(p => p[0] == userId) + 1)
   }
 
   // core function to listen for actions
