@@ -112,6 +112,10 @@ body {
     &:not(.mine):nth-child(2) {
       left: 700px;
     }
+    &:not(.mine):nth-child(3) {
+      left: 700px;
+      top: 560px; 
+    }
     #tableau {
       height: 120px;
       width: 100%;
