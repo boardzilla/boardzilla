@@ -169,6 +169,18 @@ game.actions = {
     drag: 'card[type="monster"]',
     onto: '#dungeon',
   },
+  takeMonster: {
+    prompt: "Take",
+    key: "d",
+    drag: 'card[type="monster"]',
+    onto: '.mine #tableau',
+  },
+  giveMonster: {
+    prompt: "Give to a player",
+    key: "d",
+    drag: 'card[type="monster"]',
+    onto: ':not(.mine) #tableau',
+  },
   discardMonster: {
     prompt: "Discard",
     key: "f",
@@ -204,14 +216,14 @@ game.actions = {
     promptOnto: "Which player",
     key: "g",
     drag: ".mine #tableau card",
-    onto: "#player-mat:not(.mine) #tableau",
+    onto: ":not(.mine) #tableau",
   },
   giveLoot: {
     prompt: "Give to player",
     promptOnto: "Which player",
     key: "g",
     drag: ".mine #hand card",
-    onto: "#player-mat:not(.mine) #hand",
+    onto: ":not(.mine) #hand",
   },
   giveAllLoot: {
     prompt: "Give all cards to player",

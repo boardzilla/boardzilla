@@ -293,8 +293,14 @@ export default class Page extends Component {
   }
 
   renderBoard(board) {
+    let otherPlayers = 0;
     return <div id="game">
-      {[...board.querySelectorAll(`#player-mat:not(.mine)`)].map(mat => this.renderGameElement(mat, mat.getAttribute('player') < 4))}
+      {[...new Set([
+        ...board.querySelectorAll('#player-mat.mine ~ #player-mat'),
+        ...board.querySelectorAll('#player-mat:not(.mine)')
+      ])].map(
+        mat => this.renderGameElement(mat, otherPlayers++<2)
+      )}
       {this.renderGameElement(board.querySelector('#board'))}
       {this.renderGameElement(board.querySelector(`#player-mat.mine`))}
     </div>
@@ -304,7 +310,7 @@ export default class Page extends Component {
     if (!node || !node.attributes) return;
     const attributes = Array.from(node.attributes).
                              filter(attr => attr.name !== 'class' && attr.name !== 'id').
-                             reduce((attrs, attr) => Object.assign(attrs, { [attr.name]: isNaN(attr.value) ? attr.value : +attr.value }), {});
+                             reduce((attrs, attr) => Object.assign(attrs, { [attr.name]: !attr.value || isNaN(attr.value) ? attr.value : +attr.value }), {});
 
     const type = node.nodeName.toLowerCase();
     const key = branch(node).join('-')
@@ -384,7 +390,7 @@ export default class Page extends Component {
           scale={parentFlipped ? -1 : 1}
         >
           <div
-            className={classNames({"external-dragging": !!this.state.positions[key]})}
+            className={classNames({"external-dragging": externallyControlled})}
             style={this.state.dragging ? {pointerEvents: "none"} : ""}
           > {/* wrapper for draggable */}
             <div {...props}>{contents}</div>

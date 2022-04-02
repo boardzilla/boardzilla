@@ -1,11 +1,12 @@
 import React, {useState} from 'react';
 
-export default ({id, display, value, gameAction}) => {
+export default ({id, display, value, min, max, gameAction}) => {
   const [override, setOverride] = useState();
   const set = n => {
-    n += value;
-    setOverride(n); // very optimistic update. can't detect if any error yet
-    gameAction('setCounter', `"${id}"`, n);
+    let newValue = Math.max(min, value + n);
+    if (max > 0 && newValue > max) newValue = max;
+    setOverride(newValue); // very optimistic update. can't detect if any error yet
+    gameAction('setCounter', `"${id}"`, newValue);
   };
   return (
     <div>

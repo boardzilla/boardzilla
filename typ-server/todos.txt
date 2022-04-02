@@ -21,8 +21,16 @@ X rseed
 action types: select-array, select-el, drag-onto, select-el-number?, prompt, numerical, text?
 
 isaac
+X counter min, max
+X nameplates covering cards
+X 4-player layout fixes
+X move() to top not working? external-dragging persisting
+- session specific updates
 - fix drag outside player-mat?
+- select other space
+- new cards
 - 2-sided cards
+- doubling up actions
 X reorg actions logically under destination?
 X moves sends blank actions
 X prevent interrupting partial actions?
@@ -57,7 +65,6 @@ X deck hidden? or just lot of facedown cards with no visibility? (show 2 cards)
 
 nice to haves
 X better dice, server comms
-- counter max
 - +/-n counters?
 - toggle-panes
 

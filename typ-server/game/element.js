@@ -30,7 +30,7 @@ class GameElement {
   attributes() {
     return Array.from(this.node.attributes).
                  filter(attr => attr.name !== 'class' && attr.name !== 'id').
-                 reduce((attrs, attr) => Object.assign(attrs, { [attr.name]: isNaN(attr.value) ? attr.value : +attr.value }), {});
+                 reduce((attrs, attr) => Object.assign(attrs, { [attr.name]: !attr.value || isNaN(attr.value) ? attr.value : +attr.value }), {});
   }
 
   get(name) {
@@ -124,7 +124,11 @@ class GameElement {
   addComponent(name, attrs = {}) {
     if (name == 'counter') {
       const id = this.game.registerId('counter')
-      this.addPiece('#' + id, 'counter', Object.assign({value: parseInt(attrs.initialValue) || 0}, attrs))
+      this.addPiece('#' + id, 'counter', Object.assign({
+        value: attrs.initialValue || 0,
+        min: attrs.min || 0,
+        max: attrs.max
+      }, attrs))
     }
     if (name == 'die') {
       const id = this.game.registerId('die')
