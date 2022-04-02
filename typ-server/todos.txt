@@ -21,7 +21,9 @@ X rseed
 action types: select-array, select-el, drag-onto, select-el-number?, prompt, numerical, text?
 
 isaac
-- reorg actions logically under destination?
+- fix drag outside player-mat?
+- 2-sided cards
+X reorg actions logically under destination?
 X moves sends blank actions
 X prevent interrupting partial actions?
 X layouts [other-player-mats, board, player-mat] (just 2-player hard-coded for now)

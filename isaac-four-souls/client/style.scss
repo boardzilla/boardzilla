@@ -81,7 +81,7 @@ body {
     }
     #loot-discard {
       position: absolute;
-      left: 220px;
+      right: 220px;
       top: 170px;
     }
     #bonusSouls {
@@ -180,5 +180,11 @@ body {
       z-index: -1;
       left: 5px;
     }
+  }
+  div.nametag {
+    position: absolute;
+    top: 120px;
+    width: 100%;
+    text-align: center;
   }
 }

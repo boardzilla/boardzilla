@@ -150,7 +150,7 @@ export default class Page extends Component {
   }
 
   player() {
-    return this.state.data.players && this.state.data.players.indexOf(this.props.userId) + 1;
+    return this.state.data.players && this.state.data.players.findIndex(p => p[0] == this.props.userId) + 1;
   }
 
   setPieceAt(key, attributes) {
@@ -217,6 +217,7 @@ export default class Page extends Component {
         // optimistically update the location to avoid flicker
         this.setPieceAt(key, {x, y, moved: true});
       } else if (!dragOver || dragOver === parentKey(key)) {
+        console.log('dragOver', dragOver)
         this.gameAction('moveElement', choiceFromKey(key), x, y);
         // optimistically update the location to avoid flicker
         this.setPieceAt(key, {x, y});
@@ -341,12 +342,13 @@ export default class Page extends Component {
     }
 
     let contents;
-    if (!node.classList.contains('piece') || node.childNodes.length) {
-      if (node.nodeName == 'deck' && node.childNodes.length) {
-        contents = Array.from(node.childNodes).slice(-2).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
-      } else {
-        contents = Array.from(node.childNodes).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
-      }
+    if (node.nodeName == 'deck' && node.childNodes.length) {
+      contents = Array.from(node.childNodes).slice(-2).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
+    } else {
+      contents = Array.from(node.childNodes).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
+    }
+    if (node.id == 'player-mat' && attributes.player && this.state.data.players[attributes.player - 1]) {
+      contents.push(<div className="nametag">{this.state.data.players[attributes.player - 1][1]}</div>)
     }
     if (this.components[type]) {
       contents = React.createElement(

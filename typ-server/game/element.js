@@ -17,7 +17,6 @@ class GameElement {
   }
 
   wrap(node) {
-    //if (!(node instanceof Node)) return null; // ???
     if (!node) return null;
     const element = gameElements.find(el => el && el.test(node));
     if (!element) throw Error(`No wrapper for node ${node.nodeName}`);
@@ -60,6 +59,15 @@ class GameElement {
 
   matches(q) {
     return this.node.matches(this._enhanceQuery(q));
+  }
+
+  hasParent(el) {
+    let node = this.node;
+    while (node.parentNode) {
+      node = node.parentNode;
+      if (node == el.node) return true;
+    }
+    return false;
   }
 
   // return full path to element, e.g. "2-1-3"

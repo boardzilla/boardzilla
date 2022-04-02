@@ -6,13 +6,11 @@ class Space extends GameElement {
 
   findNode(q = '*') {
     if (q === null) return null;
-    //if (q instanceof Node) return q;
     return this.node.querySelector(this._enhanceQuery(q));
   }
 
   findNodes(q = '*') {
     if (q === null) return [];
-    //if (q instanceof NodeList) return q;
     return this.node.querySelectorAll(this._enhanceQuery(q));
   }
 
@@ -40,7 +38,6 @@ class Space extends GameElement {
   }
 
   space(q) {
-    //if (q instanceof Node) return this.wrap(q);
     if (q instanceof Space) return q;
     return this.spaces(q)[0];
   }
@@ -51,7 +48,6 @@ class Space extends GameElement {
   }
 
   piece(q) {
-    //if (q instanceof Node) return this.wrap(q);
     if (q instanceof Piece) return q;
     return this.pieces(q)[0];
   }
@@ -67,7 +63,22 @@ class Space extends GameElement {
     if (!space) throw new Error(`No space found "${to}"`);
     let movables = this.pieces(pieces);
     if (num !== undefined) movables = movables.slice(-num);
-    movables.forEach(piece => space.node.appendChild(piece.node));
+    movables.forEach(piece => {
+      piece.set('x');
+      piece.set('y');
+      if ((space.get('spreadX') || space.get('spreadY')) && !piece.hasParent(space)) {
+        let x = 0, y = 0;
+        piece.set('x', x);
+        piece.set('y', y);
+        while (space.contains(`[x="${x}"][y="${y}"]`)) {
+          x += space.get('spreadX') || 0;
+          y += space.get('spreadY') || 0;
+          piece.set('x', x);
+          piece.set('y', y);
+        }
+      }
+      space.node.appendChild(piece.node)
+    });
     return movables;
   }
 

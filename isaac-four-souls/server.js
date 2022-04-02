@@ -3,8 +3,8 @@ game.minPlayers = 1;
 game.maxPlayers = 4;
 
 game.setupPlayerMat = mat => {
-  const tableau = mat.addSpace('#tableau', 'area');
-  mat.addSpace('#hand', 'area');
+  const tableau = mat.addSpace('#tableau', 'area', {spreadX: 80});
+  mat.addSpace('#hand', 'area', {spreadX: 80});
   tableau.addComponent('counter', {display: 'hp', initialValue: 2});
   tableau.addComponent('counter', {display: 'coin', initialValue: 3, x: 100, y: 0});
   tableau.addComponent('die', {faces: 6, x: 200, y: 0});
@@ -27,16 +27,16 @@ game.setupBoard = board => {
   treasure.forEach(c => treasureDeck.addPiece("#" + c, 'card', {type: 'treasure'}))
   treasureDeck.shuffle()
   board.addSpace('#treasure-discard', 'deck');
-  board.addSpace('#shop', 'area');
+  board.addSpace('#shop', 'area', {spreadX: 80});
 
   const monsterDeck = board.addSpace('#monsters', 'deck');
   monsters.forEach(c => monsterDeck.addPiece("#" + c, 'card', {type: 'monster'}))
   monsterDeck.shuffle()
   board.addSpace('#monsters-discard', 'deck');
-  board.addSpace('#dungeon', 'area');
+  board.addSpace('#dungeon', 'area', {spreadX: 80});
   board.addComponent('counter', {display: 'hp'});
 
-  const bonus = board.addSpace('#bonusSouls', 'area');
+  const bonus = board.addSpace('#bonusSouls', 'area', {spreadY: 40});
   let bonusY = 0;
   bonusSouls.forEach(c => bonus.addPiece("#" + c, 'card', {type: 'bonusSoul', x:0, y:(bonusY += 40)}))
 };
@@ -76,13 +76,14 @@ game.actions = {
     action: card => card.set('active', false)
   },
   play: {
-    prompt: "Play",
-    drag: ".mine #hand card, #dungeon card, #characters card, #eternals card, #bonusSouls card",
+    prompt: "Play onto board",
+    key: "b",
+    drag: ".mine #hand card",
     onto: ".mine #tableau"
   },
   remove: {
     prompt: "Put back in your hand",
-    drag: "#tableau card",
+    drag: ".mine #tableau card",
     onto: ".mine #hand",
   },
   draw: {
@@ -113,7 +114,7 @@ game.actions = {
   purchase: {
     prompt: "Purchase",
     drag: "#shop card, #treasure card:nth-last-child(-n+2)",
-    key: "s",
+    key: "p",
     onto: ".mine #tableau",
   },
   intoLootDeckTop: {
@@ -128,41 +129,101 @@ game.actions = {
   },
   discardLoot: {
     prompt: "Discard",
-    drag: '.mine card[type="loot"], #loot card:nth-last-child(-n+2)',
+    key: "f",
+    drag: '#loot card:nth-last-child(-n+2)',
     onto: '#loot-discard',
   },
-  playTreasure: {
-    prompt: "Play treasure",
+  playLoot: {
+    prompt: "Play",
+    key: "p",
+    drag: '.mine card[type="loot"]',
+    onto: '#loot-discard',
+  },
+  intoShop: {
+    prompt: "Put into shop",
+    key: "s",
     drag: 'card[type="treasure"]',
-    onto: '#treasure, #shop, #treasure-discard',
+    onto: '#shop',
+  },
+  discardTreasure: {
+    prompt: "Discard",
+    key: "f",
+    drag: 'card[type="treasure"]',
+    onto: '#treasure-discard',
+  },
+  intoTreasureDeck: {
+    prompt: "Put top of deck",
+    key: "t",
+    drag: 'card[type="treasure"]',
+    onto: '#treasure',
   },
   intoTreasureDeckBottom: {
     prompt: "Put at bottom of deck",
+    key: "b",
     select: 'card[type="treasure"]',
     action: card => card.moveToBottom('#treasure')
   },
-  playMonster: {
-    prompt: "Play monster",
+  intoDungeon: {
+    prompt: "Put into dungeon",
+    key: "s",
     drag: 'card[type="monster"]',
-    onto: '#dungeon, #monsters, #monsters-discard',
+    onto: '#dungeon',
+  },
+  discardMonster: {
+    prompt: "Discard",
+    key: "f",
+    drag: 'card[type="monster"]',
+    onto: '#monsters-discard',
+  },
+  intoMonsterDeck: {
+    prompt: "Put top of deck",
+    key: "t",
+    drag: 'card[type="monster"]',
+    onto: '#monsters',
   },
   intoMonsterDeckBottom: {
     prompt: "Put at bottom of deck",
+    key: "b",
     select: 'card[type="monster"]',
     action: card => card.moveToBottom('#monsters')
   },
+  takeBonus: {
+    prompt: "Take",
+    key: "d",
+    drag: "#bonusSouls card",
+    onto: ".mine #tableau",
+  },
   discardBonus: {
     prompt: "Discard",
+    key: "f",
     drag: ".mine card[type='bonusSoul']",
-    onto: "#bonusSoul",
+    onto: "#bonusSouls",
   },
-  intoCharDeckTop: {
-    prompt: "Put on top of deck",
-    drag: '.mine card[type="character"]',
-    onto: '#characters',
+  giveTreasure: {
+    prompt: "Give to player",
+    promptOnto: "Which player",
+    key: "g",
+    drag: ".mine #tableau card",
+    onto: "#player-mat:not(.mine) #tableau",
+  },
+  giveLoot: {
+    prompt: "Give to player",
+    promptOnto: "Which player",
+    key: "g",
+    drag: ".mine #hand card",
+    onto: "#player-mat:not(.mine) #hand",
+  },
+  giveAllLoot: {
+    prompt: "Give all cards to player",
+    select: ".mine #hand card",
+    next: {
+      prompt: "Which player?",
+      select: "#player-mat:not(.mine) #hand",
+      action: (from, to) => from.parent().move('card', to),
+    },
   },
   addCounter: {
-    prompt: "Add a counter",
+    prompt: "Add counter",
     select: ".mine card",
     action: card => card.addComponent('counter'),
   },
@@ -170,6 +231,11 @@ game.actions = {
     prompt: "Remove counter",
     select: ".mine card counter",
     action: counter => counter.destroy(),
+  },
+  intoCharDeckTop: {
+    prompt: "Put on top of deck",
+    drag: '.mine card[type="character"]',
+    onto: '#characters',
   },
   getCharDeck: {
     prompt: "Get characters",
