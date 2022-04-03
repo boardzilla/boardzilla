@@ -25,12 +25,12 @@ X counter min, max
 X nameplates covering cards
 X 4-player layout fixes
 X move() to top not working? external-dragging persisting
-- session specific updates
+- session specific updates?
 - fix drag outside player-mat?
 - select other space
 - new cards
 - 2-sided cards
-- doubling up actions
+- doubling up actions?
 X reorg actions logically under destination?
 X moves sends blank actions
 X prevent interrupting partial actions?
