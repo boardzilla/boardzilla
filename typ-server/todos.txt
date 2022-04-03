@@ -1,7 +1,17 @@
 DATABASE_URL=postgres://typ@127.0.0.1/typ_development yarn start
 
-X drag onto multiple areas? then cant be both mouse drag and mouse click?
-
+- counter move count
+- entering game guard
+X counter min, max
+X nameplates covering cards
+X 4-player layout fixes
+X move() to top not working? external-dragging persisting
+- session specific updates?
+- fix drag outside player-mat?
+- select other space?
+- new cards
+- 2-sided cards
+- doubling up actions?
 X multiple actions (ctx menu)
 X hidden attributes, exclude space/piece, x/y
 X composite actions (hilite intermediates)
@@ -17,20 +27,7 @@ X rseed
 - debug
 - EJS front pages
 - game file packaging
-
-action types: select-array, select-el, drag-onto, select-el-number?, prompt, numerical, text?
-
-isaac
-X counter min, max
-X nameplates covering cards
-X 4-player layout fixes
-X move() to top not working? external-dragging persisting
-- session specific updates?
-- fix drag outside player-mat?
-- select other space
-- new cards
-- 2-sided cards
-- doubling up actions?
+X drag onto multiple areas? then cant be both mouse drag and mouse click?
 X reorg actions logically under destination?
 X moves sends blank actions
 X prevent interrupting partial actions?

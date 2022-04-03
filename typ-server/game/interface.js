@@ -32,10 +32,12 @@ class GameInterface extends EventEmitter {
     this.builtinActions = {
       setCounter: (key, value) => {
         const counter = this.doc.find(`counter#${key}`)
-        value = Math.max(value, 0, counter.get('min'))
-        if (counter.get('max')) value = Math.min(value, counter.get('max'))
-        console.log(value, counter.get('max'), counter.get('min'), counter.attributes())
-        if (counter) counter.set('value', value)
+        if (counter) {
+          value = Math.max(value, 0, counter.get('min'))
+          if (counter.get('max')) value = Math.min(value, counter.get('max'))
+          counter.set('value', value)
+          counter.set('moves', counter.get('moves') + 1)
+        }
       },
       rollDie: key => {
         const die = this.doc.find(`die#${key}`);

@@ -1,17 +1,21 @@
 import React, {useState} from 'react';
 
-export default ({id, display, value, min, max, gameAction}) => {
+export default ({id, display, value, min, max, moves, gameAction}) => {
   const [override, setOverride] = useState();
+  const [moves2, setMoves2] = useState();
+
   const set = n => {
-    let newValue = Math.max(min, (override === undefined ? value : override) + n);
+    let newValue = Math.max(min, (moves2 >= moves ? override : value) + n);
     if (max > 0 && newValue > max) newValue = max;
     setOverride(newValue); // very optimistic update. can't detect if any error yet
+    setMoves2(moves + 1);
     gameAction('setCounter', `"${id}"`, newValue);
   };
+
   return (
     <div>
       <button onClick={e => {set(-1); e.stopPropagation()}} onTouchEnd={() => set(-1)}>-</button>
-      {display(override === undefined ? value : override)}
+      {display(moves2 >= moves ? override : value)}
       <button onClick={e => {set(1); e.stopPropagation()}} onTouchEnd={() => set(1)}>+</button>
     </div>
   );

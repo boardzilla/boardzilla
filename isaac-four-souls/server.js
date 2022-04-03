@@ -77,7 +77,7 @@ game.actions = {
   },
   play: {
     prompt: "Play onto board",
-    key: "b",
+    key: "d",
     drag: ".mine #hand card",
     onto: ".mine #tableau"
   },
@@ -98,7 +98,7 @@ game.actions = {
     next: {
       prompt: "How many?",
       min: 2,
-      max: 5,
+      max: 6,
       action: (deck, n) => deck.move('card', '.mine #hand', n),
     },
   },
@@ -119,6 +119,7 @@ game.actions = {
   },
   intoLootDeckTop: {
     prompt: "Put on top of deck",
+    key: "t",
     drag: '.mine card[type="loot"], #loot-discard card',
     onto: '#loot',
   },
@@ -130,7 +131,7 @@ game.actions = {
   discardLoot: {
     prompt: "Discard",
     key: "f",
-    drag: '#loot card:nth-last-child(-n+2)',
+    drag: '#loot card:nth-last-child(-n+2), .mine card[type="loot"]',
     onto: '#loot-discard',
   },
   playLoot: {
@@ -179,7 +180,7 @@ game.actions = {
     prompt: "Give to a player",
     key: "d",
     drag: 'card[type="monster"]',
-    onto: ':not(.mine) #tableau',
+    onto: '#player-mat:not(.mine) #tableau',
   },
   discardMonster: {
     prompt: "Discard",
@@ -216,14 +217,14 @@ game.actions = {
     promptOnto: "Which player",
     key: "g",
     drag: ".mine #tableau card",
-    onto: ":not(.mine) #tableau",
+    onto: "#player-mat:not(.mine) #tableau",
   },
   giveLoot: {
     prompt: "Give to player",
     promptOnto: "Which player",
     key: "g",
     drag: ".mine #hand card",
-    onto: ":not(.mine) #hand",
+    onto: "#player-mat:not(.mine) #hand",
   },
   giveAllLoot: {
     prompt: "Give all cards to player",

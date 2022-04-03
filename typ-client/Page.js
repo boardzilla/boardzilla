@@ -118,7 +118,7 @@ export default class Page extends Component {
       const el = elForPoint(this.state.mouse.x, this.state.mouse.y)
       if (el) {
         const key = choiceFromKey(el);
-        const action = Object.entries(this.actionsFor(key)).find(([_, a]) => a.key == e.key);
+        const action = Object.entries(this.actionsFor(key)).find(([_, a]) => a.key && a.key.toLowerCase() == e.key);
         if (action) return this.gameAction(action[0], key);
       }
       if (e.key == "z") this.setState({'zoomed': false});

@@ -127,7 +127,8 @@ class GameElement {
       this.addPiece('#' + id, 'counter', Object.assign({
         value: attrs.initialValue || 0,
         min: attrs.min || 0,
-        max: attrs.max
+        max: attrs.max,
+        moves: 0
       }, attrs))
     }
     if (name == 'die') {
