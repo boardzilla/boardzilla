@@ -233,7 +233,13 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
       if (sessionUser) {
         return res.redirect(`/games/${session.gameId == -1 ? 'local' : session.gameId}/?session=${session.id}`)
       } else {
-        res.render('session', {session, me: req.userId})
+        const started = await db.SessionAction.findOne({where: {sessionId: session.id}})
+        res.render('session', {
+          session,
+          me: req.userId,
+          started,
+          game: session.gameId == -1 ? localDevGame.get('name') : session.getGame().name
+        })
       }
     }
   })
