@@ -170,6 +170,7 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
     }
     const sessions = await db.Session.findAll({
       where,
+      order: [['createdAt', 'desc']],
       include: [
         db.Game,
         {
