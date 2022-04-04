@@ -7,12 +7,12 @@
         margin-top: 0;
       }
 
-    	.navbar {
+      .navbar {
         padding: 0.5em;
         background-color: #444;
         color: #aaa;
-        margin-top: 0;    		
-    	}
+        margin-top: 0;
+      }
 
       .login {
         float: right;
@@ -33,9 +33,11 @@
   </head>
 
   <body>
-  	<div class="navbar">
-      boardzilla
-
+    <div class="navbar">
+      <a href="/">boardzilla</a>
+      <% if (user) { %>
+        | <a href="/sessions">games</a>
+      <% } %>
       <div class="login">
         <% if (user) { %>
           Welcome <%= user.name %>! <a href="/logout">Logout</a>
@@ -43,7 +45,7 @@
           <a href="/login">Login</a> / <a href="/register">Register</a>
         <% } %>
       </div>
-  	</div>
+    </div>
 
     <% if (error) { %>
       <div class="error"><%= error %></div>

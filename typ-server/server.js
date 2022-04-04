@@ -158,8 +158,32 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
   })
 
   app.get('/', async (req, res) => {
-    const sessions = await db.Session.findAll({ include: [db.Game, {model: db.User, as: 'creator'}] })
-    res.render('index', {sessions: sessions})
+    res.render('home')
+  })
+
+  app.get('/sessions', async (req, res) => {
+    if (!req.userId) return unauthorized(req, res, 'permission denied')
+    let where = {}
+    if (req.query.show != 'all') {
+      const mySessions = await db.SessionUser.findAll({where: {userId: req.userId}})
+      where = {id: mySessions.map(s => s.sessionId)}
+    }
+    const sessions = await db.Session.findAll({
+      where,
+      include: [
+        db.Game,
+        {
+          model: db.SessionUser,
+          as: 'SessionUsers',
+          include: [{model: db.User}]
+        },
+        {
+          model: db.User,
+          as: 'creator'
+        }
+      ]
+    })
+    res.render('index', {sessions: sessions, localGame: localDevGame.get('name')})
   })
 
   app.get('/sessions/new', async (req, res) => {

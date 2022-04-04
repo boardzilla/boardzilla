@@ -1,13 +1,10 @@
-body, li {
-  font-family: sans-serif;
-}
-
 button {
   border: none;
   background: #017;
   color: white;
   border-radius: 2px;
   margin: 0 2px;
+  padding: 3px 6px 5px;
 }
 
 #container {
@@ -124,6 +121,8 @@ button {
 #choiceFilter {
   margin-left: 10px;
   width: 100px;
+  display: inline-block;
+  height: 12px;
 }
 
 .die button {

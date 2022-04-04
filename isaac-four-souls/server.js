@@ -5,9 +5,9 @@ game.maxPlayers = 4;
 game.setupPlayerMat = mat => {
   const tableau = mat.addSpace('#tableau', 'area', {spreadX: 80});
   mat.addSpace('#hand', 'area', {spreadX: 80});
-  tableau.addComponent('counter', {display: 'hp', initialValue: 2});
-  tableau.addComponent('counter', {display: 'coin', initialValue: 3, x: 100, y: 0});
-  tableau.addComponent('die', {faces: 6, x: 200, y: 0});
+  tableau.addComponent('counter', {display: 'hp', initialValue: 2, max: 5});
+  tableau.addComponent('counter', {display: 'coin', initialValue: 3, max: 50, x: 140, y: 0});
+  tableau.addComponent('die', {faces: 6, x: 250, y: 0});
 };
 
 game.setupBoard = board => {
@@ -34,7 +34,7 @@ game.setupBoard = board => {
   monsterDeck.shuffle()
   board.addSpace('#monsters-discard', 'deck');
   board.addSpace('#dungeon', 'area', {spreadX: 80});
-  board.addComponent('counter', {display: 'hp'});
+  board.addComponent('counter', {display: 'hp', max: 8});
 
   const bonus = board.addSpace('#bonusSouls', 'area', {spreadY: 40});
   let bonusY = 0;
@@ -238,7 +238,7 @@ game.actions = {
   addCounter: {
     prompt: "Add counter",
     select: ".mine card",
-    action: card => card.addComponent('counter'),
+    action: card => card.addComponent('counter', {max: 9}),
   },
   removeCounter: {
     prompt: "Remove counter",

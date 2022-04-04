@@ -12,7 +12,7 @@ export default ({id, number, rolls, faces, gameAction}) => {
 
   const rollD6 = () => {
     gameAction('rollDie', `"${id}"`);
-    setRolls2(rolls + 1)
+    setRolls2(rolls2 + 1)
   };
 
   const spin = Math.max(rolls2, rolls) % 2 ? 'up' : 'down';

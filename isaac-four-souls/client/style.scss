@@ -25,19 +25,19 @@ body {
   #board {
     position: absolute;
     left: 0;
-    top: 240px;
-    height: 320px;
+    top: 260px;
+    height: 280px;
     width: 100%;
     #characters {
       position: absolute;
       right: 20px;
-      top: 50px;
+      top: 30px;
       z-index: 20;
     }
     #eternals {
       position: absolute;
       right: 20px;
-      top: 170px;
+      top: 150px;
       z-index: 20;
     }
     #shop {
@@ -45,49 +45,49 @@ body {
       width: 400px;
       height: 100px;
       left: 210px;
-      top: 50px;
+      top: 30px;
     }
     #treasure {
       position: absolute;
       left: 130px;
-      top: 50px;
+      top: 30px;
     }
     #treasure-discard {
       position: absolute;
       left: 50px;
-      top: 50px;
+      top: 30px;
     }
     #dungeon {
       position: absolute;
       width: 400px;
       height: 100px;
       left: 210px;
-      top: 170px;
+      top: 150px;
     }
     #monsters {
       position: absolute;
       left: 130px;
-      top: 170px;
+      top: 150px;
     }
     #monsters-discard {
       position: absolute;
       left: 50px;
-      top: 170px;
+      top: 150px;
     }
     #loot {
       position: absolute;
       right: 220px;
-      top: 50px;
+      top: 30px;
     }
     #loot-discard {
       position: absolute;
       right: 220px;
-      top: 170px;
+      top: 150px;
     }
     #bonusSouls {
       position: absolute;
       right: 100px;
-      top: 20px;
+      top: 0px;
       width: 100px;
       height: 280px;
     }
@@ -101,23 +101,23 @@ body {
     position: absolute;
     left: 0;
     top: 0;
-    height: 240px;
+    height: 260px;
     width: 1000px;
     [data-players="3"] &, [data-players="4"] & {
       width: 700px;
     }
     &.mine {
-      top: 560px;
+      top: 540px;
     }
     &:not(.mine):nth-child(2) {
       left: 700px;
     }
     &:not(.mine):nth-child(3) {
       left: 700px;
-      top: 560px;
+      top: 540px;
     }
     #tableau {
-      height: 120px;
+      height: 140px;
       width: 100%;
       position: absolute;
       top: 0px;
@@ -126,7 +126,7 @@ body {
       height: 120px;
       width: 100%;
       position: absolute;
-      top: 120px;
+      top: 140px;
     }
   }
 
@@ -187,7 +187,7 @@ body {
   }
   div.nametag {
     position: absolute;
-    top: 120px;
+    top: 140px;
     width: 100%;
     text-align: center;
   }
