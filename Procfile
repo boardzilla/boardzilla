@@ -1,1 +1,1 @@
-web: cd isaac-four-souls && yarn start
+web: yarn --pwd typ-server run start:prod

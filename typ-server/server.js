@@ -13,7 +13,7 @@ const GameRunner = require('./gameRunner')
 const cookieParser = require('cookie-parser')
 const path = require('path')
 
-module.exports = ({secretKey, redisUrl, ...devGame }) => {
+module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
   function loginUser(user, res) {
     const token = jwt.sign({id: user.id}, secretKey)
     res.cookie('jwt',token)
@@ -22,17 +22,10 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
   const app = express()
   const server = http.createServer(app)
   const redisClient = new Redis(redisUrl)
-
-  let localDevGame, webpackCompiler
-
-  if (devGame.name) {
-    localDevGame = new db.Game({ name: devGame.name, localDir: devGame.path })
-    const webpack = require('./webpack')
-    webpackCompiler = webpack(path.join(devGame.path, 'client/index.js'))
-  }
+  const devMode = process.env.NODE_ENV === 'development'
 
   const postgresUrl = process.env['DATABASE_URL']
-  const gameRunner = new GameRunner(postgresUrl, redisUrl, localDevGame)
+  const gameRunner = new GameRunner(redisUrl, s3Provider, zkConnectionString)
 
   app.set('view engine', 'ejs')
   app.set('views', __dirname + '/views')
@@ -165,9 +158,6 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
   app.get('/sessions/new', async (req, res) => {
     if (!req.userId) return unauthorized(req, res, 'permission denied')
     const games = await db.Game.findAll({attributes: ['name', [Sequelize.fn('max', Sequelize.col('id')), 'maxId']], group: ['name'], raw: true})
-    if (localDevGame) {
-      games.unshift({maxId: -1, name: localDevGame.get('name')})
-    }
     res.render('sessions-new', {games: games})
   })
 
@@ -180,21 +170,26 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
 
   app.get('/games/:id/*', async (req, res) => {
     if (!req.userId) return unauthorized(req, res, 'permission denied')
-    let game
-    if (req.params.id === "local") {
-      game = localDevGame
-    } else {
-      game = await db.Game.findByPk(req.params.id)
-    }
+    const game = await db.Game.findByPk(req.params.id)
     if (!game) {
       res.status(404).end('No such game')
     }
     if (!req.params[0]) {
-      res.render('client', {userId: req.userId, entry: req.params.id === "local" ? '/local-game/index.js' : 'index.js'})
+      res.render('client', {userId: req.userId, entry: 'index.js'})
     } else {
-      const buf = game.file(`/client/${req.params[0]}`)
-      res.type(mime.getType(req.params[0]))
-      res.end(buf)
+      console.log("game.name", game.name, "game.clientDigest", game.clientDigest, "req.params[0]", req.params[0])
+      const s3Path = path.join(game.name, "client", game.clientDigest, req.params[0])
+      const s3Params = {Key: s3Path}
+      try {
+        const info = await s3Provider.headObject(s3Params).promise()
+        res.set('Content-Type', info.ContentType)
+        res.set('Content-Length', info.ContentLength)
+        const stream = s3Provider.getObject(s3Params).createReadStream()
+        stream.pipe(res);
+      } catch(e) {
+        console.log("error getting", s3Path, e)
+        res.status(404).end('not found')        
+      }
     }
   })
 
@@ -223,6 +218,7 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
     if (req.is('json')) {
       res.json(session)
     } else {
+      console.log("req.userId", req.userId)
       res.render('session', {session, me: req.userId})
     }
   })
@@ -237,12 +233,13 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
     }
   })
 
-  if (webpackCompiler) {
-    app.use(
-      require('webpack-dev-middleware')(webpackCompiler, {
-        publicPath: '/local-game/',
-      }),
-    )
+  if (devMode) {
+    server.reload = async () => {
+      const sessions = await db.Session.findAll()
+      for (const session of sessions) {
+        await redisClient.publish(gameRunner.sessionEventKey(session.id), JSON.stringify({type: 'reload'}))
+      }
+    }
   }
 
   app.get('/play', async (req, res) => {
@@ -250,8 +247,6 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
     res.render('index', {sessions: sessions})
   })
 
-  app.use('/local-game', express.static(path.join(__dirname, '/dist')))
-  
   const verifyClient = async (info, verified) => {
     cookieParser()(info.req, null, () => {})
     try {

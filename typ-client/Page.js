@@ -58,6 +58,9 @@ export default class Page extends Component {
       const res = JSON.parse(e.data);
       console.log("Received", res);
       switch(res.type) {
+        case 'reload':
+           location.reload()
+           break
         case "state":
           if (res.payload) {
             this.setState({data: res.payload});

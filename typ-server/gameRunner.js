@@ -6,12 +6,13 @@ const db = require('./models')
 const EventEmitter = require('events')
 const GAME_SESSION_NS = 4901
 const Redis = require("ioredis")
+const path = require("path")
 
 class GameRunner {
-  constructor(postgresUrl, redisUrl, localDevGame) {
-    this.postgresUrl = postgresUrl
+  constructor(redisUrl, s3Provider, zkConnectionString) {
     this.redisUrl = redisUrl
-    this.localDevGame = localDevGame
+    this.s3Provider = s3Provider
+    this.zkConnectionString = zkConnectionString
     this.redisClient = new Redis(redisUrl)
   }
 
@@ -20,7 +21,7 @@ class GameRunner {
   }
 
   createSessionRunner(sessionId) {
-    const serverLocator = simple()(process.env.ZK_CONNECTION_STRING)
+    const serverLocator = simple()(this.zkConnectionString)
     const lock = new zkLock.ZookeeperLock({
       serverLocator,
       pathPrefix: 'game-runner-',
@@ -69,17 +70,16 @@ class GameRunner {
         while(running) {
           try {
             console.log(process.pid, "HAS LOCK")
-            const session = await db.Session.findByPk(sessionId)
-            const game = session.gameId === -1 ? this.localDevGame : await session.getGame()
-            const gameInstance = new GameInterface(session.seed)
-            const playerViews = {}
             const vm = new NodeVM({
               console: 'inherit',
-              sandbox: {game: gameInstance},
-              require: {
-                external: true,
-              },
             })
+            const session = await db.Session.findByPk(sessionId)
+            const game = await session.getGame()
+            console.log("000<<<", path.join(game.name, "server", game.serverDigest, "index.js"))
+            const serverBuffer = await this.s3Provider.getObject({Key: path.join(game.name, "server", game.serverDigest, "index.js")}).promise()
+            const gameClass = vm.run(serverBuffer.Body.toString())
+            const gameInstance = new gameClass(session.seed)
+            const playerViews = {}
 
             gameInstance.on('update', async ({type, userId, payload}) => {
               console.log(`R ${process.pid} ${userId}: update ${type}`)
@@ -103,9 +103,6 @@ class GameRunner {
                 JSON.stringify(message)
               )
             }
-
-            const serverBuffer = game.file("/server.js")
-            vm.run(serverBuffer.toString())
 
             const users = await session.getSessionUsers().map(su => su.getUser())
             users.forEach(user => gameInstance.addPlayer(user.id, user.name))

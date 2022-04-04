@@ -9,7 +9,7 @@
 
 <% if (session.SessionUsers.find(su => su.userId == me)) { %>
   <!-- TODO proper URL -->
-  <a href="/games/local/?session=<%= session.id %>">Enter</a>
+  <a href="/games/<%= session.id %>/">Enter</a>
 <% } else { %>
   <form action="/user-sessions/<%= session.id %>" method="POST">
     <input type="submit" value="Join"/>

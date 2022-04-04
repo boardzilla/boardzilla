@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -e
+
+build() {
+	local build_type=$1
+	yarn --cwd $build_type run clean
+	yarn --cwd $build_type run build:production
+	dir="$build_type/dist"
+	digest=$(find "$dir" -type f -exec shasum -a256 {} \; | sed "s~$dir~~g" | LC_ALL=C sort -d | shasum -a256 | awk '{ print $1 }')
+	echo "path is"
+	echo "dist/$build_type/$digest"
+	mkdir -p dist/$build_type/$digest
+	cp -r "$build_type/dist/"* "dist/$build_type/$digest"
+}
+
+rm -rf dist
+build "client"
+build "server"
+# publish to s3
+# add record to database

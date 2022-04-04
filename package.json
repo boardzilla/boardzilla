@@ -1,8 +1,0 @@
-{
-	"name": "typ",
-	"version": "1.0.0",
-	"main": "index.js",
-	"repository": "git@github.com:joshbuddy/typ.git",
-	"author": "Josh Hull <josh@fireflop.com>",
-	"license": "MIT"
-}

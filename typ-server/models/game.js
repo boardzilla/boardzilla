@@ -9,6 +9,8 @@ module.exports = (sequelize, DataTypes) => {
     content: DataTypes.BLOB,
     name: DataTypes.STRING,
     localDir: DataTypes.STRING,
+    clientDigest: DataTypes.STRING,
+    serverDigest: DataTypes.STRING,
   }, {
     getterMethods: {
       contentZip: function() {
@@ -16,19 +18,6 @@ module.exports = (sequelize, DataTypes) => {
       },
     }
   });
-
-  // uncomment to make associations here
-  //
-  // Game.associate = function(models) {
-  // }
-
-  Game.prototype.file = function(f) {
-    if (this.getDataValue('localDir')) {
-      return fs.readFileSync(path.join(this.getDataValue('localDir'), f))
-    } else {
-      return this.contentZip.readFile(f)
-    }
-  }
 
   return Game;
 };

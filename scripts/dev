@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [[ -z "$GAME" ]]; then
+    echo "Must provide GAME in environment" 1>&2
+    exit 1
+fi
+
+export NODE_ENV=development
+export NODE_OPTIONS="--trace-warnings"
+
+cd typ-server
+
+./node_modules/.bin/sequelize db:drop
+./node_modules/.bin/sequelize db:create
+./node_modules/.bin/sequelize db:migrate
+
+yarn --cwd typ-server run start:dev
