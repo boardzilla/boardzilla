@@ -180,6 +180,12 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
 
   app.get('/games/:id/*', async (req, res) => {
     if (!req.userId) return unauthorized(req, res, 'permission denied')
+    if (req.query.session && !req.params[0]) {
+      const sessionUser = await db.SessionUser.findOne({where: {userId: req.userId, sessionId: req.query.session}})
+      if (!sessionUser) {
+        return res.redirect('/sessions/' + req.query.session)
+      }
+    }
     let game
     if (req.params.id === "local") {
       game = localDevGame
@@ -223,7 +229,12 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
     if (req.is('json')) {
       res.json(session)
     } else {
-      res.render('session', {session, me: req.userId})
+      const sessionUser = await db.SessionUser.findOne({where: {userId: req.userId, sessionId: session.id}})
+      if (sessionUser) {
+        return res.redirect(`/games/${session.gameId == -1 ? 'local' : session.gameId}/?session=${session.id}`)
+      } else {
+        res.render('session', {session, me: req.userId})
+      }
     }
   })
 
@@ -301,7 +312,8 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
     }
 
     const publish = async message => await redisClient.publish(gameRunner.sessionEventKey(session.id), JSON.stringify(message))
-    
+    const queue = async message => await redisClient.rpush(gameRunner.sessionEventKey(session.id), JSON.stringify(message))
+
     const requestLock = async (key) => {
       try {
         await db.ElementLock.destroy({where: {
@@ -351,7 +363,7 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
           case 'drag': return await drag(message.payload)
           default: {
             message.payload.userId = req.userId
-            const out = await redisClient.rpush(sessionEventKey, JSON.stringify(message))
+            const out = await queue(message)
             return out
           }
         }
@@ -363,11 +375,11 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
     const subscriber = new Redis(redisUrl)
     subscriber.on("message", async (channel, data) => {
       const message = JSON.parse(data)
-      console.log(`S ${req.userId}: redis message`, message.type, message.userId)
       // TODO better as seperate channels for each user and all users?
       if (message.userId && message.userId != req.userId) {
         return
       }
+      console.log(`S u=${req.userId} s=${req.sessionId}: redis message`, message.type, message.userId)
       switch (message.type) {
         case 'state': return await sendPlayerView(data)
         case 'locks': return await sendPlayerLocks()
@@ -388,13 +400,16 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
       console.error("error in ws", error)
     })
 
+    console.log(`S ${req.userId} subscribe`)
     subscriber.subscribe(gameRunner.sessionEventKey(session.id), async err => {
       if (err) {
         await sessionRunner.stop()
         return ws.close(1011) // internal error
       }
 
-      redisClient.rpush(sessionEventKey, JSON.stringify({type: 'refresh', payload: {userId: req.userId}}))
+      console.log(`S ${req.userId} addPlayer`)
+      const user = await db.User.findByPk(req.userId)
+      queue({type: 'addPlayer', payload: {userId: user.id, username: user.name}})
     })
   }
   wss.on("connection", onWssConnection)

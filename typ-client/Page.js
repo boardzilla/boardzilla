@@ -56,7 +56,7 @@ export default class Page extends Component {
 
     this.webSocket.onmessage = e => {
       const res = JSON.parse(e.data);
-      console.log("Received", res);
+      console.log("Received", res.type, res);
       switch(res.type) {
         case "state":
           if (res.payload) {
@@ -115,13 +115,15 @@ export default class Page extends Component {
     document.addEventListener('mousemove', e => this.setState({mouse: {x: e.clientX, y: e.clientY}}));
     document.addEventListener('keydown', e => e.key == "z" && this.setState({'zoomed': true}));
     document.addEventListener('keyup', e => {
-      const el = elForPoint(this.state.mouse.x, this.state.mouse.y)
-      if (el) {
-        const key = choiceFromKey(el);
-        const action = Object.entries(this.actionsFor(key)).find(([_, a]) => a.key && a.key.toLowerCase() == e.key);
-        if (action) return this.gameAction(action[0], key);
+      if (this.state.mouse) {
+        const el = elForPoint(this.state.mouse.x, this.state.mouse.y)
+        if (el) {
+          const key = choiceFromKey(el);
+          const action = Object.entries(this.actionsFor(key)).find(([_, a]) => a.key && a.key.toLowerCase() == e.key);
+          if (action) return this.gameAction(action[0], key);
+        }
+        if (e.key == "z") this.setState({'zoomed': false});
       }
-      if (e.key == "z") this.setState({'zoomed': false});
     });
     /* window.visualViewport.addEventListener('resize', console.log);
      * window.visualViewport.addEventListener('scroll', console.log);
@@ -143,6 +145,11 @@ export default class Page extends Component {
       },
     );
     this.setState({actions: null, action: null, args: [], prompt: null, choices: null, filter: ''});
+  }
+
+  reset() {
+    this.send('reset');
+    window.location.reload();
   }
 
   get(variable) {
@@ -310,7 +317,7 @@ export default class Page extends Component {
     if (!node || !node.attributes) return;
     const attributes = Array.from(node.attributes).
                              filter(attr => attr.name !== 'class' && attr.name !== 'id').
-                             reduce((attrs, attr) => Object.assign(attrs, { [attr.name]: !attr.value || isNaN(attr.value) ? attr.value : +attr.value }), {});
+                             reduce((attrs, attr) => Object.assign(attrs, { [attr.name.toLowerCase()]: !attr.value || isNaN(attr.value) ? attr.value : +attr.value }), {});
 
     const type = node.nodeName.toLowerCase();
     const key = branch(node).join('-')
@@ -354,7 +361,7 @@ export default class Page extends Component {
       contents = Array.from(node.childNodes).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
     }
     if (node.id == 'player-mat' && attributes.player && this.state.data.players[attributes.player - 1]) {
-      contents.push(<div className="nametag">{this.state.data.players[attributes.player - 1][1]}</div>)
+      contents.push(<div key="nametag" className="nametag">{this.state.data.players[attributes.player - 1][1]}</div>)
     }
     if (this.components[type]) {
       contents = React.createElement(
@@ -428,9 +435,18 @@ export default class Page extends Component {
         <button onClick={() => {this.setState({action: null, args: [], prompt: null, choices: null}); this.send('update')}}>Cancel</button>
       </div>}
 
-      {!this.state.prompt && <div id="messages">
-        <button onClick={() => this.send('undo')}>Undo</button>
-        <button onClick={() => confirm("Reset and lose all game history? This cannot be undone") && this.send('reset')}>Reset</button>
+      {!this.state.prompt && this.state.data && <div id="messages">
+        {this.state.data.phase == 'setup' && (
+          <span>
+            Players: {this.state.data.players.map(p => p[1]).join(', ')}
+            <button onClick={() => this.gameAction('start')}>Start</button>
+          </span>
+        ) || (
+          <>
+            <button onClick={() => this.send('undo')}>Undo</button>
+            <button onClick={() => confirm("Reset and lose all game history? This cannot be undone") && this.reset()}>Reset</button>
+          </>
+        )}
         {nonBoardActions && Object.entries(nonBoardActions).map(([action, prompt]) => (
           <button key={action} onClick={() => this.gameAction(action)}>{prompt}</button>
         ))}

@@ -1,7 +1,9 @@
-DATABASE_URL=postgres://typ@127.0.0.1/typ_development yarn start
+ZK_CONNECTION_STRING=localhost:2181 DATABASE_URL=postgres://typ@127.0.0.1/typ_development yarn start
 
-- counter move count
-- entering game guard
+- heartbeat and connection status
+- game chrome
+X counter move count
+X entering game guard
 X counter min, max
 X nameplates covering cards
 X 4-player layout fixes

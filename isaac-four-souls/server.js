@@ -143,25 +143,25 @@ game.actions = {
   intoShop: {
     prompt: "Put into shop",
     key: "s",
-    drag: 'card[type="treasure"]',
+    drag: '#treasure card:nth-last-child(-n+2), #treasure-discard card:nth-last-child(-n+2), .mine card[type="treasure"]',
     onto: '#shop',
   },
   discardTreasure: {
     prompt: "Discard",
     key: "f",
-    drag: 'card[type="treasure"]',
+    drag: '#treasure card:nth-last-child(-n+2), #shop card:nth-last-child(-n+2), .mine card[type="treasure"]',
     onto: '#treasure-discard',
   },
   intoTreasureDeck: {
     prompt: "Put top of deck",
     key: "t",
-    drag: 'card[type="treasure"]',
+    drag: '#treasure-discard card:nth-last-child(-n+2), #shop card:nth-last-child(-n+2), .mine card[type="treasure"]',
     onto: '#treasure',
   },
   intoTreasureDeckBottom: {
     prompt: "Put at bottom of deck",
     key: "b",
-    select: 'card[type="treasure"]',
+    select: '#treasure-discard card:nth-last-child(-n+2), #shop card:nth-last-child(-n+2), .mine card[type="treasure"]',
     action: card => card.moveToBottom('#treasure')
   },
   intoDungeon: {
@@ -173,31 +173,31 @@ game.actions = {
   takeMonster: {
     prompt: "Take",
     key: "d",
-    drag: 'card[type="monster"]',
+    drag: '#board card[type="monster"]',
     onto: '.mine #tableau',
   },
   giveMonster: {
     prompt: "Give to a player",
     key: "d",
-    drag: 'card[type="monster"]',
+    drag: '.mine card[type="monster"]',
     onto: '#player-mat:not(.mine) #tableau',
   },
   discardMonster: {
     prompt: "Discard",
     key: "f",
-    drag: 'card[type="monster"]',
+    drag: '#board card[type="monster"], #mine card[type="monster"]',
     onto: '#monsters-discard',
   },
   intoMonsterDeck: {
     prompt: "Put top of deck",
     key: "t",
-    drag: 'card[type="monster"]',
+    drag: '#board card[type="monster"], #mine card[type="monster"]',
     onto: '#monsters',
   },
   intoMonsterDeckBottom: {
     prompt: "Put at bottom of deck",
     key: "b",
-    select: 'card[type="monster"]',
+    select: '#board card[type="monster"], #mine card[type="monster"]',
     action: card => card.moveToBottom('#monsters')
   },
   takeBonus: {
