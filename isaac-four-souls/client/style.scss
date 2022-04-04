@@ -19,6 +19,7 @@ body {
   top: 0;
   height: 800px;
   width: 1000px;
+  padding-right: 100px;
   [data-players="3"] &, [data-players="4"] & {
     width: 1400px;
   }
@@ -27,7 +28,10 @@ body {
     left: 0;
     top: 260px;
     height: 280px;
-    width: 100%;
+    width: 1000px;
+    [data-players="3"] &, [data-players="4"] & {
+      width: 1400px;
+    }
     #characters {
       position: absolute;
       right: 20px;

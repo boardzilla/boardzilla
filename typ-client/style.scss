@@ -74,6 +74,11 @@ button {
   div.nametag {
     font-size: 30px;
     pointer-events: none;
+    opacity: .3;
+    color: black;
+    &.active {
+      opacity: 1;
+    }
   }
 }
 

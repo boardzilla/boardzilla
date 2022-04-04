@@ -1,11 +1,16 @@
 ZK_CONNECTION_STRING=localhost:2181 DATABASE_URL=postgres://typ@127.0.0.1/typ_development yarn start
 
-- heartbeat and connection status
-- game chrome
+X heartbeat and connection status
+X game chrome
 - escape stuck in drag?
 - homepage
 - show errors from server
 - log???
+- mobile layout, better sidebar?
+- mouse tracking
+- movement echo???
+  - send last pos (zone,x,y)
+  - translate zxy->zxy and apply transform
 X counter move count
 X entering game guard
 X counter min, max

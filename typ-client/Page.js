@@ -41,6 +41,7 @@ export default class Page extends Component {
       ctxpos: null, // position of ctx menu
       dragging: null, // data on the current drag {key, x/y start point, zone starting zone}
       zoomed: false, // holding the zoom key
+      playerStatus: {[props.userId]: new Date()}, // timestamps of last ping from each player
     };
     this.components = {
       counter: Counter,
@@ -103,6 +104,9 @@ export default class Page extends Component {
             this.updatePosition(key, x, y);
           }
           break;
+        case "active":
+          this.setState(state => ({playerStatus: Object.assign({}, state.playerStatus, {[res.payload]: new Date()})}));
+          break;
       }
     }
     document.addEventListener('touchmove', e => {
@@ -129,6 +133,7 @@ export default class Page extends Component {
      * window.visualViewport.addEventListener('scroll', console.log);
      * document.addEventListener('wheel', console.log); */
     this.send('refresh');
+    setInterval(() => this.send('ping'), 3000)
   }
 
   send(action, payload) {
@@ -360,8 +365,14 @@ export default class Page extends Component {
     } else {
       contents = Array.from(node.childNodes).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
     }
-    if (node.id == 'player-mat' && attributes.player && this.state.data.players[attributes.player - 1]) {
-      contents.push(<div key="nametag" className="nametag">{this.state.data.players[attributes.player - 1][1]}</div>)
+    if (node.id == 'player-mat') {
+      const player = attributes.player && this.state.data.players[attributes.player - 1];
+      if (player) contents.push(
+        <div key="nametag"
+          className={classNames("nametag", {active: new Date() - this.state.playerStatus[player[0]] < 5000})}>
+          {player[1]}
+        </div>
+      )
     }
     if (this.components[type]) {
       contents = React.createElement(
