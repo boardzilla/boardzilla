@@ -134,11 +134,30 @@ body {
     }
   }
 
-  .counter[display="hp"] img {
-    width: 18px;
-    margin: 0 1px;
-    position: relative;
-    top: 4px;
+  .counter {
+    button {
+      background: rgba(0,0,0,0);
+      color: black;
+      font-size: 35px;
+      font-weight: bold;
+      line-height: 12px;
+      position: relative;
+      top: 6px;
+      margin: 0;
+      &:focus {
+        outline: none;
+        box-shadow: none;
+      }
+      &:hover {
+        color: #c30;
+      }
+    }
+    &[display="hp"] img {
+      width: 18px;
+      margin: 0 1px;
+      position: relative;
+      top: 4px;
+    }
   }
 
   [player="1"] .d6 .die-face {

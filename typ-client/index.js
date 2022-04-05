@@ -6,7 +6,7 @@ export const render = ({pieces, counters, background}) => ReactDOM.render(
   <Page
     userId={window.userId}
     session={document.location.search.match(/[?+]session=(\d+)/)[1]}
-    components={pieces}
+    pieces={pieces}
     counterDisplays={counters}
     background={background}
   />,

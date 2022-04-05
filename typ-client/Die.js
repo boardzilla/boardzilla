@@ -3,6 +3,7 @@ import React, {useState} from 'react';
 export default ({id, number, rolls, faces, gameAction}) => {
   const [override, setOverride] = useState();
   const [rolls2, setRolls2] = useState(rolls);
+  const [shake, setShake] = useState({x:0, y:0});
 
   const roll = () => {
     const rolling = setInterval(() => setOverride(Math.floor(Math.random() * faces + 1)), 100);
@@ -10,22 +11,31 @@ export default ({id, number, rolls, faces, gameAction}) => {
     gameAction('rollDie', `"${id}"`);
   };
 
+  const shakeIt = (f=100) => setShake({x: Math.random() * f, y: Math.random() * f})
+
   const rollD6 = () => {
     gameAction('rollDie', `"${id}"`);
-    setRolls2(rolls2 + 1)
+    setRolls2(rolls2 + 1);
+    shakeIt();
+    setTimeout(shakeIt, 250);
+    setTimeout(shakeIt, 500);
+    setTimeout(shakeIt, 750);
+    setTimeout(shakeIt.bind(0,0), 1000);
   };
 
   const spin = Math.max(rolls2, rolls) % 2 ? 'up' : 'down';
 
   if (faces == 6) {
     return (
-      <ol className="d6" data-spin={spin} onClick={rollD6} onTouchEnd={rollD6}>
-      {[1,2,3,4,5,6].map(n => (
-        <li key={n} className="die-face" data-face={n}>
-        {Array.from(Array(n)).map((_, f) => <span key={f} className="dot"/>)}
-        </li>
-      ))}
-      </ol>
+      <div class="shake" style={{transform: `translate(${shake.x}px, ${shake.y}px)`}}>
+        <ol className="d6" data-spin={spin} onClick={rollD6} onTouchEnd={rollD6}>
+          {[1,2,3,4,5,6].map(n => (
+            <li key={n} className="die-face" data-face={n}>
+              {Array.from(Array(n)).map((_, f) => <span key={f} className="dot"/>)}
+            </li>
+          ))}
+        </ol>
+      </div>
     );
   }
 

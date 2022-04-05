@@ -130,13 +130,18 @@ button {
   height: 12px;
 }
 
-.die button {
-  width: 25px;
-  height: 25px;
-  background: #c00;
-  color: white;
-  border: none;
-  border-radius: 4px;
+.die {
+  .shake {
+    transition: transform 0.25s ease-out;
+  }
+  button {
+    width: 25px;
+    height: 25px;
+    background: #c00;
+    color: white;
+    border: none;
+    border-radius: 4px;
+  }
 }
 
 .d6 {

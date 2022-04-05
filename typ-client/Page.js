@@ -6,11 +6,11 @@ import {
   throttle,
   elementByKey,
   parentKey,
-  zoneForKey,
+  zoneKey,
   choiceHasKey,
   keyFromChoice,
   choiceFromKey,
-  elForPoint,
+  keyAtPoint,
   zoneForPoint,
   xmlToNode,
   branch,
@@ -23,6 +23,7 @@ import Die from './Die';
 import './style.scss';
 
 const DRAG_TOLERANCE = 1
+let mouse = {};
 
 export default class Page extends Component {
   constructor(props) {
@@ -47,9 +48,6 @@ export default class Page extends Component {
       counter: Counter,
       die: Die,
     };
-    if (props.components) {
-      this.components = {...this.components, ...props.components};
-    }
   }
 
   componentDidMount() {
@@ -116,18 +114,24 @@ export default class Page extends Component {
         this.setState({dragOver: keyFromEl(el)})
       }
     });
-    document.addEventListener('mousemove', e => this.setState({mouse: {x: e.clientX, y: e.clientY}}));
-    document.addEventListener('keydown', e => e.key == "z" && this.setState({'zoomed': true}));
-    document.addEventListener('keyup', e => {
-      if (this.state.mouse) {
-        const el = elForPoint(this.state.mouse.x, this.state.mouse.y)
-        if (el) {
-          const key = choiceFromKey(el);
-          const action = Object.entries(this.actionsFor(key)).find(([_, a]) => a.key && a.key.toLowerCase() == e.key);
-          if (action) return this.gameAction(action[0], key);
-        }
-        if (e.key == "z") this.setState({'zoomed': false});
+    document.addEventListener('mousemove', e => {
+      mouse = {x: e.clientX, y: e.clientY};
+      if (this.state.zoomed) {
+        this.setState({mouseOver: keyAtPoint(e.clientX, e.clientY, el => el.matches('.piece:not(.component)'))});
       }
+      if (this.state.dragging) {
+        this.setState({dragOver: keyAtPoint(e.clientX, e.clientY, el => el.classList.contains('space'))});
+      }
+    })
+    document.addEventListener('keydown', e => e.key == "z" && this.setState({'zoomed': true, mouseOver: keyAtPoint(mouse.x, mouse.y, el => el.matches('.piece:not(.component)'))}));
+    document.addEventListener('keyup', e => {
+      const el = keyAtPoint(mouse.x, mouse.y)
+      if (el) {
+        const key = choiceFromKey(el);
+        const action = Object.entries(this.actionsFor(key)).find(([_, a]) => a.key && a.key.toLowerCase() == e.key);
+        if (action) return this.gameAction(action[0], key);
+      }
+      if (e.key == "z") this.setState({'zoomed': false});
     });
     /* window.visualViewport.addEventListener('resize', console.log);
      * window.visualViewport.addEventListener('scroll', console.log);
@@ -188,7 +192,7 @@ export default class Page extends Component {
   dragging(key, x, y, event) {
     if (!this.state.dragging) {
       this.send('requestLock', {key});
-      this.setState({dragging: {key, x, y, zone: zoneForKey(key)}})
+      this.setState({dragging: {key, x, y, zone: zoneKey(key)}})
       // set piece to uncontrolled
       this.updatePosition(key)
     }
@@ -228,8 +232,7 @@ export default class Page extends Component {
         this.gameAction(dragAction, choiceFromKey(key), choiceFromKey(dragOver), translation.x, translation.y);
         // optimistically update the location to avoid flicker
         this.setPieceAt(key, {x, y, moved: true});
-      } else if (!dragOver || dragOver === parentKey(key)) {
-        console.log('dragOver', dragOver)
+      } else if (dragOver === parentKey(key)) {
         this.gameAction('moveElement', choiceFromKey(key), x, y);
         // optimistically update the location to avoid flicker
         this.setPieceAt(key, {x, y});
@@ -348,15 +351,6 @@ export default class Page extends Component {
           (this.state.choices instanceof Array && this.state.choices.includes(choiceFromKey(key)))
         )
       });
-
-      if (node.classList.contains('space') && this.state.dragging) {
-        props.onMouseEnter=() => this.setState({dragOver: key});
-        props.onMouseLeave=() => this.setState({dragOver: parentKey(key)});
-      }
-      if (node.classList.contains('piece')) {
-        props.onMouseEnter=() => this.setState({mouseOver: key});
-        props.onMouseLeave=() => this.setState({mouseOver: null}); // TODO parent if is also piece
-      }
     }
 
     let contents;
@@ -375,11 +369,15 @@ export default class Page extends Component {
       )
     }
     if (this.components[type]) {
+      props.className += ' component';
       contents = React.createElement(
         this.components[type],
         {...props, display: this.props.counterDisplays[props.display] || (v=>v), ...this.bindMethods('gameAction')},
         contents
       );
+    }
+    if (this.props.pieces[type]) {
+      contents = React.createElement(this.props.pieces[type], {...props}, contents);
     }
     contents = contents || node.id;
 

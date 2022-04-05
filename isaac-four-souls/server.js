@@ -185,19 +185,19 @@ game.actions = {
   discardMonster: {
     prompt: "Discard",
     key: "f",
-    drag: '#board card[type="monster"], #mine card[type="monster"]',
+    drag: '#board card[type="monster"], .mine card[type="monster"]',
     onto: '#monsters-discard',
   },
   intoMonsterDeck: {
     prompt: "Put top of deck",
     key: "t",
-    drag: '#board card[type="monster"], #mine card[type="monster"]',
+    drag: '#board card[type="monster"], .mine card[type="monster"]',
     onto: '#monsters',
   },
   intoMonsterDeckBottom: {
     prompt: "Put at bottom of deck",
     key: "b",
-    select: '#board card[type="monster"], #mine card[type="monster"]',
+    select: '#board card[type="monster"], .mine card[type="monster"]',
     action: card => card.moveToBottom('#monsters')
   },
   takeBonus: {

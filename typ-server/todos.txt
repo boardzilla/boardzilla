@@ -18,7 +18,7 @@ X nameplates covering cards
 X 4-player layout fixes
 X move() to top not working? external-dragging persisting
 - session specific updates?
-- fix drag outside player-mat?
+X fix drag outside player-mat?
 - new cards
 - 2-sided cards
 - doubling up actions?
