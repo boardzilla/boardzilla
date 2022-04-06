@@ -260,7 +260,7 @@ export default class Page extends Component {
     if (choiceHasKey(choice)) {
       this.zoomOnPiece(elementByKey(keyFromChoice(choice)));
     }
-    
+
     const actions = this.actionsFor(choice);
     this.setState({dragging: null});
     if (Object.keys(actions).length == 1) {
@@ -443,8 +443,7 @@ export default class Page extends Component {
   }
 
   render() {
-    const textChoices = this.state.choices instanceof Array &&
-                        this.state.choices.filter(choice => !choiceHasKey(choice) && choice.toLowerCase().includes(this.state.filter.toLowerCase()));
+    const textChoices = this.state.choices instanceof Array && this.state.choices.filter(choice => !choiceHasKey(choice));
     const nonBoardActions = this.nonBoardActions();
 
     let messagesPane = null, zoomScale;
@@ -478,9 +477,9 @@ export default class Page extends Component {
           {messagesPane == 'prompt' &&
             <div id="prompt">
               {this.state.prompt}
-              {this.state.choices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
+              {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
               {textChoices && <div>
-                {Array.from(new Set(textChoices)).sort().map(choice => (
+                {Array.from(new Set(textChoices.filter(choice => choice.toLowerCase().includes(this.state.filter.toLowerCase())))).sort().map(choice => (
                   <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, choice)}>{JSON.parse(choice)}</button>
                 ))}
               </div>}
@@ -519,13 +518,13 @@ export default class Page extends Component {
               ))}
             </div>
           }
-           </div>
+        </div>
 
-           {this.props.background}
+        {this.props.background}
 
-      {this.state.data.phase === 'ready' && this.state.data.doc && this.renderBoard(xmlToNode(this.state.data.doc))}
+        {this.state.data.phase === 'ready' && this.state.data.doc && this.renderBoard(xmlToNode(this.state.data.doc))}
 
-    </div>
+      </div>
     )
   }
 }
