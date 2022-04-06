@@ -11,19 +11,28 @@ export default ({id, number, rolls, faces, gameAction}) => {
     gameAction('rollDie', `"${id}"`);
   };
 
-  const shakeIt = (f=100) => setShake({x: Math.random() * f, y: Math.random() * f})
+  const shakeIt = (f=100) => setShake({x: (Math.random() - .5) * f, y: (Math.random() - .5) * f})
 
-  const rollD6 = () => {
-    gameAction('rollDie', `"${id}"`);
-    setRolls2(rolls2 + 1);
+  const shakeSequence = () => {
     shakeIt();
     setTimeout(shakeIt, 250);
     setTimeout(shakeIt, 500);
     setTimeout(shakeIt, 750);
-    setTimeout(shakeIt.bind(0,0), 1000);
+    setTimeout(shakeIt.bind(this, 0), 1000);
+  }
+
+  const rollD6 = () => {
+    gameAction('rollDie', `"${id}"`);
+    setRolls2(rolls2 + 1);
+    shakeSequence()
   };
 
-  const spin = Math.max(rolls2, rolls) % 2 ? 'up' : 'down';
+  if (rolls > rolls2) {
+    setRolls2(rolls);
+    shakeSequence();
+  }
+
+  const spin = rolls2 % 2 ? 'up' : 'down';
 
   if (faces == 6) {
     return (
