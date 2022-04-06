@@ -1,6 +1,7 @@
 body {
-  height: 930px;
+  min-width: 1400px;
 }
+
 .table {
   width: 1000px;
   height: 560px;
@@ -14,12 +15,8 @@ body {
 }
 
 #container {
-  position: absolute;
-  left: 10px;
-  top: 0;
   height: 800px;
   width: 1000px;
-  padding-right: 100px;
   [data-players="3"] &, [data-players="4"] & {
     width: 1400px;
   }
@@ -177,7 +174,7 @@ body {
   }
 
   .card {
-    width: 80px;
+    width: 75px;
     height: 100px;
     &[active=true] {
       transform: rotate(90deg);

@@ -5,8 +5,10 @@ ZK_CONNECTION_STRING=localhost:2181 DATABASE_URL=postgres://typ@127.0.0.1/typ_de
 
 X heartbeat and connection status
 X game chrome
+- mobile events
 - mobile layout, better sidebar?
 - escape stuck in drag?
+- post drag action - remove active from deck card
 - ...homepage
 - show errors from server
 - log???

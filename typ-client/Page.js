@@ -11,6 +11,7 @@ import {
   keyFromChoice,
   choiceFromKey,
   keyAtPoint,
+  elAtPoint,
   zoneForPoint,
   xmlToNode,
   branch,
@@ -22,12 +23,12 @@ import Counter from './Counter';
 import Die from './Die';
 import './style.scss';
 
-const DRAG_TOLERANCE = 1
+const DRAG_TOLERANCE = 1;
 let mouse = {};
 
 export default class Page extends Component {
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
       action: null, // currently selected action
       args: [], // current action args
@@ -39,9 +40,8 @@ export default class Page extends Component {
       locks: {}, // locks from server
       positions: {}, // xy positions from server (i.e. other players)
       actions: null, // currently possible actions in menu {action: {choice, prompt},...}
-      ctxpos: null, // position of ctx menu
       dragging: null, // data on the current drag {key, x/y start point, zone starting zone}
-      zoomed: false, // holding the zoom key
+      zoomPiece: null, // the zoomed piece
       playerStatus: {[props.userId]: new Date()}, // timestamps of last ping from each player
     };
     this.components = {
@@ -64,7 +64,7 @@ export default class Page extends Component {
               const [action, details] = Object.entries(res.payload.allowedActions)[0];
               this.setState({action, args: details.args, prompt: details.prompt, choices: details.choices});
             }
-            document.getElementsByTagName('body')[0].dataset.players = this.state.data.players && this.state.data.players.length
+            document.getElementsByTagName('body')[0].dataset.players = this.state.data.players && this.state.data.players.length;
           }
           break;
         case "updateLocks":
@@ -116,28 +116,40 @@ export default class Page extends Component {
     });
     document.addEventListener('mousemove', e => {
       mouse = {x: e.clientX, y: e.clientY};
-      if (this.state.zoomed) {
-        this.setState({mouseOver: keyAtPoint(e.clientX, e.clientY, el => el.matches('.piece:not(.component)'))});
-      }
+      /* if (this.state.zoomed) {
+       *   this.setState({mouseOver: keyAtPoint(e.clientX, e.clientY, el => el.matches('.piece:not(.component)'))});
+       * } */
+      /* const mouseOver = elAtPoint(e.clientX, e.clientY, el => el.matches('.piece:not(.component)'));
+       * if (mouseOver) {
+       *   this.zoomOnPiece(elAtPoint(e.clientX, e.clientY, el => el.matches('.piece:not(.component)')));
+       * } else {
+       *   this.setState({zoomPiece: null});
+       * } */
       if (this.state.dragging) {
         this.setState({dragOver: keyAtPoint(e.clientX, e.clientY, el => el.classList.contains('space'))});
       }
-    })
-    document.addEventListener('keydown', e => e.key == "z" && this.setState({'zoomed': true, mouseOver: keyAtPoint(mouse.x, mouse.y, el => el.matches('.piece:not(.component)'))}));
-    document.addEventListener('keyup', e => {
-      const el = keyAtPoint(mouse.x, mouse.y)
-      if (el) {
-        const key = choiceFromKey(el);
-        const action = Object.entries(this.actionsFor(key)).find(([_, a]) => a.key && a.key.toLowerCase() == e.key);
-        if (action) return this.gameAction(action[0], key);
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key == "z") {
+        const zoomEl = elAtPoint(mouse.x, mouse.y, el => el.matches('.piece:not(.component)'));
+        zoomEl && this.zoomOnPiece(zoomEl);
+        this.setState({actions: null});
       }
-      if (e.key == "z") this.setState({'zoomed': false});
+    });
+    document.addEventListener('keyup', e => {
+      let key = this.state.zoomPiece || keyAtPoint(mouse.x, mouse.y);
+      if (key) {
+        key = choiceFromKey(key);
+        const action = Object.entries(this.actionsFor(key)).find(([_, a]) => a.key && a.key.toLowerCase() == e.key);
+        if (action) this.gameAction(action[0], key);
+      }
+      if (e.key == "z") this.setState({zoomPiece: false});
     });
     /* window.visualViewport.addEventListener('resize', console.log);
      * window.visualViewport.addEventListener('scroll', console.log);
      * document.addEventListener('wheel', console.log); */
     this.send('refresh');
-    setInterval(() => this.send('ping'), 3000)
+    setInterval(() => this.send('ping'), 3000);
   }
 
   send(action, payload) {
@@ -153,7 +165,7 @@ export default class Page extends Component {
         action: [action, ...args]
       },
     );
-    this.setState({actions: null, action: null, args: [], prompt: null, choices: null, filter: ''});
+    this.setState({actions: null, zoomPiece: null, action: null, args: [], prompt: null, choices: null, filter: ''});
   }
 
   reset() {
@@ -192,9 +204,9 @@ export default class Page extends Component {
   dragging(key, x, y, event) {
     if (!this.state.dragging) {
       this.send('requestLock', {key});
-      this.setState({dragging: {key, x, y, zone: zoneKey(key)}})
+      this.setState({dragging: {key, x, y, zone: zoneKey(key)}});
       // set piece to uncontrolled
-      this.updatePosition(key)
+      this.updatePosition(key);
     }
     const absX = event.touches ? event.touches[0].clientX : event.clientX;
     const absY = event.touches ? event.touches[0].clientY : event.clientY;
@@ -202,8 +214,8 @@ export default class Page extends Component {
     const dragData = {key, x, y};
     // crossing zones so add the zone translation
     if (zone && keyFromEl(zone.el) != this.state.dragging.zone) {
-      const startZone = elementByKey(this.state.dragging.zone)
-      const endZone = zone.el
+      const startZone = elementByKey(this.state.dragging.zone);
+      const endZone = zone.el;
       dragData.start = keyFromEl(startZone);
       dragData.end = keyFromEl(endZone);
       dragData.endFlip = isFlipped(startZone) ^ isFlipped(endZone);
@@ -246,18 +258,30 @@ export default class Page extends Component {
     }
   }
 
-  handleClick(choice, {x, y}, event) {
+  handleClick(choice, event) {
+    if (this.state.prompt) {
+      this.setState({action: null, args: [], prompt: null, choices: null});
+      this.send('update');
+    }
+    if (choiceHasKey(choice)) {
+      this.zoomOnPiece(elementByKey(keyFromChoice(choice)));
+    }
+
     const actions = this.actionsFor(choice);
     this.setState({dragging: null});
     if (Object.keys(actions).length == 1) {
       this.gameAction(Object.keys(actions)[0], ...this.state.args, choice);
       event.stopPropagation();
     } else if (Object.keys(actions).length > 1) {
-      this.setState({actions, ctxpos: {x, y}});
+      this.setState({actions});
       event.stopPropagation();
     } else {
-      this.setState({actions: null, ctxpos: null});
+      this.setState({actions: null, zoomPiece: null});
     }
+  }
+
+  zoomOnPiece(element) {
+    this.setState({zoomPiece: keyFromEl(element), zoomOriginalSize: {height: element.offsetHeight, width: element.offsetWidth}});
   }
 
   // return available actions association to this element {action: {choice, prompt},...}
@@ -272,7 +296,7 @@ export default class Page extends Component {
         node = choiceFromKey(parentKey(keyFromChoice(node)));
       }
       return actions;
-    }, {})
+    }, {});
   }
 
   // actions that have no element to click. returns { action: prompt,... }
@@ -283,7 +307,7 @@ export default class Page extends Component {
         actions[action] = prompt;
       }
       return actions;
-    }, {})
+    }, {});
   }
 
   isAllowedMove(node) {
@@ -297,38 +321,40 @@ export default class Page extends Component {
   allowedDragSpaces(key) {
     return Object.entries(this.state.data.allowedDrags).reduce((dragSpaces, [action, {pieces, spaces}]) => {
       if (pieces.includes(choiceFromKey(key))) {
-        spaces.forEach(space => dragSpaces[keyFromChoice(space)] = action)
+        spaces.forEach(space => dragSpaces[keyFromChoice(space)] = action);
       }
       return dragSpaces;
     }, {});
   }
 
   bindMethods(...methods) {
-    return methods.reduce((list, method) => {list[method] = this[method].bind(this); return list}, {})
+    return methods.reduce((list, method) => {list[method] = this[method].bind(this); return list}, {});
   }
 
   renderBoard(board) {
     let otherPlayers = 0;
-    return <div id="game">
-      {[...new Set([
-        ...board.querySelectorAll('#player-mat.mine ~ #player-mat'),
-        ...board.querySelectorAll('#player-mat:not(.mine)')
-      ])].map(
-        mat => this.renderGameElement(mat, otherPlayers++<2)
-      )}
-      {this.renderGameElement(board.querySelector('#board'))}
-      {this.renderGameElement(board.querySelector(`#player-mat.mine`))}
-    </div>
+    return (
+      <div id="game">
+        {[...new Set([
+          ...board.querySelectorAll('#player-mat.mine ~ #player-mat'),
+          ...board.querySelectorAll('#player-mat:not(.mine)')
+        ])].map(
+          mat => this.renderGameElement(mat, otherPlayers++<2)
+        )}
+        {this.renderGameElement(board.querySelector('#board'))}
+        {this.renderGameElement(board.querySelector(`#player-mat.mine`))}
+      </div>
+    );
   }
 
   renderGameElement(node, flipped, parentFlipped, frozen) {
-    if (!node || !node.attributes) return;
+    if (!node || !node.attributes) return null;
     const attributes = Array.from(node.attributes).
                              filter(attr => attr.name !== 'class' && attr.name !== 'id').
                              reduce((attrs, attr) => Object.assign(attrs, { [attr.name.toLowerCase()]: !attr.value || isNaN(attr.value) ? attr.value : +attr.value }), {});
 
     const type = node.nodeName.toLowerCase();
-    const key = branch(node).join('-')
+    const key = branch(node).join('-');
 
     const props = {
       key,
@@ -339,10 +365,10 @@ export default class Page extends Component {
     if (node.id) props.id = node.id;
 
     if (!frozen) {
-      props.onClick = e => this.handleClick(choiceFromKey(key), {x: e.pageX, y: e.pageY}, e);
+      props.onClick = e => this.handleClick(choiceFromKey(key), e);
       props.onContextMenu = e => {
         e.preventDefault();
-        this.handleClick(choiceFromKey(key), {x: e.pageX, y: e.pageY}, e)
+        this.handleClick(choiceFromKey(key), e);
       };
       props.className = classNames(type, node.className, {
         flipped,
@@ -366,7 +392,7 @@ export default class Page extends Component {
           className={classNames("nametag", {active: new Date() - this.state.playerStatus[player[0]] < 5000})}>
           {player[1]}
         </div>
-      )
+      );
     }
     if (this.components[type]) {
       props.className += ' component';
@@ -395,7 +421,7 @@ export default class Page extends Component {
     }
 
     if (!frozen && (this.isAllowedMove(node) || this.isAllowedDrag(key))) {
-      props.onTouchEnd = e => this.handleClick(choiceFromKey(key), {x: e.changedTouches[0].pageX, y: e.changedTouches[0].pageY}, e)
+      props.onTouchEnd = e => this.handleClick(choiceFromKey(key), e);
       return (
         <Draggable
           disabled={externallyControlled}
@@ -425,61 +451,90 @@ export default class Page extends Component {
   }
 
   render() {
-    const choice = this.state.args.slice(-1)[0];
-    const textChoices = this.state.choices instanceof Array &&
-                        this.state.choices.filter(choice => !choiceHasKey(choice) && choice.toLowerCase().includes(this.state.filter.toLowerCase()));
-    const nonBoardActions = this.nonBoardActions()
+    const textChoices = this.state.choices instanceof Array && this.state.choices.filter(choice => !choiceHasKey(choice));
+    const nonBoardActions = this.nonBoardActions();
+
+    let messagesPane = null, zoomScale;
+    if (this.state.prompt) {
+      messagesPane = 'prompt';
+    } else if (this.state.actions || this.state.zoomPiece) {
+      messagesPane = 'actions';
+      if (this.state.zoomPiece) {
+        zoomScale = 250 / this.state.zoomOriginalSize.width;
+      }
+    } else if (this.state.data) {
+      if (this.state.data.phase == 'setup') {
+        messagesPane = 'setup';
+      } else {
+        messagesPane = 'standard';
+      }
+    }
+
+    const showKeybind = message => {
+      let key = message.match(/\s*\((\w)\)$/);
+      if (key) {
+        message = message.replace(key[0], '');
+        key = key[1].toUpperCase();
+      }
+      return <span><span className="keybind">{key}</span>{message}</span>;
+    };
+
     return (
       <div>
-      {this.state.prompt && <div id="messages">
-        <div id="prompt">
-        {this.state.prompt}
-        {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
+        <div id="messages">
+          {messagesPane == 'prompt' &&
+           <div id="prompt">
+             {this.state.prompt}
+             {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
+             {textChoices && (
+               <div>
+                 {Array.from(new Set(textChoices.filter(choice => choice.toLowerCase().includes(this.state.filter.toLowerCase())))).sort().map(choice => (
+                   <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, choice)}>{JSON.parse(choice)}</button>
+                 ))}
+               </div>
+             )}
+             <button onClick={() => {this.setState({action: null, args: [], prompt: null, choices: null}); this.send('update')}}>Cancel</button>
+           </div>
+          }
+
+          {messagesPane == 'actions' &&
+           <div>
+             {this.state.zoomPiece &&
+              <div id="zoomPiece" style={{width: 250, height: zoomScale * this.state.zoomOriginalSize.height}}>
+                <div className="scaler" style={{width: this.state.zoomOriginalSize.width, height: this.state.zoomOriginalSize.height, transform: `scale(${zoomScale})`}}>
+                  {this.renderGameElement(pieceAt(xmlToNode(this.state.data.doc), this.state.zoomPiece), false, false, true)}
+                </div>
+              </div>
+             }
+             {this.state.actions && Object.entries(this.state.actions).map(([a, {choice, prompt}]) => (
+               <button key={a} onClick={e => {this.gameAction(a, ...this.state.args, choice); e.stopPropagation()}}>{showKeybind(prompt)}</button>
+             ))}
+           </div>
+          }
+
+          {messagesPane == 'setup' &&
+           <span>
+             Players: {this.state.data.players.map(p => p[1]).join(', ')}
+             <button onClick={() => this.gameAction('start')}>Start</button>
+           </span>
+          }
+
+          {messagesPane == 'standard' &&
+           <div>
+             <button className="undo" onClick={() => this.send('undo')}>Undo</button>
+             <button className="reset" onClick={() => confirm("Reset and lose all game history? This cannot be undone") && this.reset()}>Reset</button>
+             {nonBoardActions && Object.entries(nonBoardActions).map(([action, prompt]) => (
+               <button key={action} onClick={() => this.gameAction(action)}>{showKeybind(prompt)}</button>
+             ))}
+           </div>
+          }
         </div>
-        {textChoices && <div>
-         {Array.from(new Set(textChoices)).sort().map(choice => (
-           <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, choice)}>{JSON.parse(choice)}</button>
-         ))}
-        </div>}
-        <button onClick={() => {this.setState({action: null, args: [], prompt: null, choices: null}); this.send('update')}}>Cancel</button>
-      </div>}
 
-      {!this.state.prompt && this.state.data && <div id="messages">
-        {this.state.data.phase == 'setup' && (
-          <span>
-            Players: {this.state.data.players.map(p => p[1]).join(', ')}
-            <button onClick={() => this.gameAction('start')}>Start</button>
-          </span>
-        ) || (
-          <>
-            <button onClick={() => this.send('undo')}>Undo</button>
-            <button onClick={() => confirm("Reset and lose all game history? This cannot be undone") && this.reset()}>Reset</button>
-          </>
-        )}
-        {nonBoardActions && Object.entries(nonBoardActions).map(([action, prompt]) => (
-          <button key={action} onClick={() => this.gameAction(action)}>{prompt}</button>
-        ))}
-      </div>}
+        {this.props.background}
 
-      {this.props.background}
-      {this.state.data.phase === 'ready' && this.state.data.doc && this.renderBoard(xmlToNode(this.state.data.doc))}
+        {this.state.data.phase === 'ready' && this.state.data.doc && this.renderBoard(xmlToNode(this.state.data.doc))}
 
-      {this.state.actions && this.state.ctxpos &&
-       <ul
-         id="context-menu"
-         style={{top: this.state.ctxpos.y, left: this.state.ctxpos.x}}
-         onMouseEnter={() => choiceHasKey(choice) && this.setPieceAt(keyFromChoice(choice), {'data-ctx-hover': true})}
-         onMouseLeave={() => {this.setState({actions: null, args:[]}); choiceHasKey(choice) && this.setPieceAt(keyFromChoice(choice), {'data-ctx-hover': false})}}
-       >
-         {Object.entries(this.state.actions).map(([a, {choice, prompt}]) => (
-           <li key={a} onClick={e => {this.gameAction(a, ...this.state.args, choice); e.stopPropagation()}}>{prompt}</li>
-         ))}
-       </ul>
-      }
-      {this.state.zoomed && this.state.mouseOver && <div id="zoomPiece">
-        {this.renderGameElement(pieceAt(xmlToNode(this.state.data.doc), this.state.mouseOver), false, false, true)}
-      </div>}
-    </div>
-    )
+      </div>
+    );
   }
 }
