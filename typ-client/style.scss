@@ -1,3 +1,12 @@
+body {
+  max-width: initial;
+  padding-right: 280px;
+}
+.navbar {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
 button {
   border: none;
   background: #017;
@@ -9,24 +18,50 @@ button {
 
 #container {
   position: relative;
-  margin-top: 40px;
+  margin: 40px auto;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
-  #game {
-    margin-bottom: 130px;
-  }
   #messages {
     position: fixed;
-    width: 100%;
-    left: 0;
-    bottom: 0;
+    width: 250px;
+    right: 0;
+    top: 0;
     z-index: 200;
-    background: #fec;
+    background: #e8e4e0;
     padding: 10px;
-    box-shadow: 0 -2px 10px black;
-    height: 100px;
-    overflow: scroll;
+    box-shadow: 0 0px 5px black;
+    border-radius: 10px 0 0 10px;
+    margin-top: 45px;
+    max-height: 85%;
+    overflow-y: scroll;
+    button {
+      width: 100%;
+      margin: 2px;
+      border-radius: 4px;
+      text-align: left;
+      &#undo {
+        background-color: black;
+      }
+      &#reset {
+        background-color: #900;
+      }
+      .keybind {
+        width: 20px;
+        display: inline-block;
+        background: white;
+        color: #c00;
+        margin-right: 5px;
+        text-align: center;
+        border-radius: 2px 0 0 2px;
+        position: relative;
+        top: 1px;
+        left: -2px;
+        font-weight: bold;
+        font-size: 120%;
+        line-height: 100%;
+      }
+    }
   }
   #context-menu {
     position: absolute;
@@ -84,17 +119,12 @@ button {
 }
 
 #zoomPiece {
-  position: absolute;
-  transform: scale(5);
+  position: relative;
   pointer-events: none;
-  position: absolute;
-  top: 20%;
-  left: 0;
-  right: 0;
-  margin-left: auto;
-  margin-right: auto;
-  width: 100px;
   z-index: 1000;
+  .scaler {
+    transform-origin: top left;
+  }
   .piece {
     transform: none !important;
   }

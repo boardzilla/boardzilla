@@ -36,7 +36,7 @@ export default ({id, number, rolls, faces, gameAction}) => {
 
   if (faces == 6) {
     return (
-      <div class="shake" style={{transform: `translate(${shake.x}px, ${shake.y}px)`}}>
+      <div className="shake" style={{transform: `translate(${shake.x}px, ${shake.y}px)`}}>
         <ol className="d6" data-spin={spin} onClick={rollD6} onTouchEnd={rollD6}>
           {[1,2,3,4,5,6].map(n => (
             <li key={n} className="die-face" data-face={n}>

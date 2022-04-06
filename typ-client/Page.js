@@ -11,6 +11,7 @@ import {
   keyFromChoice,
   choiceFromKey,
   keyAtPoint,
+  elAtPoint,
   zoneForPoint,
   xmlToNode,
   branch,
@@ -39,9 +40,8 @@ export default class Page extends Component {
       locks: {}, // locks from server
       positions: {}, // xy positions from server (i.e. other players)
       actions: null, // currently possible actions in menu {action: {choice, prompt},...}
-      ctxpos: null, // position of ctx menu
       dragging: null, // data on the current drag {key, x/y start point, zone starting zone}
-      zoomed: false, // holding the zoom key
+      zoomPiece: null, // the zoomed piece
       playerStatus: {[props.userId]: new Date()}, // timestamps of last ping from each player
     };
     this.components = {
@@ -116,22 +116,28 @@ export default class Page extends Component {
     });
     document.addEventListener('mousemove', e => {
       mouse = {x: e.clientX, y: e.clientY};
-      if (this.state.zoomed) {
-        this.setState({mouseOver: keyAtPoint(e.clientX, e.clientY, el => el.matches('.piece:not(.component)'))});
-      }
+      /* if (this.state.zoomed) {
+       *   this.setState({mouseOver: keyAtPoint(e.clientX, e.clientY, el => el.matches('.piece:not(.component)'))});
+       * } */
       if (this.state.dragging) {
         this.setState({dragOver: keyAtPoint(e.clientX, e.clientY, el => el.classList.contains('space'))});
       }
-    })
-    document.addEventListener('keydown', e => e.key == "z" && this.setState({'zoomed': true, mouseOver: keyAtPoint(mouse.x, mouse.y, el => el.matches('.piece:not(.component)'))}));
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key == "z") {
+        const zoomEl = elAtPoint(mouse.x, mouse.y, el => el.matches('.piece:not(.component)'));
+        this.zoomOnPiece(zoomEl);
+        this.setState({actions: null});
+      }
+    });
     document.addEventListener('keyup', e => {
-      const el = keyAtPoint(mouse.x, mouse.y)
-      if (el) {
-        const key = choiceFromKey(el);
+      let key = this.state.zoomPiece || keyAtPoint(mouse.x, mouse.y)
+      if (key) {
+        key = choiceFromKey(key);
         const action = Object.entries(this.actionsFor(key)).find(([_, a]) => a.key && a.key.toLowerCase() == e.key);
         if (action) return this.gameAction(action[0], key);
       }
-      if (e.key == "z") this.setState({'zoomed': false});
+      if (e.key == "z") this.setState({zoomPiece: false});
     });
     /* window.visualViewport.addEventListener('resize', console.log);
      * window.visualViewport.addEventListener('scroll', console.log);
@@ -153,7 +159,7 @@ export default class Page extends Component {
         action: [action, ...args]
       },
     );
-    this.setState({actions: null, action: null, args: [], prompt: null, choices: null, filter: ''});
+    this.setState({actions: null, zoomPiece: null, action: null, args: [], prompt: null, choices: null, filter: ''});
   }
 
   reset() {
@@ -246,18 +252,30 @@ export default class Page extends Component {
     }
   }
 
-  handleClick(choice, {x, y}, event) {
+  handleClick(choice, event) {
+    if (this.state.prompt) {
+      this.setState({action: null, args: [], prompt: null, choices: null});
+      this.send('update');
+    }
+    if (choiceHasKey(choice)) {
+      this.zoomOnPiece(elementByKey(keyFromChoice(choice)));
+    }
+    
     const actions = this.actionsFor(choice);
     this.setState({dragging: null});
     if (Object.keys(actions).length == 1) {
       this.gameAction(Object.keys(actions)[0], ...this.state.args, choice);
       event.stopPropagation();
     } else if (Object.keys(actions).length > 1) {
-      this.setState({actions, ctxpos: {x, y}});
+      this.setState({actions});
       event.stopPropagation();
     } else {
-      this.setState({actions: null, ctxpos: null});
+      this.setState({actions: null, zoomPiece: null});
     }
+  }
+
+  zoomOnPiece(element) {
+    this.setState({zoomPiece: keyFromEl(element), zoomOriginalSize: {height: element.offsetHeight, width: element.offsetWidth}})
   }
 
   // return available actions association to this element {action: {choice, prompt},...}
@@ -339,10 +357,10 @@ export default class Page extends Component {
     if (node.id) props.id = node.id;
 
     if (!frozen) {
-      props.onClick = e => this.handleClick(choiceFromKey(key), {x: e.pageX, y: e.pageY}, e);
+      props.onClick = e => this.handleClick(choiceFromKey(key), e);
       props.onContextMenu = e => {
         e.preventDefault();
-        this.handleClick(choiceFromKey(key), {x: e.pageX, y: e.pageY}, e)
+        this.handleClick(choiceFromKey(key), e)
       };
       props.className = classNames(type, node.className, {
         flipped,
@@ -395,7 +413,7 @@ export default class Page extends Component {
     }
 
     if (!frozen && (this.isAllowedMove(node) || this.isAllowedDrag(key))) {
-      props.onTouchEnd = e => this.handleClick(choiceFromKey(key), {x: e.changedTouches[0].pageX, y: e.changedTouches[0].pageY}, e)
+      props.onTouchEnd = e => this.handleClick(choiceFromKey(key), e)
       return (
         <Draggable
           disabled={externallyControlled}
@@ -425,60 +443,88 @@ export default class Page extends Component {
   }
 
   render() {
-    const choice = this.state.args.slice(-1)[0];
     const textChoices = this.state.choices instanceof Array &&
                         this.state.choices.filter(choice => !choiceHasKey(choice) && choice.toLowerCase().includes(this.state.filter.toLowerCase()));
-    const nonBoardActions = this.nonBoardActions()
+    const nonBoardActions = this.nonBoardActions();
+
+    let messagesPane = null, zoomScale;
+    if (this.state.prompt) {
+      messagesPane = 'prompt';
+    } else if (this.state.actions || this.state.zoomPiece) {
+      messagesPane = 'actions';
+      if (this.state.zoomPiece) {
+        zoomScale = 250 / this.state.zoomOriginalSize.width;
+      }
+    } else if (this.state.data) {
+      if (this.state.data.phase == 'setup') {
+        messagesPane = 'setup';
+      } else {
+        messagesPane = 'standard'
+      }
+    }
+
+    const showKeybind = message => {
+      let key = message.match(/\s*\((\w)\)$/);
+      if (key) {
+        message = message.replace(key[0], '')
+        key = key[1];
+      }
+      return <span><span className="keybind">{key}</span>{message}</span>;
+    }
+
     return (
       <div>
-      {this.state.prompt && <div id="messages">
-        <div id="prompt">
-        {this.state.prompt}
-        {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
-        </div>
-        {textChoices && <div>
-         {Array.from(new Set(textChoices)).sort().map(choice => (
-           <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, choice)}>{JSON.parse(choice)}</button>
-         ))}
-        </div>}
-        <button onClick={() => {this.setState({action: null, args: [], prompt: null, choices: null}); this.send('update')}}>Cancel</button>
-      </div>}
+        <div id="messages">
+          {messagesPane == 'prompt' &&
+            <div id="prompt">
+              {this.state.prompt}
+              {this.state.choices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
+              {textChoices && <div>
+                {Array.from(new Set(textChoices)).sort().map(choice => (
+                  <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, choice)}>{JSON.parse(choice)}</button>
+                ))}
+              </div>}
+              <button onClick={() => {this.setState({action: null, args: [], prompt: null, choices: null}); this.send('update')}}>Cancel</button>
+            </div>
+          }
 
-      {!this.state.prompt && this.state.data && <div id="messages">
-        {this.state.data.phase == 'setup' && (
-          <span>
-            Players: {this.state.data.players.map(p => p[1]).join(', ')}
-            <button onClick={() => this.gameAction('start')}>Start</button>
-          </span>
-        ) || (
-          <>
-            <button onClick={() => this.send('undo')}>Undo</button>
-            <button onClick={() => confirm("Reset and lose all game history? This cannot be undone") && this.reset()}>Reset</button>
-          </>
-        )}
-        {nonBoardActions && Object.entries(nonBoardActions).map(([action, prompt]) => (
-          <button key={action} onClick={() => this.gameAction(action)}>{prompt}</button>
-        ))}
-      </div>}
+          {messagesPane == 'actions' &&
+            <div>
+              {this.state.zoomPiece &&
+                <div id="zoomPiece" style={{width: 250, height: zoomScale * this.state.zoomOriginalSize.height}}>
+                  <div className="scaler" style={{width: this.state.zoomOriginalSize.width, height: this.state.zoomOriginalSize.height, transform: `scale(${zoomScale})`}}>
+                    {this.renderGameElement(pieceAt(xmlToNode(this.state.data.doc), this.state.zoomPiece), false, false, true)}
+                  </div>
+                </div>
+              }
+              {this.state.actions && Object.entries(this.state.actions).map(([a, {choice, prompt}]) => (
+                <button key={a} onClick={e => {this.gameAction(a, ...this.state.args, choice); e.stopPropagation()}}>{showKeybind(prompt)}</button>
+              ))}
+            </div>
+          }
 
-      {this.props.background}
+          {messagesPane == 'setup' &&
+            <span>
+              Players: {this.state.data.players.map(p => p[1]).join(', ')}
+              <button onClick={() => this.gameAction('start')}>Start</button>
+            </span>
+          }
+
+          {messagesPane == 'standard' &&
+            <div>
+              <button id="undo" onClick={() => this.send('undo')}>Undo</button>
+              <button id="reset" onClick={() => confirm("Reset and lose all game history? This cannot be undone") && this.reset()}>Reset</button>
+              {nonBoardActions && Object.entries(nonBoardActions).map(([action, prompt]) => (
+                <button key={action} onClick={() => this.gameAction(action)}>{showKeybind(prompt)}</button>
+              ))}
+            </div>
+          }
+           </div>
+
+           {this.props.background}
+
       {this.state.data.phase === 'ready' && this.state.data.doc && this.renderBoard(xmlToNode(this.state.data.doc))}
 
-      {this.state.actions && this.state.ctxpos &&
-       <ul
-         id="context-menu"
-         style={{top: this.state.ctxpos.y, left: this.state.ctxpos.x}}
-         onMouseEnter={() => choiceHasKey(choice) && this.setPieceAt(keyFromChoice(choice), {'data-ctx-hover': true})}
-         onMouseLeave={() => {this.setState({actions: null, args:[]}); choiceHasKey(choice) && this.setPieceAt(keyFromChoice(choice), {'data-ctx-hover': false})}}
-       >
-         {Object.entries(this.state.actions).map(([a, {choice, prompt}]) => (
-           <li key={a} onClick={e => {this.gameAction(a, ...this.state.args, choice); e.stopPropagation()}}>{prompt}</li>
-         ))}
-       </ul>
-      }
-      {this.state.zoomed && this.state.mouseOver && <div id="zoomPiece">
-        {this.renderGameElement(pieceAt(xmlToNode(this.state.data.doc), this.state.mouseOver), false, false, true)}
-      </div>}
     </div>
     )
   }

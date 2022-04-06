@@ -88,7 +88,7 @@ game.actions = {
   },
   draw: {
     prompt: "Draw",
-    drag: "deck card:nth-last-child(-n+2), #loot-discard card",
+    drag: "deck card, #loot-discard card",
     key: "d",
     onto: ".mine #hand",
   },
@@ -113,7 +113,7 @@ game.actions = {
   },
   purchase: {
     prompt: "Purchase",
-    drag: "#shop card, #treasure card:nth-last-child(-n+2)",
+    drag: "#shop card, #treasure card",
     key: "p",
     onto: ".mine #tableau",
   },
@@ -124,14 +124,14 @@ game.actions = {
     onto: '#loot',
   },
   intoLootDeckBottom: {
-    prompt: "Put at bottom of deck",
+    prompt: "Put bottom of deck",
     select: '.mine card[type="loot"]',
     action: card => card.moveToBottom('#loot')
   },
   discardLoot: {
     prompt: "Discard",
     key: "f",
-    drag: '#loot card:nth-last-child(-n+2), .mine card[type="loot"]',
+    drag: '#loot card, .mine card[type="loot"]',
     onto: '#loot-discard',
   },
   playLoot: {
@@ -143,44 +143,38 @@ game.actions = {
   intoShop: {
     prompt: "Put into shop",
     key: "s",
-    drag: '#treasure card:nth-last-child(-n+2), #treasure-discard card:nth-last-child(-n+2), .mine card[type="treasure"]',
+    drag: '#treasure card, #treasure-discard card, .mine card[type="treasure"]',
     onto: '#shop',
   },
   discardTreasure: {
     prompt: "Discard",
     key: "f",
-    drag: '#treasure card:nth-last-child(-n+2), #shop card:nth-last-child(-n+2), .mine card[type="treasure"]',
+    drag: '#treasure card, #shop card, .mine card[type="treasure"]',
     onto: '#treasure-discard',
   },
   intoTreasureDeck: {
     prompt: "Put top of deck",
     key: "t",
-    drag: '#treasure-discard card:nth-last-child(-n+2), #shop card:nth-last-child(-n+2), .mine card[type="treasure"]',
+    drag: '#treasure-discard card, #shop card, .mine card[type="treasure"]',
     onto: '#treasure',
   },
   intoTreasureDeckBottom: {
-    prompt: "Put at bottom of deck",
+    prompt: "Put bottom of deck",
     key: "b",
-    select: '#treasure-discard card:nth-last-child(-n+2), #shop card:nth-last-child(-n+2), .mine card[type="treasure"]',
+    select: '#treasure-discard card, #shop card, .mine card[type="treasure"]',
     action: card => card.moveToBottom('#treasure')
   },
   intoDungeon: {
     prompt: "Put into dungeon",
     key: "s",
-    drag: 'card[type="monster"]',
+    drag: '#monsters card, #monsters-discard card, .mine card[type="monster"]',
     onto: '#dungeon',
   },
   takeMonster: {
-    prompt: "Take",
-    key: "d",
+    prompt: "Play onto board",
+    key: "p",
     drag: '#board card[type="monster"]',
     onto: '.mine #tableau',
-  },
-  giveMonster: {
-    prompt: "Give to a player",
-    key: "d",
-    drag: '.mine card[type="monster"]',
-    onto: '#player-mat:not(.mine) #tableau',
   },
   discardMonster: {
     prompt: "Discard",
@@ -195,14 +189,14 @@ game.actions = {
     onto: '#monsters',
   },
   intoMonsterDeckBottom: {
-    prompt: "Put at bottom of deck",
+    prompt: "Put bottom of deck",
     key: "b",
     select: '#board card[type="monster"], .mine card[type="monster"]',
     action: card => card.moveToBottom('#monsters')
   },
   takeBonus: {
     prompt: "Take",
-    key: "d",
+    key: "p",
     drag: "#bonusSouls card",
     onto: ".mine #tableau",
   },
@@ -212,18 +206,18 @@ game.actions = {
     drag: ".mine card[type='bonusSoul']",
     onto: "#bonusSouls",
   },
-  giveTreasure: {
+  giveCard: {
     prompt: "Give to player",
     promptOnto: "Which player",
     key: "g",
-    drag: ".mine #tableau card",
+    drag: ".mine #tableau card, .mine card[type='monster']",
     onto: "#player-mat:not(.mine) #tableau",
   },
   giveLoot: {
     prompt: "Give to player",
     promptOnto: "Which player",
     key: "g",
-    drag: ".mine #hand card",
+    drag: ".mine #hand card[type='loot']",
     onto: "#player-mat:not(.mine) #hand",
   },
   giveAllLoot: {
