@@ -439,7 +439,7 @@ export default class Page extends Component {
       wrappedStyle.pointerEvents = "none";
     }
 
-    if (position && !frozen && !this.isAllowedMove(node) && !this.isAllowedDrag(key)) {
+    if (position && (position.x != undefined && position.x != 0 || position.y == undefined && position.y != 0) && !frozen && !this.isAllowedMove(node) && !this.isAllowedDrag(key)) {
       wrappedStyle.transform = `translate(${position.x}px, ${position.y}px)`;
     }
 
