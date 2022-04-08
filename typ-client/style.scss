@@ -66,6 +66,38 @@ button {
         line-height: 100%;
       }
     }
+    .fab {
+      position: absolute;
+      z-index: 100;
+      top: 5px;
+      right: 3px;
+      width: 24px;
+      height: 24px;
+      font-size: 15px;
+      display: block;
+      text-align: center;
+      color: white;
+      border-radius: 12px;
+      color: white;
+      &.cancel {
+        background: red;
+      }
+      &.help {
+        background: blue;
+      }
+    }
+    h1 {
+      font-size: 24px;
+      margin: 0;
+    }
+    ul {
+      padding-left: 0;
+      li {
+        list-style: none;
+        margin-top: 15px;
+        padding: 0 15px;
+      }
+    }
   }
   .table {
     z-index: -100;
@@ -107,7 +139,6 @@ button {
 #zoomPiece {
   position: relative;
   pointer-events: none;
-  z-index: 1000;
   .scaler {
     transform-origin: top left;
   }
@@ -137,10 +168,10 @@ button {
 }
 
 #choiceFilter {
-  margin-left: 10px;
-  width: 100px;
-  display: inline-block;
-  height: 12px;
+  width: 100%;
+  height: 26px;
+  box-sizing: border-box;
+  margin-top: 8px;
 }
 
 .die {

@@ -9,10 +9,10 @@ container
 
 X heartbeat and connection status
 X game chrome
-- move *all* position styles up to the wrapper div, probably simplify the 3 cases
-- untap all
-- damage counter
-- zoom with counters?
+X move *all* position styles up to the wrapper div, probably simplify the 3 cases
+X untap all
+X damage counter
+X zoom with counters?
 - mobile events
 - mobile layout
 - better sidebar?

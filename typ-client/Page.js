@@ -44,6 +44,7 @@ export default class Page extends Component {
       actions: null, // currently possible actions in menu {action: {choice, prompt},...}
       dragging: null, // data on the current drag {key, x/y start point, zone starting zone}
       zoomPiece: null, // the zoomed piece
+      help: false, // show help content
       playerStatus: {[props.userId]: new Date()}, // timestamps of last ping from each player
     };
     this.components = {
@@ -124,10 +125,10 @@ export default class Page extends Component {
     });
     document.addEventListener('keydown', e => {
       if (e.key == "z") {
-        const zoomEl = elAtPoint(mouse.x, mouse.y, el => el.matches('.piece:not(.component)'));
-        zoomEl && this.zoomOnPiece(zoomEl);
-        this.setState({actions: null});
+        const zoomKey = keyAtPoint(mouse.x, mouse.y, el => el.matches('.piece:not(.component)'));
+        zoomKey && this.handleClick(choiceFromKey(zoomKey), e);
       }
+      if (e.key == "Escape") this.cancel();
     });
     document.addEventListener('keyup', e => {
       let key = this.state.zoomPiece || keyAtPoint(mouse.x, mouse.y);
@@ -136,7 +137,6 @@ export default class Page extends Component {
         const action = Object.entries(this.actionsFor(key)).find(([_, a]) => a.key && a.key.toLowerCase() == e.key);
         if (action) this.gameAction(action[0], key);
       }
-      if (e.key == "z") this.setState({zoomPiece: false});
     });
     /* window.visualViewport.addEventListener('resize', console.log);
      * window.visualViewport.addEventListener('scroll', console.log);
@@ -269,8 +269,13 @@ export default class Page extends Component {
       this.setState({actions});
       event.stopPropagation();
     } else {
-      this.setState({actions: null, zoomPiece: null});
+      this.cancel();
     }
+  }
+
+  cancel() {
+    if (this.state.action) this.send('update'); // need to refetch state to get full actions
+    this.setState({actions: null, action: null, zoomPiece: null, args: [], prompt: null, choices: null, help: false});
   }
 
   zoomOnPiece(element) {
@@ -481,7 +486,9 @@ export default class Page extends Component {
     const nonBoardActions = this.nonBoardActions();
 
     let messagesPane = null, zoomScale;
-    if (this.state.prompt) {
+    if (this.state.help) {
+      messagesPane = 'help';
+    } else if (this.state.prompt) {
       messagesPane = 'prompt';
     } else if (this.state.actions || this.state.zoomPiece) {
       messagesPane = 'actions';
@@ -519,7 +526,6 @@ export default class Page extends Component {
                  ))}
                </div>
              )}
-             <button onClick={() => {this.setState({action: null, args: [], prompt: null, choices: null}); this.send('update')}}>Cancel</button>
            </div>
           }
 
@@ -546,14 +552,31 @@ export default class Page extends Component {
           }
 
           {messagesPane == 'standard' &&
-           <div>
-             <button className="undo" onClick={() => this.send('undo')}>Undo</button>
-             <button className="reset" onClick={() => confirm("Reset and lose all game history? This cannot be undone") && this.reset()}>Reset</button>
-             {nonBoardActions && Object.entries(nonBoardActions).map(([action, prompt]) => (
-               <button key={action} onClick={() => this.gameAction(action)}>{showKeybind(prompt)}</button>
-             ))}
-           </div>
+           <>
+             <div>
+               <button className="undo" onClick={() => this.send('undo')}>Undo</button>
+               <button className="reset" onClick={() => confirm("Reset and lose all game history? This cannot be undone") && this.reset()}>Reset</button>
+               {nonBoardActions && Object.entries(nonBoardActions).map(([action, prompt]) => (
+                 <button key={action} onClick={() => this.gameAction(action)}>{showKeybind(prompt)}</button>
+               ))}
+             </div>
+             <button className="fab help" onClick={() => this.setState({help: true})}>?</button>
+           </>
           }
+
+          {messagesPane == 'help' &&
+           <span>
+             <h1>How to play</h1>
+             <ul>
+               <li>Click on or hold Z over an item to see what actions can be taken.</li>
+               <li>Drag items to see what moves are possible.</li>
+               <li>Copy the URL and send to other players. Click 'Start' when all players are present.</li>
+               <li>Join us on <a href="https://discord.gg/hkvp9uPA">Discord</a>.</li>
+             </ul>
+
+           </span>
+          }
+          {messagesPane == 'standard' || <button className="fab cancel" onClick={() => this.cancel()}>✕</button>}
         </div>
 
         {this.props.background}
