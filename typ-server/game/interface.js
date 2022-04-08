@@ -555,7 +555,8 @@ class GameInterface extends EventEmitter {
 
   moveElement(el, x, y) {
     if (el.matches(this.allowedMoveElements)) {
-      el.move()
+      // preserve any initial positioning
+      el.moveToTop()
       el.set('x', x)
       el.set('y', y)
     } else {

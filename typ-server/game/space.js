@@ -66,6 +66,10 @@ class Space extends GameElement {
     movables.forEach(piece => {
       piece.set('x');
       piece.set('y');
+      piece.set('left');
+      piece.set('top');
+      piece.set('right');
+      piece.set('bottom');
       if ((space.get('spreadX') || space.get('spreadY')) && !piece.hasParent(space)) {
         let x = 0, y = 0;
         piece.set('x', x);
