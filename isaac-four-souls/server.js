@@ -64,15 +64,21 @@ game.actions = {
   },
   activate: {
     select: ".mine #tableau card:not([active]):not([flipped])",
-    prompt: "Activate",
+    prompt: "Tap",
     key: "x",
     action: card => card.set('active', true)
   },
   deactivate: {
-    prompt: "Deactivate",
+    prompt: "Untap",
     select: ".mine #tableau card[active]:not([flipped])",
     key: "x",
     action: card => card.set('active', false)
+  },
+  deactivateAll: {
+    prompt: "Untap all",
+    select: ".mine #tableau card[active]:not([flipped])",
+    key: "l",
+    action: card => card.parent().findAll('card[active]').forEach(c => c.set('active', false))
   },
   play: {
     prompt: "Play onto board",
