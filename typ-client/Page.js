@@ -369,7 +369,10 @@ export default class Page extends Component {
       props.className = classNames(type, node.className, {
         flipped,
         "hilited": (
-          (this.state.dragging && key==this.state.dragOver && this.allowedDragSpaces(this.state.dragging.key)[key]) ||
+          (this.state.dragging && key==this.state.dragOver && (
+            this.allowedDragSpaces(this.state.dragging.key)[key] ||
+              this.state.dragOver==parentKey(this.state.dragging.key))
+          ) ||
           (this.state.choices instanceof Array && this.state.choices.includes(choiceFromKey(key)))
         )
       });
