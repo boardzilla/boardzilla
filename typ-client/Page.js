@@ -24,6 +24,8 @@ import Die from './Die';
 import './style.scss';
 
 const DRAG_TOLERANCE = 1;
+const PING_INTERVAL = 7500;
+const IDLE_WAIT = 10000;
 let mouse = {};
 
 export default class Page extends Component {
@@ -106,25 +108,16 @@ export default class Page extends Component {
           this.setState(state => ({playerStatus: Object.assign({}, state.playerStatus, {[res.payload]: new Date()})}));
           break;
       }
-    }
+    };
     document.addEventListener('touchmove', e => {
       let el = document.elementFromPoint(e.touches[0].pageX, e.touches[0].pageY);
       if (el && this.state.dragging) {
         while (!el.classList.contains("space") && el.parentNode) el = el.parentNode;
-        this.setState({dragOver: keyFromEl(el)})
+        this.setState({dragOver: keyFromEl(el)});
       }
     });
     document.addEventListener('mousemove', e => {
       mouse = {x: e.clientX, y: e.clientY};
-      /* if (this.state.zoomed) {
-       *   this.setState({mouseOver: keyAtPoint(e.clientX, e.clientY, el => el.matches('.piece:not(.component)'))});
-       * } */
-      /* const mouseOver = elAtPoint(e.clientX, e.clientY, el => el.matches('.piece:not(.component)'));
-       * if (mouseOver) {
-       *   this.zoomOnPiece(elAtPoint(e.clientX, e.clientY, el => el.matches('.piece:not(.component)')));
-       * } else {
-       *   this.setState({zoomPiece: null});
-       * } */
       if (this.state.dragging) {
         this.setState({dragOver: keyAtPoint(e.clientX, e.clientY, el => el.classList.contains('space'))});
       }
@@ -149,7 +142,7 @@ export default class Page extends Component {
      * window.visualViewport.addEventListener('scroll', console.log);
      * document.addEventListener('wheel', console.log); */
     this.send('refresh');
-    setInterval(() => this.send('ping'), 3000);
+    setInterval(() => this.send('ping'), PING_INTERVAL);
   }
 
   send(action, payload) {
@@ -301,9 +294,9 @@ export default class Page extends Component {
 
   // actions that have no element to click. returns { action: prompt,... }
   nonBoardActions() {
-    if (!this.state.data.allowedActions) return []
+    if (!this.state.data.allowedActions) return [];
     return Object.entries(this.state.data.allowedActions).reduce((actions, [action, {choices, prompt}]) => {
-      if (!choices || choices.includes(choice => !choiceHasKey(choice))) {
+      if (!choices || choices.find(choice => !choiceHasKey(choice))) {
         actions[action] = prompt;
       }
       return actions;
@@ -315,7 +308,7 @@ export default class Page extends Component {
   }
 
   isAllowedDrag(key) {
-    return Object.values(this.state.data.allowedDrags).some(drag => drag.pieces.includes(choiceFromKey(key)))
+    return Object.values(this.state.data.allowedDrags).some(drag => drag.pieces.includes(choiceFromKey(key)));
   }
 
   allowedDragSpaces(key) {
@@ -364,6 +357,9 @@ export default class Page extends Component {
     };
     if (node.id) props.id = node.id;
 
+    const externallyControlled = this.state.locks[key] && this.state.locks[key] !== this.props.userId;
+    let position, wrappedStyle = {};
+
     if (!frozen) {
       props.onClick = e => this.handleClick(choiceFromKey(key), e);
       props.onContextMenu = e => {
@@ -373,10 +369,42 @@ export default class Page extends Component {
       props.className = classNames(type, node.className, {
         flipped,
         "hilited": (
-          (this.state.dragging && key==this.state.dragOver && this.allowedDragSpaces(this.state.dragging.key)[key]) ||
+          (this.state.dragging && key==this.state.dragOver && (
+            this.allowedDragSpaces(this.state.dragging.key)[key] ||
+              this.state.dragOver==parentKey(this.state.dragging.key))
+          ) ||
           (this.state.choices instanceof Array && this.state.choices.includes(choiceFromKey(key)))
         )
       });
+      if (externallyControlled && this.state.positions[key]) {
+        position = this.state.positions[key];
+      } else if (node.parentNode.nodeName == 'deck' && !attributes.moved) {
+        position = {x: 0, y: 0};
+      } else {
+        const x = attributes.x;
+        const y = attributes.y;
+        if (!position && !isNaN(x) && !isNaN(y) && !isNaN(parseFloat(x)) && !isNaN(parseFloat(y))) {
+          position = {x, y};
+        } else if (node.parentNode.classList.contains('space')) {
+          position = {x: 0, y: 0};
+        }
+      }
+      if (props.left != undefined) {
+        wrappedStyle.left = props.left;
+        delete props.left;
+      }
+      if (props.right != undefined) {
+        wrappedStyle.right = props.right;
+        delete props.right;
+      }
+      if (props.top != undefined) {
+        wrappedStyle.top = props.top;
+        delete props.top;
+      }
+      if (props.bottom != undefined) {
+        wrappedStyle.bottom = props.bottom;
+        delete props.bottom;
+      }
     }
 
     let contents;
@@ -389,7 +417,7 @@ export default class Page extends Component {
       const player = attributes.player && this.state.data.players[attributes.player - 1];
       if (player) contents.push(
         <div key="nametag"
-          className={classNames("nametag", {active: new Date() - this.state.playerStatus[player[0]] < 5000})}>
+          className={classNames("nametag", {active: new Date() - this.state.playerStatus[player[0]] < IDLE_WAIT})}>
           {player[1]}
         </div>
       );
@@ -407,18 +435,27 @@ export default class Page extends Component {
     }
     contents = contents || node.id;
 
-    const externallyControlled = this.state.locks[key] && this.state.locks[key] !== this.props.userId;
-    let position;
-    if (externallyControlled) {
-      position = this.state.positions[key];
+    if (this.state.dragging && this.state.dragging.key == key) {
+      wrappedStyle.pointerEvents = "none";
     }
-    if (node.parentNode.nodeName != 'deck' || attributes.moved) {
-      const x = attributes.x;
-      const y = attributes.y;
-      if (!position && !isNaN(x) && !isNaN(y) && !isNaN(parseFloat(x)) && !isNaN(parseFloat(y))) {
-        position = {x, y};
-      }
+
+    if (position && !frozen && !this.isAllowedMove(node) && !this.isAllowedDrag(key)) {
+      wrappedStyle.transform = `translate(${position.x}px, ${position.y}px)`;
     }
+
+    contents = <div {...props}>{contents}</div>;
+    if (position) contents = (
+      <div
+        key={key}
+        className={classNames({
+          'positioned-piece': node.classList.contains('piece') && !frozen,
+          "external-dragging": externallyControlled
+        })}
+        style={wrappedStyle}
+      >
+        {contents}
+      </div>
+    );
 
     if (!frozen && (this.isAllowedMove(node) || this.isAllowedDrag(key))) {
       props.onTouchEnd = e => this.handleClick(choiceFromKey(key), e);
@@ -431,22 +468,11 @@ export default class Page extends Component {
           position={position || {x:0, y:0}}
           scale={parentFlipped ? -1 : 1}
         >
-          <div
-            className={classNames({"external-dragging": externallyControlled})}
-            style={this.state.dragging ? {pointerEvents: "none"} : ""}
-          > {/* wrapper for draggable */}
-            <div {...props}>{contents}</div>
-          </div>
+          {contents}
         </Draggable>
       );
-    } else if (position && !frozen) {
-      return (
-        <div key={key} style={{transform: `translate(${position.x}px, ${position.y}px)`}}>
-          <div {...props}>{contents}</div>
-        </div>
-      );
     } else {
-      return <div {...props}>{contents}</div>;
+      return contents;
     }
   }
 
@@ -533,7 +559,6 @@ export default class Page extends Component {
         {this.props.background}
 
         {this.state.data.phase === 'ready' && this.state.data.doc && this.renderBoard(xmlToNode(this.state.data.doc))}
-
       </div>
     );
   }

@@ -67,21 +67,8 @@ button {
       }
     }
   }
-  #context-menu {
-    position: absolute;
-    border: 1px solid black;
-    padding: 0px;
-    background: white;
-    z-index: 200;
-    li {
-      display: block;
-      padding: 2px 6px;
-      &:hover {
-        background: #ccf;
-        color: #00c;
-        cursor: pointer;
-      }
-    }
+  .table {
+    z-index: -100;
   }
   .space {
     position: relative;
@@ -94,13 +81,8 @@ button {
       }
     }
   }
-  .piece {
+  .positioned-piece {
     position: absolute;
-    left: 0;
-    top: 0;
-    &.controlled {
-      display: inline-block;
-    }
   }
   img {
     user-drag: none;
@@ -137,10 +119,6 @@ button {
 .hideDragging {
   transition: 0.01s;
   transform: translateX(-9999px);
-}
-
-.react-draggable {
-  width: 0;
 }
 
 .react-draggable-dragging, .external-dragging {

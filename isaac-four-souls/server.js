@@ -5,9 +5,10 @@ game.maxPlayers = 4;
 game.setupPlayerMat = mat => {
   const tableau = mat.addSpace('#tableau', 'area', {spreadX: 80});
   mat.addSpace('#hand', 'area', {spreadX: 80});
-  tableau.addComponent('counter', {display: 'hp', initialValue: 2, max: 5});
-  tableau.addComponent('counter', {display: 'coin', initialValue: 3, max: 50, x: 140, y: 0});
-  tableau.addComponent('die', {faces: 6, x: 250, y: 0});
+  tableau.addComponent('counter', {display: 'hp', initialValue: 2, max: 5, bottom: 10});
+  tableau.addComponent('counter', {display: 'attack', initialValue: 1, max: 8, left: 120, bottom: 10});
+  tableau.addComponent('counter', {display: 'coin', initialValue: 3, max: 50, right: 10, bottom: 10});
+  tableau.addComponent('die', {faces: 6, right: 40, top: 10});
 };
 
 game.setupBoard = board => {
@@ -33,12 +34,10 @@ game.setupBoard = board => {
   monsters.forEach(c => monsterDeck.addPiece("#" + c, 'card', {type: 'monster'}))
   monsterDeck.shuffle()
   board.addSpace('#monsters-discard', 'deck');
-  board.addSpace('#dungeon', 'area', {spreadX: 80});
-  board.addComponent('counter', {display: 'hp', max: 8});
+  const dungeon = board.addSpace('#dungeon', 'area', {spreadX: 80});
+  dungeon.addComponent('counter', {display: 'hp', initialValue:1, max: 8, right: 10, top: 100});
 
-  const bonus = board.addSpace('#bonusSouls', 'area', {spreadY: 40});
-  let bonusY = 0;
-  bonusSouls.forEach(c => bonus.addPiece("#" + c, 'card', {type: 'bonusSoul', x:0, y:(bonusY += 40)}))
+  bonusSouls.forEach(c => game.pile.addPiece("#" + c, 'card', {type: 'bonusSoul'}))
 };
 
 game.hidden = () => `card[flipped], #player-mat:not(.mine) #hand card, #loot card, #treasure card, #monsters card, #characters card, #eternals card`;
@@ -65,15 +64,21 @@ game.actions = {
   },
   activate: {
     select: ".mine #tableau card:not([active]):not([flipped])",
-    prompt: "Activate",
+    prompt: "Tap",
     key: "x",
     action: card => card.set('active', true)
   },
   deactivate: {
-    prompt: "Deactivate",
+    prompt: "Untap",
     select: ".mine #tableau card[active]:not([flipped])",
     key: "x",
     action: card => card.set('active', false)
+  },
+  deactivateAll: {
+    prompt: "Untap all",
+    select: ".mine #tableau card[active]:not([flipped])",
+    key: "l",
+    action: card => card.parent().findAll('card[active]').forEach(c => c.set('active', false))
   },
   play: {
     prompt: "Play onto board",
@@ -195,16 +200,15 @@ game.actions = {
     action: card => card.moveToBottom('#monsters')
   },
   takeBonus: {
-    prompt: "Take",
-    key: "p",
-    drag: "#bonusSouls card",
-    onto: ".mine #tableau",
+    prompt: "Claim bonus soul",
+    select: () => game.pile.findAll("card[type='bonusSoul']").map(c => c.id.replace(/-/g,' ')),
+    action: bonusSoul => game.doc.find(".mine #tableau").add("#" + bonusSoul.replace(/ /g,'-')),
   },
   discardBonus: {
     prompt: "Discard",
     key: "f",
-    drag: ".mine card[type='bonusSoul']",
-    onto: "#bonusSouls",
+    select: ".mine card[type='bonusSoul']",
+    action: bonusSoul => bonusSoul.remove(),
   },
   giveCard: {
     prompt: "Give to player",
@@ -244,30 +248,20 @@ game.actions = {
     drag: '.mine card[type="character"]',
     onto: '#characters',
   },
-  getCharDeck: {
-    prompt: "Get characters",
-    if: () => game.pile.find('card[type="character"]'),
-    action: () => game.board.find('#characters').add('card[type="character"]'),
-  },
   removeCharDeck: {
     prompt: "Remove characters",
     if: () => game.board.find('card[type="character"]'),
-    action: () => game.board.find('#characters').clear('card[type="character"]'),
+    action: () => game.board.find('#characters').destroy(),
   },
   intoEternalDeckTop: {
     prompt: "Put on top of deck",
     drag: '.mine card[type="eternal"]',
     onto: '#eternals',
   },
-  getEternalDeck: {
-    prompt: "Get eternals",
-    if: () => game.pile.find('card[type="eternal"]'),
-    action: () => game.board.find('#eternals').add('card[type="eternal"]'),
-  },
   removeEternalDeck: {
     prompt: "Remove eternals",
     if: () => game.board.find('card[type="eternal"]'),
-    action: () => game.board.find('#eternals').clear('card[type="eternal"]'),
+    action: () => game.board.find('#eternals').destroy(),
   },
 };
 

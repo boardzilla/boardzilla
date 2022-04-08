@@ -11,7 +11,7 @@ class Piece extends GameElement {
   }
 
   remove() {
-    return this.move(this.pileNode());
+    return this.move(this.pile());
   }
 }
 

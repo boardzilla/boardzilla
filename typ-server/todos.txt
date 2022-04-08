@@ -3,14 +3,30 @@ psql postgres://postgres:MRCjMcuqzZboJnznvifMF7AC@typ-production.chnbfkwflyae.us
 sudo tail -f /var/log/web.stdout.log
 ZK_CONNECTION_STRING=localhost:2181 DATABASE_URL=postgres://typ@127.0.0.1/typ_development yarn start
 
+container
+ zone - fixed size
+  space - area, deck, spread?
+   piece - left, top, right, bottom
+ zone
+ zone
+
+
 X heartbeat and connection status
 X game chrome
+- move *all* position styles up to the wrapper div, probably simplify the 3 cases
+- untap all
+- damage counter
+- zoom with counters?
 - mobile events
-- mobile layout, better sidebar?
+- mobile layout
+- better sidebar?
 - escape stuck in drag?
+- card flipping in space
 - post drag action - remove active from deck card
 - ...homepage
 - show errors from server
+- new cards
+- 2-sided cards
 - log???
 - mouse tracking
 - movement echo???
@@ -24,8 +40,6 @@ X 4-player layout fixes
 X move() to top not working? external-dragging persisting
 - session specific updates?
 X fix drag outside player-mat?
-- new cards
-- 2-sided cards
 - doubling up actions?
 X multiple actions (ctx menu)
 X hidden attributes, exclude space/piece, x/y

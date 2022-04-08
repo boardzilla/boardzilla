@@ -147,6 +147,10 @@ class GameElement {
     return this.wrap(this.node.lastChild);
   }
 
+  moveToTop() {
+    this.node.parentNode.appendChild(this.node);
+  }
+
   static isSpaceNode(node) {
     return node && node.className === 'space';
   }

@@ -8,9 +8,12 @@ body {
   top: 120px;
   left: 0;
   position: absolute;
-  background-image: url("images/wood.jpeg");
+  background-image: url("images/playmat.jpg");
+  background-size: 100% 100%;
+  background-position: center;
   [data-players="3"] &, [data-players="4"] & {
     width: 1400px;
+    background-size: 100% 110%;
   }
 }
 
@@ -23,74 +26,73 @@ body {
   #board {
     position: absolute;
     left: 0;
-    top: 260px;
-    height: 280px;
+    top: 290px;
+    height: 220px;
     width: 1000px;
     [data-players="3"] &, [data-players="4"] & {
       width: 1400px;
     }
     #characters {
       position: absolute;
-      right: 20px;
-      top: 30px;
+      left: 320px;
+      top: 64px;
       z-index: 20;
     }
     #eternals {
       position: absolute;
-      right: 20px;
-      top: 150px;
+      right: 320px;
+      top: 64px;
       z-index: 20;
     }
     #shop {
       position: absolute;
-      width: 400px;
-      height: 100px;
-      left: 210px;
-      top: 30px;
+      width: 300px;
+      height: 200px;
+      left: 100px;
+      top: 12px;
     }
     #treasure {
       position: absolute;
-      left: 130px;
-      top: 30px;
+      left: 10px;
+      top: 12px;
     }
     #treasure-discard {
       position: absolute;
-      left: 50px;
-      top: 30px;
+      left: 10px;
+      top: 115px;
     }
     #dungeon {
       position: absolute;
-      width: 400px;
-      height: 100px;
-      left: 210px;
-      top: 150px;
+      width: 300px;
+      height: 200px;
+      right: 100px;
+      top: 12px;
     }
     #monsters {
       position: absolute;
-      left: 130px;
-      top: 150px;
+      right: 5px;
+      top: 12px;
     }
     #monsters-discard {
       position: absolute;
-      left: 50px;
-      top: 150px;
+      right: 5px;
+      top: 115px;
     }
     #loot {
       position: absolute;
-      right: 220px;
-      top: 30px;
+      left: 463px;
+      top: 12px;
+      [data-players="3"] &, [data-players="4"] & {
+        left: 663px;
+      }
     }
     #loot-discard {
       position: absolute;
-      right: 220px;
-      top: 150px;
-    }
-    #bonusSouls {
-      position: absolute;
-      right: 100px;
-      top: 0px;
-      width: 100px;
-      height: 280px;
+      left: 463px;
+      top: 115px;
+      [data-players="3"] &, [data-players="4"] & {
+        left: 663px;
+      }
     }
     .deck {
       width: 80px;
@@ -102,23 +104,23 @@ body {
     position: absolute;
     left: 0;
     top: 0;
-    height: 260px;
+    height: 290px;
     width: 1000px;
     [data-players="3"] &, [data-players="4"] & {
       width: 700px;
     }
     &.mine {
-      top: 540px;
+      top: 510px;
     }
     &:not(.mine):nth-child(2) {
       left: 700px;
     }
     &:not(.mine):nth-child(3) {
       left: 700px;
-      top: 540px;
+      top: 510px;
     }
     #tableau {
-      height: 140px;
+      height: 170px;
       width: 100%;
       position: absolute;
       top: 0px;
@@ -127,7 +129,7 @@ body {
       height: 120px;
       width: 100%;
       position: absolute;
-      top: 140px;
+      top: 170px;
     }
   }
 
@@ -154,6 +156,12 @@ body {
       margin: 0 1px;
       position: relative;
       top: 4px;
+    }
+    &[display="attack"] img {
+      width: 32px;
+      margin: 0 -4px;
+      position: relative;
+      top: 10px;
     }
   }
 
@@ -207,7 +215,7 @@ body {
   }
   div.nametag {
     position: absolute;
-    top: 140px;
+    top: 170px;
     width: 100%;
     text-align: center;
   }
