@@ -1,7 +1,3 @@
-eb ssh typ-prod
-psql postgres://postgres:MRCjMcuqzZboJnznvifMF7AC@typ-production.chnbfkwflyae.us-east-1.rds.amazonaws.com/typ_production
-sudo tail -f /var/log/web.stdout.log
-ZK_CONNECTION_STRING=localhost:2181 DATABASE_URL=postgres://typ@127.0.0.1/typ_development yarn start
 
 container
  zone - fixed size
@@ -40,7 +36,6 @@ X 4-player layout fixes
 X move() to top not working? external-dragging persisting
 - session specific updates?
 X fix drag outside player-mat?
-- doubling up actions?
 X multiple actions (ctx menu)
 X hidden attributes, exclude space/piece, x/y
 X composite actions (hilite intermediates)
@@ -50,9 +45,9 @@ X undo/reset
 X kb shortcuts?
 X .mine class on client
 X rseed
-- debug
+- debug pane
 X EJS front pages
-- game file packaging
+- ...game file packaging
 X drag onto multiple areas? then cant be both mouse drag and mouse click?
 X reorg actions logically under destination?
 X moves sends blank actions
