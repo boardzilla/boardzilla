@@ -40,6 +40,8 @@ game.setupBoard = board => {
   bonusSouls.forEach(c => game.pile.addPiece("#" + c, 'card', {type: 'bonusSoul'}))
 };
 
+game.afterMove('#hand card, deck card', card => {card.set('active', false);card.set('flipped', false);})
+
 game.hidden = () => `card[flipped], #player-mat:not(.mine) #hand card, #loot card, #treasure card, #monsters card, #characters card, #eternals card`;
 
 game.play = async () => {

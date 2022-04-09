@@ -569,9 +569,9 @@ export default class Page extends Component {
              <h1>How to play</h1>
              <ul>
                <li>Click on or hold Z over an item to see what actions can be taken.</li>
-               <li>Drag items to see what moves are possible.</li>
-               <li>Copy the URL and send to other players. Click 'Start' when all players are present.</li>
-               <li>Join us on <a href="https://discord.gg/hkvp9uPA">Discord</a>.</li>
+               <li>Most items can be dragged. Drag items to see what moves are possible.</li>
+               <li>Send the URL to other players. Click 'Start' when all players are present.</li>
+               <li>Join us on <a href="https://discord.gg/hkvp9uPA">Discord</a>! Give us your feedback and suggestions.</li>
              </ul>
 
            </span>

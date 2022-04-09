@@ -29,6 +29,7 @@ class GameInterface extends EventEmitter {
     this.actions = {}
     this.currentPlayer = undefined // 1-indexed from list of players, or undefined if any player can play
     this.currentActions = []
+    this.afterMoves = []
     this.builtinActions = {
       setCounter: (key, value) => {
         const counter = this.doc.find(`counter#${key}`)
@@ -259,6 +260,11 @@ class GameInterface extends EventEmitter {
 
   hidden(player) { // eslint-disable-line no-unused-vars
     return null
+  }
+
+  // provide a fn that should be run after any board moves
+  afterMove(pieceSelector, fn) {
+    this.afterMoves.push([pieceSelector, fn])
   }
 
   // wait for an action from list of actions from current player
