@@ -13,7 +13,8 @@ class GameElement {
   _enhanceQuery(q) {
     return q.replace(/\.mine/g, `[player="${this.game.currentPlayer}"]`)
             .replace(/#(\d)/g, '#\\3$1 ')
-            .replace(/([#=])(\d)/g, '$1\\3$2 ');
+            .replace(/([#=])(\d)/g, '$1\\3$2 ')
+            .replace(/="([^"]+)/g, (_, p1) => `="${escape(p1)}`);
   }
 
   wrap(node) {
@@ -30,7 +31,7 @@ class GameElement {
   attributes() {
     return Array.from(this.node.attributes).
                  filter(attr => attr.name !== 'class' && attr.name !== 'id').
-                 reduce((attrs, attr) => Object.assign(attrs, { [attr.name]: !attr.value || isNaN(attr.value) ? attr.value : +attr.value }), {});
+                 reduce((attrs, attr) => Object.assign(attrs, { [attr.name]: unescape(!attr.value || isNaN(attr.value) ? attr.value : +attr.value) }), {});
   }
 
   get(name) {
@@ -45,8 +46,41 @@ class GameElement {
     if (value === false || value === "" || value === undefined) {
       this.node.removeAttribute(name);
     } else {
-      this.node.setAttribute(name, value);
+      this.node.setAttribute(name, escape(value));
     }
+  }
+
+  findNode(q = '*') {
+    if (q === null) return null;
+    return this.node.querySelector(this._enhanceQuery(q));
+  }
+
+  findNodes(q = '*') {
+    if (q === null) return [];
+    return this.node.querySelectorAll(this._enhanceQuery(q));
+  }
+
+  empty(q) {
+    return !this.find(q) || this.find(q).node.children.length === 0;
+  }
+
+  count(q) {
+    return this.findNodes(q).length;
+  }
+
+  contains(q) {
+    return !!this.findNode(q);
+  }
+
+  find(q) {
+    if (q instanceof GameElement) return q;
+    return this.wrap(this.findNode(q));
+  }
+
+  findAll(q) {
+    if (q instanceof GameElement) return [q];
+    if (q instanceof Array) return q;
+    return Array.from(this.findNodes(q)).map(node => this.wrap(node));
   }
 
   player() {
@@ -142,9 +176,27 @@ class GameElement {
     if (name[0] !== '#') throw Error(`id ${name} must start with #`);
     el.id = name.slice(1);
     el.className = className;
-    Object.keys(attrs).forEach(attr => el.setAttribute(attr, attrs[attr]));
+    Object.keys(attrs).forEach(attr => el.setAttribute(attr, escape(attrs[attr])));
+    if (attrs.left == undefined && attrs.top == undefined && attrs.right == undefined && attrs.bottom == undefined) {
+      const pos = this.findOpenPosition();
+      if (pos) {
+        el.setAttribute('x', pos.x);
+        el.setAttribute('y', pos.y);
+      }
+    }
     this.node.appendChild(el);
     return this.wrap(this.node.lastChild);
+  }
+
+  findOpenPosition() {
+    if (this.get('spreadX') || this.get('spreadY')) {
+      let x = 0, y = 0;
+      while (this.contains(`[x="${x}"][y="${y}"]`)) {
+        x += this.get('spreadX') || 0;
+        y += this.get('spreadY') || 0;
+      }
+      return {x, y};
+    }
   }
 
   moveToTop() {

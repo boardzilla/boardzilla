@@ -25,7 +25,7 @@ class GameRunner {
     const lock = new zkLock.ZookeeperLock({
       serverLocator,
       pathPrefix: 'game-runner-',
-      sessionTimeout: 2000
+      sessionTimeout: 10000
     })
 
     let queueClient

@@ -80,18 +80,28 @@ body {
     }
     #loot {
       position: absolute;
-      left: 463px;
+      left: 415px;
       top: 12px;
       [data-players="3"] &, [data-players="4"] & {
-        left: 663px;
+        left: 615px;
       }
     }
     #loot-discard {
       position: absolute;
-      left: 463px;
-      top: 115px;
+      left: 509px;
+      top: 12px;
       [data-players="3"] &, [data-players="4"] & {
-        left: 663px;
+        left: 709px;
+      }
+    }
+    #bonus-souls {
+      position: absolute;
+      left: 415px;
+      top: 115px;
+      height: 100px;
+      width: 200px;
+      [data-players="3"] &, [data-players="4"] & {
+        left: 615px;
       }
     }
     .deck {
@@ -182,17 +192,21 @@ body {
   }
 
   .card {
-    width: 75px;
+    width: 73.33px;
     height: 100px;
     &[active=true] {
       transform: rotate(90deg);
     }
     img {
       height: 100px;
+      border-radius: 7px;
     }
     .counter {
-      top: -10px;
-      left: 5px;
+      bottom: 10px;
+      left: 2px;
+      color: black;
+      font-weight: bold;
+      position: absolute;
     }
   }
 

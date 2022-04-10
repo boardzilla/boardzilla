@@ -6,7 +6,10 @@ container
  zone
  zone
 
-
+X monster counter under middle decks and left align
+X timeout?
+X zoom changes when board moves?
+- counter gets behind moves2
 X heartbeat and connection status
 X game chrome
 X move *all* position styles up to the wrapper div, probably simplify the 3 cases
@@ -15,14 +18,13 @@ X damage counter
 X zoom with counters?
 - mobile events
 - mobile layout
-- better sidebar?
+X better sidebar?
 - escape stuck in drag?
-- card flipping in space
-- post drag action - remove active from deck card
+X card flipping in space - remove active from deck card
 - ...homepage
 - show errors from server
-- new cards
-- 2-sided cards
+X new cards
+X 2-sided cards
 - log???
 - mouse tracking
 - movement echo???

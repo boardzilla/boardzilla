@@ -48,4 +48,7 @@ export const branch = node => {
 
 export const isFlipped = el => el.matches('.flipped, .flipped *');
 
-export const pieceAt = (doc, key) => doc.querySelector('game > ' + key.split('-').map(index => `*:nth-child(${index})`).join(' > '));
+export const pieceAt = (doc, key) => {
+  const query = key[0] == '#' ? `game ${key}` : 'game > ' + key.split('-').map(index => `*:nth-child(${index})`).join(' > ');
+  return doc.querySelector(query);
+}

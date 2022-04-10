@@ -223,9 +223,13 @@ module.exports = ({secretKey, redisUrl, ...devGame }) => {
     if (!req.params[0]) {
       res.render('client', {userId: req.userId, entry: req.params.id === "local" ? '/local-game/index.js' : 'index.js'})
     } else {
-      const buf = game.file(`/client/${req.params[0]}`)
-      res.type(mime.getType(req.params[0]))
-      res.end(buf)
+      try {
+        const buf = game.file(`/client/${req.params[0]}`)
+        res.type(mime.getType(req.params[0]))
+        res.end(buf)
+      } catch(e) {
+        console.error(e, req.params);
+      }
     }
   })
 

@@ -6,7 +6,7 @@ render({
   background: <div className="table"/>,
   pieces: {
     card: props => <div>
-      <img src={`images/${props.type}/${props.id || 'back'}.png`} />
+      <img src={`images/cards/${props.id ? props.front : props.back}`} />
       {props.children}
     </div>,
   },

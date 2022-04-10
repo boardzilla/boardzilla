@@ -19,6 +19,7 @@ class GameInterface extends EventEmitter {
     this.players = []
     this.phase = 'setup' // setup -> replay -> ready
     this.hiddenKeys = []
+    this.hiddenElements = []
     this.variables = {}
     this.allowedMoveElements = '' // piece selector that is always valid for moving
     this.alwaysAllowedPlays = [] // actions that anyone can take at any time
@@ -30,6 +31,7 @@ class GameInterface extends EventEmitter {
     this.currentPlayer = undefined // 1-indexed from list of players, or undefined if any player can play
     this.currentActions = []
     this.afterMoves = []
+    this.promptMessage = null;
     this.builtinActions = {
       setCounter: (key, value) => {
         const counter = this.doc.find(`counter#${key}`)
@@ -41,11 +43,10 @@ class GameInterface extends EventEmitter {
         }
       },
       rollDie: key => {
-        const die = this.doc.find(`die#${key}`);
+        const die = this.doc.find(`die#${key}`)
         if (die) {
-          die.set('number', this.random(die.get('faces')) + 1);
-          die.set('rolls', die.get('rolls') + 1);
-          console.log(die.get('faces'), die.get('rolls'), die.get('number'))
+          die.set('number', this.random(die.get('faces')) + 1)
+          die.set('rolls', die.get('rolls') + 1)
         }
       },
     }
@@ -65,7 +66,7 @@ class GameInterface extends EventEmitter {
           } else {
             this.registerAction(player, this.sequence, ['start'])
             this.removeAllListeners('action')
-            resolve();
+            resolve()
           }
         }
       }))
@@ -155,11 +156,15 @@ class GameInterface extends EventEmitter {
   }
 
   registerId(ns) {
-    return `${ns}-${++this.idSequence}`;
+    return `${ns}-${++this.idSequence}`
   }
 
   hide(key) {
     this.hiddenKeys.push(key)
+  }
+
+  hideBoard(selector, attrs) {
+    this.hiddenElements.push([selector, attrs])
   }
 
   shownVariables() {
@@ -224,12 +229,14 @@ class GameInterface extends EventEmitter {
     const currentPlayer = this.currentPlayer
     this.currentPlayer = player
 
-    playerView.findNodes(this.hidden(player)).forEach(n => {
-      if (n.getAttribute('class').match(/\bpiece\b/)) {
-        n.removeAttribute('id') //  piece identity is hidden
-      } else {
-        n.innerHTML = '' // space contents are hidden
-      }
+    this.hiddenElements.forEach(([selector, attrs]) => {
+      playerView.findNodes(selector).forEach(n => {
+        n.removeAttribute('id')
+        attrs.forEach(attr => n.removeAttribute(attr))
+        if (n.classList.contains('space')) {
+          n.innerHTML = '' // space contents are hidden
+        }
+      })
     })
 
     playerView.findNodes(".mine").forEach(n => n.classList.add('mine'))
@@ -255,11 +262,8 @@ class GameInterface extends EventEmitter {
       allowedMove: this.allowedMoveElements,
       allowedActions: this.choicesFromActions(player),
       allowedDrags,
+      prompt: this.promptMessage,
     }
-  }
-
-  hidden(player) { // eslint-disable-line no-unused-vars
-    return null
   }
 
   // provide a fn that should be run after any board moves
@@ -298,6 +302,10 @@ class GameInterface extends EventEmitter {
 
   playersMayAlwaysPlay(actions) {
     this.alwaysAllowedPlays = actions
+  }
+
+  prompt(promptMessage) {
+    this.promptMessage = promptMessage;
   }
 
   // test list of actions for validity and options, returns object of name:{prompt, choices?}
@@ -358,8 +366,6 @@ class GameInterface extends EventEmitter {
       throw Error(`${actionName} is missing 'prompt'`)
     }
     const prompt = action.prompt + (action.key ? ` (${action.key.toUpperCase()})` : '')
-
-    console.log('running action', actionName, argIndex)
 
     if (!action) {
       throw Error(`No such action: ${actionName}`)

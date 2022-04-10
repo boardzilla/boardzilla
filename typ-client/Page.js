@@ -26,6 +26,7 @@ import './style.scss';
 const DRAG_TOLERANCE = 1;
 const PING_INTERVAL = 7500;
 const IDLE_WAIT = 10000;
+const SIDEBAR_WIDTH = 320;
 let mouse = {};
 
 export default class Page extends Component {
@@ -268,6 +269,8 @@ export default class Page extends Component {
     } else if (Object.keys(actions).length > 1) {
       this.setState({actions});
       event.stopPropagation();
+    } else if (choiceHasKey(choice) && elementByKey(keyFromChoice(choice)).classList.contains('piece') && !elementByKey(keyFromChoice(choice)).classList.contains('component')) {
+      event.stopPropagation();
     } else {
       this.cancel();
     }
@@ -275,16 +278,18 @@ export default class Page extends Component {
 
   cancel() {
     if (this.state.action) this.send('update'); // need to refetch state to get full actions
-    this.setState({actions: null, action: null, zoomPiece: null, args: [], prompt: null, choices: null, help: false});
+    this.setState({actions: null, action: null, zoomPiece: null, args: [], choices: null, help: false});
   }
 
   zoomOnPiece(element) {
-    this.setState({zoomPiece: keyFromEl(element), zoomOriginalSize: {height: element.offsetHeight, width: element.offsetWidth}});
+    console.log(element, element.id);
+    const identifier = element.id ? '#' + element.id : keyFromEl(element); // use the id if we have it so we can keep the piece even if the board changes
+    this.setState({zoomPiece: identifier, zoomOriginalSize: {height: element.offsetHeight, width: element.offsetWidth}});
   }
 
   // return available actions association to this element {action: {choice, prompt},...}
   actionsFor(choice) {
-    if (!this.state.data.allowedActions) return []
+    if (!this.state.data.allowedActions) return [];
     return Object.entries(this.state.data.allowedActions).reduce((actions, [action, {choices, prompt, key}]) => {
       let node = choice;
       while (keyFromChoice(node)) {
@@ -436,7 +441,7 @@ export default class Page extends Component {
       );
     }
     if (this.props.pieces[type]) {
-      contents = React.createElement(this.props.pieces[type], {...props}, contents);
+      contents = React.createElement(this.props.pieces[type], {...props}, frozen || contents);
     }
     contents = contents || node.id;
 
@@ -488,12 +493,12 @@ export default class Page extends Component {
     let messagesPane = null, zoomScale;
     if (this.state.help) {
       messagesPane = 'help';
-    } else if (this.state.prompt) {
-      messagesPane = 'prompt';
+    } else if (this.state.choices) {
+      messagesPane = 'choices';
     } else if (this.state.actions || this.state.zoomPiece) {
       messagesPane = 'actions';
       if (this.state.zoomPiece) {
-        zoomScale = 250 / this.state.zoomOriginalSize.width;
+        zoomScale = SIDEBAR_WIDTH / this.state.zoomOriginalSize.width;
       }
     } else if (this.state.data) {
       if (this.state.data.phase == 'setup') {
@@ -512,12 +517,14 @@ export default class Page extends Component {
       return <span><span className="keybind">{key}</span>{message}</span>;
     };
 
+    const boardXml = this.state.data.doc && xmlToNode(this.state.data.doc);
+
     return (
       <div>
         <div id="messages">
-          {messagesPane == 'prompt' &&
-           <div id="prompt">
-             {this.state.prompt}
+          {this.state.prompt || this.state.data.prompt}
+          {messagesPane == 'choices' &&
+           <div>
              {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
              {textChoices && (
                <div>
@@ -532,9 +539,9 @@ export default class Page extends Component {
           {messagesPane == 'actions' &&
            <div>
              {this.state.zoomPiece &&
-              <div id="zoomPiece" style={{width: 250, height: zoomScale * this.state.zoomOriginalSize.height}}>
+              <div id="zoomPiece" style={{width: SIDEBAR_WIDTH, height: zoomScale * this.state.zoomOriginalSize.height}}>
                 <div className="scaler" style={{width: this.state.zoomOriginalSize.width, height: this.state.zoomOriginalSize.height, transform: `scale(${zoomScale})`}}>
-                  {this.renderGameElement(pieceAt(xmlToNode(this.state.data.doc), this.state.zoomPiece), false, false, true)}
+                  {this.renderGameElement(pieceAt(boardXml, this.state.zoomPiece), false, false, true)}
                 </div>
               </div>
              }
@@ -581,7 +588,7 @@ export default class Page extends Component {
 
         {this.props.background}
 
-        {this.state.data.phase === 'ready' && this.state.data.doc && this.renderBoard(xmlToNode(this.state.data.doc))}
+        {this.state.data.phase === 'ready' && this.state.data.doc && this.renderBoard(boardXml)}
       </div>
     );
   }

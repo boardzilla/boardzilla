@@ -4,39 +4,6 @@ const { times } = require("./utils");
 
 class Space extends GameElement {
 
-  findNode(q = '*') {
-    if (q === null) return null;
-    return this.node.querySelector(this._enhanceQuery(q));
-  }
-
-  findNodes(q = '*') {
-    if (q === null) return [];
-    return this.node.querySelectorAll(this._enhanceQuery(q));
-  }
-
-  empty(q) {
-    return !this.find(q) || this.find(q).node.children.length === 0;
-  }
-
-  count(q) {
-    return this.findNodes(q).length;
-  }
-
-  contains(q) {
-    return !!this.findNode(q);
-  }
-
-  find(q) {
-    if (q instanceof GameElement) return q;
-    return this.wrap(this.findNode(q));
-  }
-
-  findAll(q) {
-    if (q instanceof GameElement) return [q];
-    if (q instanceof Array) return q;
-    return Array.from(this.findNodes(q)).map(node => this.wrap(node));
-  }
-
   space(q) {
     if (q instanceof Space) return q;
     return this.spaces(q)[0];
@@ -70,18 +37,14 @@ class Space extends GameElement {
       piece.set('top');
       piece.set('right');
       piece.set('bottom');
-      if ((space.get('spreadX') || space.get('spreadY')) && !piece.hasParent(space)) {
-        let x = 0, y = 0;
-        piece.set('x', x);
-        piece.set('y', y);
-        while (space.contains(`[x="${x}"][y="${y}"]`)) {
-          x += space.get('spreadX') || 0;
-          y += space.get('spreadY') || 0;
-          piece.set('x', x);
-          piece.set('y', y);
+      if (!piece.hasParent(space)) {
+        const pos = space.findOpenPosition();
+        if (pos) {
+          piece.set('x', pos.x);
+          piece.set('y', pos.y);
         }
       }
-      space.node.appendChild(piece.node)
+      space.node.appendChild(piece.node);
     });
     this.game.afterMoves.forEach(([pieceSelector, fn]) => {
       movables.forEach(piece => {
