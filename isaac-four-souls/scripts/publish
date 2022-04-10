@@ -6,16 +6,30 @@ build() {
 	local build_type=$1
 	yarn --cwd $build_type run clean
 	yarn --cwd $build_type run build:production
-	dir="$build_type/dist"
+	dir="$build_type/build"
 	digest=$(find "$dir" -type f -exec shasum -a256 {} \; | sed "s~$dir~~g" | LC_ALL=C sort -d | shasum -a256 | awk '{ print $1 }')
-	echo "path is"
-	echo "dist/$build_type/$digest"
 	mkdir -p dist/$build_type/$digest
-	cp -r "$build_type/dist/"* "dist/$build_type/$digest"
+	cp -r "$build_type/build/"* "dist/$build_type/$digest"
 }
+
+if [[ -z "$PUBLISH_TOKEN" ]]; then
+    echo "Must provide PUBLISH_TOKEN in environment" 1>&2
+    exit 1
+fi
 
 rm -rf dist
 build "client"
 build "server"
+aws s3 sync --size-only dist s3://boardzilla-games-production/isaac-four-souls
+
+client_digest=$(ls -1 "dist/client")
+server_digest=$(ls -1 "dist/server")
+
+echo "client_digest $client_digest server_digest $server_digest"
+body="{\"serverDigest\":\"${server_digest}\", \"clientDigest\": \"${client_digest}\", \"name\": \"isaac-four-souls\"}"
+echo $body
+
+curl -X PUT -d $body -h "Authorization: ${PUBLISH_TOKEN}" https://boardzilla.io/publish
+
 # publish to s3
 # add record to database

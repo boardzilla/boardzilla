@@ -1,7 +1,7 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
   const Session = sequelize.define('Session', {
-    gameId: DataTypes.INTEGER,
+    gameVersionId: DataTypes.INTEGER,
     creatorId: DataTypes.INTEGER,
     seed: DataTypes.STRING
   }, {});
@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
     models.Session.hasMany(models.SessionUser, {foreignKey: 'sessionId'})
     models.Session.hasMany(models.ElementLock, {foreignKey: 'sessionId'})
     models.Session.hasMany(models.SessionAction, {foreignKey: 'sessionId', as: 'actions'})
-    models.Session.belongsTo(models.Game, {foreignKey: 'gameId'})
+    models.Session.hasOne(models.GameVersion, {sourceKey: "gameVersionId", foreignKey: 'id'})
     models.Session.belongsTo(models.User, {
       constraints: false,
       foreignKey: 'creatorId',

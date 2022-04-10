@@ -5,6 +5,8 @@ const jwt = require("jsonwebtoken");
 const createServer = require('../server')
 const db = require('../models')
 const path = require('path')
+const AWSMock = require('mock-aws-s3')
+const webpack = require('webpack')
 
 const SECRET_KEY = "asdasdasd"
 
@@ -20,6 +22,14 @@ const doneOnClosed = (done, sockets) => {
 }
 
 describe("Playing a game", () => {
+  before((done) => {
+    const serverConfig = require(path.join(__dirname, 'fixtures', 'numberGuesser', 'webpack.config.js'))
+    const builder = webpack(serverConfig, function() {
+      console.log("DONE BUILDING!")
+      done()
+    })
+  })
+
   beforeEach(async () => {
     for (let k in db.sequelize.models) {
       await db.sequelize.query(`TRUNCATE TABLE "${db.sequelize.models[k].tableName}" CASCADE`)
@@ -27,7 +37,14 @@ describe("Playing a game", () => {
   })
 
   beforeEach((done) => {
-    const app = createServer({secretKey: SECRET_KEY, redisUrl: "redis://localhost:6379"})
+    AWSMock.config.basePath = path.resolve(path.join(__dirname))
+    console.log("s3 bucket base path is ", AWSMock.config.basePath)
+    // const bucketName = path.basename(path.resolve(__dirname, '..'))
+    console.log("s3 bucket name is ", AWSMock.config.basePath, "fixtures")
+    const s3Provider = AWSMock.S3({
+      params: { Bucket: "fixtures" }
+    });
+    const app = createServer({secretKey: SECRET_KEY, redisUrl: "redis://localhost:6379", zkConnectionString: "localhost:2181", s3Provider})
     this.server = app.listen(3000, done)
   })
 
@@ -36,8 +53,11 @@ describe("Playing a game", () => {
     const user2 = await db.User.create({email: "hello2@asdf.com", password: "some-pass2", name: "asd2"})
     this.h1 = {authorization: `JWT ${jwt.sign({id: user1.id}, SECRET_KEY)}`}
     this.h2 = {authorization: `JWT ${jwt.sign({id: user2.id}, SECRET_KEY)}`}
-    this.game = await db.Game.create({name: "hey", localDir: path.join(__dirname, 'fixtures/numberGuesser')})
-    this.session = await db.Session.create({gameId: this.game.id, creatorId: user1.id})
+    this.game = await db.Game.create({name: "numberGuesser", createdAt: new Date(), updatedAt: new Date()})
+    console.log("CREATING GAME VERSION")
+    this.gameVersion = await db.GameVersion.create({gameId: this.game.id, serverDigest: "0", clientDigest: "0", version: 0})
+    console.log("DONE CREATING GAME VERSION")
+    this.session = await db.Session.create({gameVersionId: this.gameVersion.id, creatorId: user1.id})
 
     await db.SessionUser.create({sessionId: this.session.id, userId: user1.id})
     await db.SessionUser.create({sessionId: this.session.id, userId: user2.id})
@@ -53,13 +73,18 @@ describe("Playing a game", () => {
 
     doneOnClosed(done, [p1, p2])
 
+    console.log("playing,,,")
+
     const guesser = socket => {
+      console.log("socket")
       return (data) => {
+        console.log("data", data)
         const message = JSON.parse(data)
         if (message.type === 'state' && message.payload.phase === 'finished') return socket.close()
         if (message.type === 'state' && message.payload.allowedActions && message.payload.allowedActions.guess) {
           setImmediate(() => {
             const guess = Math.floor(Math.random() * 10) + 1
+            console.log("sending!", guess)
             socket.send(JSON.stringify({type: "action", "payload": {sequence: message.payload.sequence, action: ["guess", guess]}}))
           })
         }

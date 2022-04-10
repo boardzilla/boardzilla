@@ -76,12 +76,16 @@ async function run() {
 	const numberOfPlayers = parseInt(process.env.PLAYERS_NUM || 2)
 	const playerInfo = allPlayerInfo.slice(0, numberOfPlayers)
 	const players = await Promise.all(playerInfo.map(info => db.User.create(info)))
-  const game = await db.Game.create({
-  	name: gameName,
-  	clientDigest: "build",
-  	serverDigest: "build"
-  })
-  const session = await db.Session.create({creatorId: players[0].id, gameId: game.id, seed: 0})
+	const game = await db.Game.create({
+		name: gameName,
+	})
+	const gameVersion = await db.GameVersion.create({
+		gameId: game.id,
+		version: 0,
+		clientDigest: "build",
+		serverDigest: "build"
+	})
+	const session = await db.Session.create({creatorId: players[0].id, gameVersionId: gameVersion.id, seed: 0})
 	const sessionUsers = await Promise.all(players.map(player => db.SessionUser.create({sessionId: session.id, userId: player.id})))
 	console.log('sessionUsers', sessionUsers)
 	console.log("BUILDING")

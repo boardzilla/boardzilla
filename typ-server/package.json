@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "adm-zip": "^0.4.13",
+    "aws-sdk": "^2.1109.0",
     "bcrypt": "^3.0.6",
     "cookie-parser": "^1.4.5",
     "ejs": "^2.6.2",

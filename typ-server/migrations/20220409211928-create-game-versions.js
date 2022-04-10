@@ -2,39 +2,45 @@
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('ElementLocks', {
+    return queryInterface.createTable('GameVersions', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      sessionId: {
+      gameId: {
         allowNull: false,
         type: Sequelize.INTEGER
       },
-      userId: {
+      version: {
         allowNull: false,
         type: Sequelize.INTEGER
       },
-      element: {
+      serverDigest: {
+        allowNull: false,
+        type: Sequelize.STRING
+      },
+      clientDigest: {
         allowNull: false,
         type: Sequelize.STRING
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        default: Sequelize.NOW
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        default: Sequelize.NOW
       }
     }).then(() => {
-      return queryInterface.addIndex('ElementLocks', ['sessionId', 'element'], {fields: ['sessionId', 'element'], unique: true});
+      return queryInterface.addIndex('GameVersions', ['gameId', 'version'], {fields: ['gameId', 'version'], unique: true})
     })
   },
 
-  down: (queryInterface) => {
-    return queryInterface.dropTable('ElementLocks');
+  down: (queryInterface, Sequelize) => {
+    return queryInterface.dropTable('GameVersions')
   }
 };

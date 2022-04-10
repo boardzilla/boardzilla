@@ -48,7 +48,7 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
           throw error
         }
         if (user) {
-          req.userId = user.id
+          req.user = user
           res.locals.user = user
         }
         return next()
@@ -151,53 +151,82 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
   })
 
   app.get('/', async (req, res) => {
-    const sessions = await db.Session.findAll({ include: [db.Game, {model: db.User, as: 'creator'}] })
+    const sessions = await db.Session.findAll({ include: [{model:db.GameVersion, include: db.Game}, {model: db.User, as: 'creator'}] })
     res.render('index', {sessions: sessions})
   })
 
   app.get('/sessions/new', async (req, res) => {
-    if (!req.userId) return unauthorized(req, res, 'permission denied')
+    if (!req.user) return unauthorized(req, res, 'permission denied')
     const games = await db.Game.findAll({attributes: ['name', [Sequelize.fn('max', Sequelize.col('id')), 'maxId']], group: ['name'], raw: true})
     res.render('sessions-new', {games: games})
   })
 
-  app.post('/games', async (req, res) => {
-    if (!req.userId) return unauthorized(req, res, 'permission denied')
+  app.put('/publish', async (req, res) => {
+    if (req.headers['authorization'] !== process.env.PUBLISH_TOKEN) {
+      return res.status(401).end('unauthorized')
+    }
 
-    const game = await db.Game.create({name: req.body.name, content: Buffer.from(req.body.content, 'base64')})
-    res.json({id: game.id})
+    const [row, _] = await db.Game.findOrCreate({
+      where: {
+        name: req.body.name,
+      },
+      defaults: {
+        name: req.body.name,
+      },
+    });
+
+    const gameVersion = await db.GameVersion.find({
+      gameId: game.id,
+    })
+    const versionNumber = gameVersion === null ? 1 : gameVersion.version + 1
+    const version = await db.GameVersion.create({
+      gameId: game.id,
+      version: versionNumber,
+      serverDigest: req.post.serverDigest,
+      clientDigest: req.post.clientDigest,
+    })
+    res.json({version: version.version})
   })
 
-  app.get('/games/:id/*', async (req, res) => {
-    if (!req.userId) return unauthorized(req, res, 'permission denied')
-    const game = await db.Game.findByPk(req.params.id)
-    if (!game) {
+  app.get('/play/:id/*', async (req, res) => {
+    if (!req.user) return unauthorized(req, res, 'permission denied')
+    const session = await db.Session.findByPk(req.params.id, {
+      include: [{
+        model: db.SessionUser,
+        include: db.User,
+      },{
+        model: db.GameVersion,
+        include: [db.Game]
+      }]
+    })
+    if (!session) {
       res.status(404).end('No such game')
     }
     if (!req.params[0]) {
-      res.render('client', {userId: req.userId, entry: 'index.js'})
-    } else {
-      console.log("game.name", game.name, "game.clientDigest", game.clientDigest, "req.params[0]", req.params[0])
-      const s3Path = path.join(game.name, "client", game.clientDigest, req.params[0])
-      const s3Params = {Key: s3Path}
-      try {
-        const info = await s3Provider.headObject(s3Params).promise()
-        res.set('Content-Type', info.ContentType)
-        res.set('Content-Length', info.ContentLength)
-        const stream = s3Provider.getObject(s3Params).createReadStream()
-        stream.pipe(res);
-      } catch(e) {
-        console.log("error getting", s3Path, e)
-        res.status(404).end('not found')        
-      }
+      return res.render('client', {userId: req.user.id, entry: 'index.js'})
+    }
+    const gameVersion = session.GameVersion
+    const game = gameVersion.Game
+    console.log("game.name", game.name, "game.clientDigest", gameVersion.clientDigest, "req.params[0]", req.params[0])
+    const s3Path = path.join(game.name, "client", gameVersion.clientDigest, req.params[0])
+    const s3Params = {Key: s3Path}
+    try {
+      const info = await s3Provider.headObject(s3Params).promise()
+      res.set('Content-Type', info.ContentType)
+      res.set('Content-Length', info.ContentLength)
+      const stream = s3Provider.getObject(s3Params).createReadStream()
+      stream.pipe(res);
+    } catch(e) {
+      console.log("error getting", s3Path, e)
+      res.status(404).end('not found')        
     }
   })
 
   app.post('/sessions', async (req, res) => {
-    if (!req.userId) return unauthorized(req, res, 'permission denied')
+    if (!req.user) return unauthorized(req, res, 'permission denied')
     if (!req.body.gameId) return res.status(400).end('no game specified')
-    const session = await db.Session.create({creatorId: req.userId, gameId: req.body.gameId, seed: String(Math.random())})
-    await db.SessionUser.create({userId: req.userId, sessionId: session.id})
+    const session = await db.Session.create({creatorId: req.user.id, gameId: req.body.gameId, seed: String(Math.random())})
+    await db.SessionUser.create({userId: req.user.id, sessionId: session.id})
     if (req.is('json')) {
       res.json({id: session.id})
     } else {
@@ -206,26 +235,26 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
   })
 
   app.get('/sessions/:id', async (req, res) => {
-    if (!req.userId) return unauthorized(req, res, 'permission denied')
+    if (!req.user) return unauthorized(req, res, 'permission denied')
     const session = await db.Session.findByPk(req.params.id, {
       include: [{
         model: db.SessionUser,
         include: db.User,
       },{
-        model: db.Game,
+        model: db.GameVersion,
+        include: [db.Game]
       }]
     })
     if (req.is('json')) {
       res.json(session)
     } else {
-      console.log("req.userId", req.userId)
-      res.render('session', {session, me: req.userId})
+      res.render('session', {session, me: req.user.id})
     }
   })
 
   app.post('/user-sessions/:id', async (req, res) => {
-    if (!req.userId) return unauthorized(req, res, 'permission denied')
-    const userSession = await db.SessionUser.create({userId: req.userId, sessionId: req.params.id})
+    if (!req.user.id) return unauthorized(req, res, 'permission denied')
+    const userSession = await db.SessionUser.create({userId: req.user.id, sessionId: req.params.id})
     if (req.is('json')) {
       res.json({id: userSession.id})
     } else {
@@ -255,7 +284,7 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
           console.error("verifyClient fail: ", error, user)
           return verified(false, 401, "Unauthorized")
         }
-        info.req.userId = user.id
+        info.req.user = user
         verified(true)
       })
     } catch (error) {
@@ -267,6 +296,7 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
   const wss = new WebSocket.Server({verifyClient, server})
 
   wss.shouldHandle = (req) => {
+    console.log("SHOULD HANDLE?", req)
     const path = url.parse(req.url).pathname
     const match = path.match(/\/sessions\/([^/]+)/)
     if (match) {
@@ -278,7 +308,8 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
   }
 
   const onWssConnection = async (ws, req) => {
-    const sessionUser = await db.SessionUser.findOne({where: {userId: req.userId, sessionId: req.sessionId}})
+    console.log("on connection", req)
+    const sessionUser = await db.SessionUser.findOne({where: {userId: req.user.id, sessionId: req.sessionId}})
     if (!sessionUser) {
       return ws.close(4001)
     }
@@ -339,13 +370,13 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
     ws.on('message', async (data) => {
       try {
         const message = JSON.parse(data)
-        console.log(`S ${req.userId}: ws message`, message.type)
+        console.log(`S ${req.user.id}: ws message`, message.type)
         switch(message.type) {
           case 'requestLock': return await requestLock(message.payload.key)
           case 'releaseLock': return await releaseLock(message.payload.key)
           case 'drag': return await drag(message.payload)
           default: {
-            message.payload.userId = req.userId
+            message.payload.userId = req.user.id
             const out = await redisClient.rpush(sessionEventKey, JSON.stringify(message))
             return out
           }
@@ -358,9 +389,9 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
     const subscriber = new Redis(redisUrl)
     subscriber.on("message", async (channel, data) => {
       const message = JSON.parse(data)
-      console.log(`S ${req.userId}: redis message`, message.type, message.userId)
+      console.log(`S ${req.user.id}: redis message`, message.type, message.userId)
       // TODO better as seperate channels for each user and all users?
-      if (message.userId && message.userId != req.userId) {
+      if (message.userId && message.userId != req.user.id) {
         return
       }
       switch (message.type) {
@@ -389,7 +420,7 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
         return ws.close(1011) // internal error
       }
 
-      redisClient.rpush(sessionEventKey, JSON.stringify({type: 'refresh', payload: {userId: req.userId}}))
+      redisClient.rpush(sessionEventKey, JSON.stringify({type: 'refresh', payload: {userId: req.user.id}}))
     })
   }
   wss.on("connection", onWssConnection)

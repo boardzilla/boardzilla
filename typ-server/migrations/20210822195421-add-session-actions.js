@@ -33,11 +33,11 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE
       }
-    }).then(() => {
-      queryInterface.addIndex('SessionActions', ['sessionId', 'sequence'], {fields: ['sessionId', 'sequence'], unique: true})
-    }).then(() => {
-      queryInterface.removeColumn('Sessions', 'lastState')
-    })
+    }).then(
+      () => queryInterface.addIndex('SessionActions', ['sessionId', 'sequence'], {fields: ['sessionId', 'sequence'], unique: true})
+    ).then(
+      () => queryInterface.removeColumn('Sessions', 'lastState')
+    )
   },
 
   down: (queryInterface, Sequelize) => {

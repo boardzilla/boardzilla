@@ -74,9 +74,9 @@ class GameRunner {
               console: 'inherit',
             })
             const session = await db.Session.findByPk(sessionId)
-            const game = await session.getGame()
-            console.log("000<<<", path.join(game.name, "server", game.serverDigest, "index.js"))
-            const serverBuffer = await this.s3Provider.getObject({Key: path.join(game.name, "server", game.serverDigest, "index.js")}).promise()
+            const gameVersion = await session.getGameVersion()
+            const game = await gameVersion.getGame()
+            const serverBuffer = await this.s3Provider.getObject({Key: path.join(game.name, "server", gameVersion.serverDigest, "index.js")}).promise()
             const gameClass = vm.run(serverBuffer.Body.toString())
             const gameInstance = new gameClass(session.seed)
             const playerViews = {}
