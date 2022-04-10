@@ -1,5 +1,4 @@
-/* global game */
-const GameInterface = require('game-core/interface')
+const GameInterface = require('game-core-server/interface')
 
 class NumberGuesser extends GameInterface {
   constructor(seed) {

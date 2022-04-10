@@ -1,10 +1,8 @@
 const zkLock = require('zk-lock')
 const simple = require('locators').simple
 const { NodeVM } = require('vm2')
-const GameInterface = require('./game/interface')
 const db = require('./models')
 const EventEmitter = require('events')
-const GAME_SESSION_NS = 4901
 const Redis = require("ioredis")
 const path = require("path")
 
@@ -30,7 +28,6 @@ class GameRunner {
 
     let queueClient
     let running = true
-    let locked = false
 
     const cleanup = async () => {
       try {
@@ -62,8 +59,6 @@ class GameRunner {
     (async () => {
       try {
         await lock.lock(`${sessionId}`)
-
-        locked = true
 
         queueClient = this.redisClient.duplicate()
 
@@ -119,7 +114,7 @@ class GameRunner {
               // TODO not enough players but this should be an explicit start command
             })
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve) => {
               if (gameInstance.phase === 'ready') return resolve()
               gameInstance.once('ready', resolve)
             })
@@ -130,6 +125,7 @@ class GameRunner {
 
             const processGameEvent = async (message) => {
               console.log(`R ${process.pid} processGameEvent`, message.type, message.payload.userId)
+              let lastAction
               switch(message.type) {
                 case 'action': 
                   gameAction(message.payload.userId, message.payload.sequence, ...message.payload.action)
@@ -155,7 +151,7 @@ class GameRunner {
                   return true
                 case 'undo':
                   await queueClient.del(this.sessionEventKey(sessionId))
-                  const lastAction = await session.getActions({order: [['sequence', 'DESC']], limit: 1})
+                  lastAction = await session.getActions({order: [['sequence', 'DESC']], limit: 1})
                   await db.SessionAction.destroy({
                     where: {
                       id: lastAction[0].id

@@ -1,7 +1,5 @@
 const path = require('path');
 
-console.log("GAME CORE!", path.resolve(path.join(__dirname, "../../../../game-core")))
-
 module.exports = {
   mode: "development",
   entry: path.resolve(__dirname, 'server/0/server.js'),
@@ -18,7 +16,7 @@ module.exports = {
       events: require.resolve("events/"),
       canvas: path.resolve(__dirname, '../../ext/canvas.js'),
       perf_hooks: path.resolve(__dirname, '../../ext/perf_hooks.js'),
-      "game-core": path.resolve(path.join(__dirname, "../../../../game-core")),
+      "game-core-server": path.resolve(path.join(__dirname, "../../../../game-core-server")),
     },
   },
   module: {

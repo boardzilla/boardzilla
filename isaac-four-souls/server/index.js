@@ -1,4 +1,4 @@
-const GameInterface = require('game-core/interface')
+const GameInterface = require('game-core-server/interface')
 
 const characters = [
   "Isaac",

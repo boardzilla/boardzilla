@@ -5,7 +5,9 @@ set -e
 sudo corepack enable
 
 yarn --cwd typ-server install --production=false
-yarn --cwd typ-client install --production=false
-yarn --cwd isaac-four-souls install --production=false
+yarn --cwd game-core-client install --production=false
+yarn --cwd game-core-server install --production=false
+yarn --cwd isaac-four-souls/client install --production=false
+yarn --cwd isaac-four-souls/server install --production=false
 
 yarn --cwd typ-server sequelize db:migrate

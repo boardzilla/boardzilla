@@ -1,5 +1,5 @@
 import React from 'react'
-import { render } from 'typ-client';
+import { render } from 'game-core-client';
 import './style.scss';
 
 render({

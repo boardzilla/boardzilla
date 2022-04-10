@@ -6,7 +6,6 @@ const Redis = require("ioredis");
 const bodyParser = require('body-parser')
 const jwt = require("jsonwebtoken")
 const { Sequelize } = require('sequelize')
-const mime = require('mime')
 const bcrypt = require('bcrypt')
 const db = require('./models')
 const GameRunner = require('./gameRunner')
@@ -24,7 +23,6 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
   const redisClient = new Redis(redisUrl)
   const devMode = process.env.NODE_ENV === 'development'
 
-  const postgresUrl = process.env['DATABASE_URL']
   const gameRunner = new GameRunner(redisUrl, s3Provider, zkConnectionString)
 
   app.set('view engine', 'ejs')
@@ -166,7 +164,7 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
       return res.status(401).end('unauthorized')
     }
 
-    const [row, _] = await db.Game.findOrCreate({
+    const [game, _] = await db.Game.findOrCreate({
       where: {
         name: req.body.name,
       },
@@ -207,7 +205,6 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
     }
     const gameVersion = session.GameVersion
     const game = gameVersion.Game
-    console.log("game.name", game.name, "game.clientDigest", gameVersion.clientDigest, "req.params[0]", req.params[0])
     const s3Path = path.join(game.name, "client", gameVersion.clientDigest, req.params[0])
     const s3Params = {Key: s3Path}
     try {
@@ -296,7 +293,6 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
   const wss = new WebSocket.Server({verifyClient, server})
 
   wss.shouldHandle = (req) => {
-    console.log("SHOULD HANDLE?", req)
     const path = url.parse(req.url).pathname
     const match = path.match(/\/sessions\/([^/]+)/)
     if (match) {
@@ -308,7 +304,6 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
   }
 
   const onWssConnection = async (ws, req) => {
-    console.log("on connection", req)
     const sessionUser = await db.SessionUser.findOne({where: {userId: req.user.id, sessionId: req.sessionId}})
     if (!sessionUser) {
       return ws.close(4001)
@@ -370,7 +365,7 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
     ws.on('message', async (data) => {
       try {
         const message = JSON.parse(data)
-        console.log(`S ${req.user.id}: ws message`, message.type)
+        console.debug(`S ${req.user.id}: ws message`, message.type)
         switch(message.type) {
           case 'requestLock': return await requestLock(message.payload.key)
           case 'releaseLock': return await releaseLock(message.payload.key)
@@ -389,7 +384,7 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
     const subscriber = new Redis(redisUrl)
     subscriber.on("message", async (channel, data) => {
       const message = JSON.parse(data)
-      console.log(`S ${req.user.id}: redis message`, message.type, message.userId)
+      console.debug(`S ${req.user.id}: redis message`, message.type, message.userId)
       // TODO better as seperate channels for each user and all users?
       if (message.userId && message.userId != req.user.id) {
         return
