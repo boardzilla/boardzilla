@@ -1,12 +1,12 @@
 {
-  "name": "typ-server",
+  "name": "server",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start:dev": "node dev.js",
     "start:prod": "NODE_ENV=production node run.js",
-    "test": "DATABASE_URL=postgres://typ:typ@127.0.0.1/typ_test NODE_ENV=test ./node_modules/mocha/bin/mocha --exit",
+    "test": "NODE_ENV=test ./node_modules/mocha/bin/mocha --exit",
     "lint": "eslint ."
   },
   "author": "",

@@ -10,10 +10,12 @@ fi
 export NODE_ENV=development
 export NODE_OPTIONS="--trace-warnings"
 
-cd typ-server
+cd server
 
+set +e
 ./node_modules/.bin/sequelize db:drop
+set -e
 ./node_modules/.bin/sequelize db:create
 ./node_modules/.bin/sequelize db:migrate
 
-yarn --cwd typ-server run start:dev
+yarn --cwd server run start:dev

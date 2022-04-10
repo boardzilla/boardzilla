@@ -1,1 +1,1 @@
-web: yarn --pwd typ-server run start:prod
+web: yarn --pwd server run start:prod

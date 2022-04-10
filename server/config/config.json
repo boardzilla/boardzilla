@@ -1,10 +1,10 @@
 {
   "development": {
-    "database": "typ_development",
+    "database": "boardzilla_development",
     "dialect": "postgres"
   },
   "test": {
-    "database": "typ_test",
+    "database": "boardzilla_test",
     "dialect": "postgres"
   },
   "production": {
