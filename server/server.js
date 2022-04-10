@@ -177,6 +177,10 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
       gameId: game.id,
     })
     const versionNumber = gameVersion === null ? 1 : gameVersion.version + 1
+    if (gameVersion.serverDigest === req.post.serverDigest && gameVersion.clientDigest === req.post.clientDigest) {
+      return res.json({version: gameVersion.version, msg: "no version created, already exists"})
+    }
+
     const version = await db.GameVersion.create({
       gameId: game.id,
       version: versionNumber,
