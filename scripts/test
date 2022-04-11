@@ -2,5 +2,5 @@
 
 set -e
 
-yarn --cwd game-core-server run test
+yarn --cwd game-core/server run test
 yarn --cwd server run test

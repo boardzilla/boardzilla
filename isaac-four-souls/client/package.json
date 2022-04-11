@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "eslint": "^7.29.0",
-    "game-core-client": "link:../../game-core-client"
+    "game-core-client": "link:../../game-core/client"
   },
   "devDependencies": {
     "@babel/core": "^7.17.8",

@@ -16,7 +16,7 @@ module.exports = {
       events: require.resolve("events/"),
       canvas: path.resolve(__dirname, '../../../../game-core-server/ext/canvas.js'),
       perf_hooks: path.resolve(__dirname, '../../../../game-core-server/ext/perf_hooks.js'),
-      "game-core-server": path.resolve(path.join(__dirname, "../../../../game-core-server")),
+      "game-core-server": path.resolve(path.join(__dirname, "../../../../game-core/server")),
     },
   },
   module: {

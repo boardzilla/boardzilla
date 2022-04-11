@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "eslint": "^7.29.0",
-    "game-core-server": "link:../../game-core-server"
+    "game-core-server": "link:../../game-core/server"
   },
   "devDependencies": {
     "@babel/core": "^7.17.8",
