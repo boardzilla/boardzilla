@@ -7,7 +7,7 @@ build_type() {
 	local build_type=$2
 	echo "asd"
 	yarn --cwd $game/$build_type run clean
-	yarn --cwd $game/$build_type run build:production
+	yarn --cwd $game/$build_type run build
 	dir="$game/$build_type/build"
 	digest=$(find "$dir" -type f -exec shasum -a256 {} \; | sed "s~$dir~~g" | LC_ALL=C sort -d | shasum -a256 | awk '{ print $1 }')
 	mkdir -p $game/dist/$build_type/$digest
@@ -19,12 +19,17 @@ if [[ -z "$PUBLISH_TOKEN" ]]; then
     exit 1
 fi
 
+if [[ -z "$S3_GAME_BUCKET" ]]; then
+    echo "Must provide S3_GAME_BUCKET in environment" 1>&2
+    exit 1
+fi
+
 build() {
 	local game=$1
 	rm -rf "${game}/dist"
 	build_type $game "client"
 	build_type $game "server"
-	aws s3 sync --size-only "${game}/dist" "s3://boardzilla-games-production/${game}"
+	aws s3 sync --size-only "${game}/dist" "s3://${S3_GAME_BUCKET}/${game}"
 
 	client_digest=$(ls -1 "${game}/dist/client")
 	server_digest=$(ls -1 "${game}/dist/server")
