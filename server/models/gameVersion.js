@@ -2,8 +2,8 @@
 
 module.exports = (sequelize, DataTypes) => {
   const GameVersion = sequelize.define('GameVersion', {
-  	gameId: DataTypes.INTEGER,
-  	version: DataTypes.INTEGER,
+    gameId: DataTypes.INTEGER,
+    version: DataTypes.INTEGER,
     clientDigest: DataTypes.STRING,
     serverDigest: DataTypes.STRING,
     createdAt: DataTypes.DATE,

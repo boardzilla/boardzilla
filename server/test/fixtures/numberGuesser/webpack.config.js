@@ -14,8 +14,8 @@ module.exports = {
   resolve: {
     fallback: {
       events: require.resolve("events/"),
-      canvas: path.resolve(__dirname, '../../ext/canvas.js'),
-      perf_hooks: path.resolve(__dirname, '../../ext/perf_hooks.js'),
+      canvas: path.resolve(__dirname, '../../../../ext/canvas.js'),
+      perf_hooks: path.resolve(__dirname, '../../../../ext/perf_hooks.js'),
       "game-core-server": path.resolve(path.join(__dirname, "../../../../game-core-server")),
     },
   },

@@ -226,7 +226,13 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
   app.post('/sessions', async (req, res) => {
     if (!req.user) return unauthorized(req, res, 'permission denied')
     if (!req.body.gameId) return res.status(400).end('no game specified')
-    const session = await db.Session.create({creatorId: req.user.id, gameId: req.body.gameId, seed: String(Math.random())})
+
+    const game = await db.Game.findByPk(req.body.gameId)
+    const gameVersion = await game.latestVersion()
+    console.log("GAME", game)
+    console.log("GAME", gameVersion)
+
+    const session = await db.Session.create({gameVersionId: gameVersion.id, creatorId: req.user.id, seed: String(Math.random())})
     await db.SessionUser.create({userId: req.user.id, sessionId: session.id})
     if (req.is('json')) {
       res.json({id: session.id})

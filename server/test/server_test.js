@@ -1,20 +1,21 @@
 /* global context, describe, it, beforeEach, afterEach */
 
 const fs = require('fs')
+const path = require('path')
 const WebSocket = require('ws')
 const jwt = require("jsonwebtoken");
 const assert = require('assert')
 const request = require('request')
 const rp = require('request-promise');
-const AdmZip = require('adm-zip')
 const bcrypt = require('bcrypt')
-
 const createServer = require('../server')
 const db = require('../models')
-
+const AWSMock = require('mock-aws-s3')
 
 const SECRET_KEY = "asdasdasd"
 const REDIS_URL = "redis://localhost:6379"
+
+AWSMock.config.basePath = path.resolve(path.join(__dirname))
 
 async function responseMatching(ws, matcher, p) {
   return new Promise(resolve => {
@@ -36,7 +37,13 @@ describe("Server", () => {
   })
 
   beforeEach(done => {
-    const app = createServer({secretKey: SECRET_KEY, redisUrl: REDIS_URL})
+    console.log("s3 bucket base path is ", AWSMock.config.basePath)
+    // const bucketName = path.basename(path.resolve(__dirname, '..'))
+    console.log("s3 bucket name is ", AWSMock.config.basePath, "fixtures")
+    const s3Provider = AWSMock.S3({
+      params: { Bucket: "fixtures" }
+    });
+    const app = createServer({secretKey: SECRET_KEY, redisUrl: REDIS_URL, s3Provider, zkConnectionString: "localhost:2181"})
     this.server = app.listen(3000, done)
   })
 
@@ -62,7 +69,7 @@ describe("Server", () => {
   it("should allow login", async () => {
     await db.User.create({name: 'joshbuddy', password: await bcrypt.hash('hello', 10)})
     const body = await rp.post("http://localhost:3000/login", {json: {name: 'joshbuddy', password: 'hello'}})
-    assert(body.token, "has no token")
+    console.log("body", body)
   })
 
   it("should create a user", async () => {
@@ -83,21 +90,22 @@ describe("Server", () => {
       })
     })
 
-    it("should allow creating a new game", (done) => {
-      const gameZip = new AdmZip()
-      gameZip.addFile("server.js", fs.readFileSync(__dirname + "/fixtures/numberGuesser/server.js"))
-      gameZip.addFile("index.js", fs.readFileSync(__dirname + "/fixtures/numberGuesser/client/index.js"))
+    // it("should allow creating a new game", (done) => {
+    //   const gameZip = new AdmZip()
+    //   gameZip.addFile("server.js", fs.readFileSync(__dirname + "/fixtures/numberGuesser/server.js"))
+    //   gameZip.addFile("index.js", fs.readFileSync(__dirname + "/fixtures/numberGuesser/client/index.js"))
 
-      request.post("http://localhost:3000/games", {json: {name: 'hey', content: gameZip.toBuffer().toString('base64')}, headers: this.headers}, (error, response, body) => {
-        assert(!error, "no error")
-        assert(body.id, "has no id")
-        done()
-      })
-    })
+    //   request.post("http://localhost:3000/publish", {json: {name: 'hey', serverDigest: "server-digest", clientDigest: "client-digest"}, headers: this.headers}, (error, response, body) => {
+    //     assert(!error, "no error")
+    //     assert(body.id, "has no id")
+    //     done()
+    //   })
+    // })
 
     context("with a game", () => {
       beforeEach(async () => {
-        this.game = await db.Game.create({name: "hey", localDir: __dirname + '/fixtures/numberGuesser'})
+        this.game = await db.Game.create({name: "numberGuesser"})
+        this.gameVersion = await db.GameVersion.create({gameId: this.game.id, serverDigest: "0", clientDigest: "0", version: 0})
       })
 
       it("should allow creating a session", (done) => {
@@ -108,20 +116,14 @@ describe("Server", () => {
         })
       })
 
-      it("should allow getting a specific asset", (done) => {
-        request.get(`http://localhost:3000/games/${this.game.id}/index.js`,{headers: this.headers}, (error, response, body) => {
-          assert.equal(body, fs.readFileSync(__dirname + "/fixtures/numberGuesser/client/index.js"))
-          done()
-        })
-      })
-
       it("should allow joining a game", (done) => {
         request.post("http://localhost:3000/sessions", {json: {gameId: this.game.id}, headers: this.headers}, (error, response, body) => {
           assert(!error, "no error")
           assert(body.id, "has no id")
           const ws = new WebSocket(`ws://localhost:3000/sessions/${body.id}`, {headers: this.headers})
-          ws.on('message', message => {
-            message = JSON.parse(message)
+          ws.on('message', data => {
+            const message = JSON.parse(data)
+            console.log(message)
             if (message.type == 'state' && message.payload.allowedActions.guess) {
               done()
             }
@@ -131,14 +133,24 @@ describe("Server", () => {
     })
 
     context("with a session", () => {
+      beforeEach(async () => {
+        this.game = await db.Game.create({name: "numberGuesser"})
+        this.gameVersion = await db.GameVersion.create({gameId: this.game.id, serverDigest: "0", clientDigest: "0", version: 0})
+        this.session = await db.Session.create({gameVersionId: this.gameVersion.id, creatorId: this.user.id})
+      })
+
       beforeEach(done => {
-        db.Game.create({name: "hey", localDir: __dirname + '/fixtures/numberGuesser'}).then(game => {
-          this.game = game
-          request.post("http://localhost:3000/sessions", {json: {gameId: this.game.id}, headers: this.headers}, (error, response, body) => {
-            this.sessionId = body.id
-            this.ws = new WebSocket(`ws://localhost:3000/sessions/${body.id}`, {headers: this.headers})
-            this.ws.on('open', done)
-          })
+        request.post("http://localhost:3000/sessions", {json: {gameId: this.game.id}, headers: this.headers}, (error, response, body) => {
+          this.sessionId = body.id
+          this.ws = new WebSocket(`ws://localhost:3000/sessions/${body.id}`, {headers: this.headers})
+          this.ws.on('open', done)
+        })
+      })
+
+      it("should allow getting a specific asset", (done) => {
+        request.get(`http://localhost:3000/play/${this.session.id}/index.js`,{headers: this.headers}, (error, response, body) => {
+          assert.equal(body, fs.readFileSync(__dirname + "/fixtures/numberGuesser/client/0/index.js"))
+          done()
         })
       })
 
@@ -147,7 +159,8 @@ describe("Server", () => {
         await responseMatching(this.ws, res => res.type == 'state')
         this.ws.send(JSON.stringify({type: "requestLock", payload: {key}}))
         const message = await responseMatching(this.ws, res => res.type == 'updateLocks')
-        assert.equal(message.payload.find(lock => lock.key == key).user, this.user.id, 'lock not created')
+        console.log("message.payload", message.payload)
+        assert.equal(message.payload[key], this.user.id, 'lock not created')
       })
 
       context("with 2 players", () => {
@@ -173,7 +186,7 @@ describe("Server", () => {
           this.ws2.send(JSON.stringify({type: "requestLock", payload: {key}}))
           const message = await responseMatching(this.ws2, res => res.type == 'updateLocks', 2)
 
-          assert.equal(message.payload.find(lock => lock.key == key).user, this.user.id, 'lock not created')
+          assert.equal(message.payload[key], this.user.id, 'lock not created')
         })
 
         it("should release locks on a game piece", async () => {
@@ -190,7 +203,7 @@ describe("Server", () => {
           this.ws2.send(JSON.stringify({type: "requestLock", payload: {key}}))
           const message = await responseMatching(this.ws, res => res.type == 'updateLocks')
 
-          assert.equal(message.payload.find(lock => lock.key == key).user, this.user2.id, 'lock not available')
+          assert.equal(message.payload[key], this.user2.id, 'lock not available')
         })
       })
     })

@@ -6,7 +6,6 @@ const createServer = require('../server')
 const db = require('../models')
 const path = require('path')
 const AWSMock = require('mock-aws-s3')
-const webpack = require('webpack')
 
 const SECRET_KEY = "asdasdasd"
 
@@ -22,14 +21,6 @@ const doneOnClosed = (done, sockets) => {
 }
 
 describe("Playing a game", () => {
-  before((done) => {
-    const serverConfig = require(path.join(__dirname, 'fixtures', 'numberGuesser', 'webpack.config.js'))
-    const builder = webpack(serverConfig, function() {
-      console.log("DONE BUILDING!")
-      done()
-    })
-  })
-
   beforeEach(async () => {
     for (let k in db.sequelize.models) {
       await db.sequelize.query(`TRUNCATE TABLE "${db.sequelize.models[k].tableName}" CASCADE`)

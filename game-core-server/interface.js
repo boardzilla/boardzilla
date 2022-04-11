@@ -325,6 +325,8 @@ class GameInterface extends EventEmitter {
       actionName = action.prompt
     }
 
+    console.log("action>>>>", action, action.prompt)
+
     if (!action.prompt) {
       throw Error(`${actionName} is missing 'prompt'`)
     }
