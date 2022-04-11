@@ -1,12 +1,12 @@
 /* global context, describe, it, beforeEach, afterEach, __dirname */
 
-const Interface = require('../game/interface')
+const Interface = require('../interface')
 const assert = require('assert')
 const chai = require('chai')
 const spies = require('chai-spies');
 chai.use(spies);
 const expect = chai.expect;
-const { times } = require("../game/utils");
+const { times } = require("../utils");
 
 describe("GameInterface", () => {
   beforeEach(() => {
