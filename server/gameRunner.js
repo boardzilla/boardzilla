@@ -5,6 +5,7 @@ const db = require('./models')
 const EventEmitter = require('events')
 const Redis = require("ioredis")
 const path = require("path")
+const { Sequelize } = require('sequelize')
 
 class GameRunner {
   constructor(redisUrl, s3Provider, zkConnectionString) {

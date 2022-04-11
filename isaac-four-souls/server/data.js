@@ -1,7 +1,6 @@
 const editions = [
   'Four Souls+ V2',
-  /* 'Base Game V2',
-   * 'Alt Art', */
+  'Alt Art',
   'Requiem',
   'Promo',
   'Gold Box V2',
@@ -18,8 +17,7 @@ const cards = {
     "text": "Isaac",
     "type": "character",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-isaac-308x420.png",
     "back": "CharacterCardBack-308x420.png"
@@ -73,8 +71,7 @@ const cards = {
     "text": "Judas",
     "type": "character",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-judas-308x420.png",
     "back": "CharacterCardBack-308x420.png"
@@ -92,8 +89,7 @@ const cards = {
     "text": "Blue Baby",
     "type": "character",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-blue_baby-308x420.png",
     "back": "CharacterCardBack-308x420.png"
@@ -165,8 +161,7 @@ const cards = {
     "text": "Lilith",
     "type": "character",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-lilith-308x420.png",
     "back": "CharacterCardBack-308x420.png"
@@ -184,8 +179,7 @@ const cards = {
     "text": "The Forgotten",
     "type": "character",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-the_forgotten-308x420.png",
     "back": "CharacterCardBack-308x420.png"
@@ -203,10 +197,7 @@ const cards = {
     "text": "Eden",
     "type": "character",
     "edition": {
-      "Base Game V2": 1,
-      "Requiem": 2,
-      "Alt Art": 0, //2,
-      "Promo": 2
+      "Base Game V2": 1
     },
     "front": "b2-eden-308x420.png",
     "back": "CharacterCardBack-308x420.png"
@@ -243,8 +234,7 @@ const cards = {
     "type": "treasure",
     "p3": true,
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-brimstone-308x420.png",
     "back": "TreasureCardBack-308x420.png"
@@ -812,8 +802,7 @@ const cards = {
     "text": "Godhead",
     "type": "treasure",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-godhead-308x420.png",
     "back": "TreasureCardBack-308x420.png"
@@ -831,8 +820,7 @@ const cards = {
     "text": "Guppy’s Paw",
     "type": "treasure",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-guppys_paw-308x420.png",
     "back": "TreasureCardBack-308x420.png"
@@ -1297,12 +1285,27 @@ const cards = {
     "text": "Pills!",
     "type": "loot",
     "edition": {
-      "Base Game V2": 3,
-      "Gold Box V2": 1,
-      "Four Souls+ V2": 3,
-      "Requiem": 2
+      "Base Game V2": 1
     },
     "front": "b2-pills_2-308x420.png",
+    "back": "LootCardBack-308x420.png"
+  },
+  "Pills-1": {
+    "text": "Pills!",
+    "type": "loot",
+    "edition": {
+      "Base Game V2": 1
+    },
+    "front": "b2-pills_3-308x420.png",
+    "back": "LootCardBack-308x420.png"
+  },
+  "Pills-2": {
+    "text": "Pills!",
+    "type": "loot",
+    "edition": {
+      "Base Game V2": 1
+    },
+    "front": "b2-pills-308x420.png",
     "back": "LootCardBack-308x420.png"
   },
   "Soul-Heart": {
@@ -1437,8 +1440,7 @@ const cards = {
     "text": "XIII. Death",
     "type": "loot",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-xiii_death-308x420.png",
     "back": "LootCardBack-308x420.png"
@@ -1474,8 +1476,7 @@ const cards = {
     "text": "XVII. The Stars",
     "type": "loot",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-xvii_the_stars-308x420.png",
     "back": "LootCardBack-308x420.png"
@@ -1628,8 +1629,7 @@ const cards = {
     "text": "Lost Soul",
     "type": "loot",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-lost_soul-308x420.png",
     "back": "LootCardBack-308x420.png"
@@ -1665,8 +1665,7 @@ const cards = {
     "text": "Clotty",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-clotty-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -1702,8 +1701,7 @@ const cards = {
     "text": "Delirium",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-delirium-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -1858,8 +1856,7 @@ const cards = {
     "text": "Mom’s Hand",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-moms_hand-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -1868,8 +1865,7 @@ const cards = {
     "text": "Mulliboom",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-mulliboom-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -1878,8 +1874,7 @@ const cards = {
     "text": "Mulligan",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-mulligan-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2132,8 +2127,7 @@ const cards = {
     "text": "Daddy Long Legs",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-daddy_long_legs-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2142,8 +2136,7 @@ const cards = {
     "text": "Dark One",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-dark_one-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2170,8 +2163,7 @@ const cards = {
     "text": "Famine",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-famine-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2207,8 +2199,7 @@ const cards = {
     "text": "Gurdy",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-gurdy-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2226,8 +2217,7 @@ const cards = {
     "text": "Larry Jr.",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-larry_jr-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2236,8 +2226,7 @@ const cards = {
     "text": "Little Horn",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-little_horn-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2264,8 +2253,7 @@ const cards = {
     "text": "Mega Fatty",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-mega_fatty-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2274,8 +2262,7 @@ const cards = {
     "text": "Monstro",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-monstro-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2293,8 +2280,7 @@ const cards = {
     "text": "Pestilence",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-pestilence-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2303,8 +2289,7 @@ const cards = {
     "text": "Pin",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-pin-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2322,8 +2307,7 @@ const cards = {
     "text": "Rag Man",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-rag_man-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2350,9 +2334,7 @@ const cards = {
     "text": "The Bloat",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1,
-      "Promo": 2
+      "Base Game V2": 1
     },
     "front": "b2-the_bloat-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2361,8 +2343,7 @@ const cards = {
     "text": "The Duke Of Flies",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-the_duke_of_flies-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2380,8 +2361,7 @@ const cards = {
     "text": "The Lamb",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-the_lamb-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2408,8 +2388,7 @@ const cards = {
     "text": "Mom!",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-mom-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2419,8 +2398,7 @@ const cards = {
     "type": "monster",
     "p3": true,
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1 // no 3p on this
+      "Base Game V2": 1
     },
     "front": "b2-satan-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2474,8 +2452,7 @@ const cards = {
     "text": "Ambush!",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-ambush-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2484,9 +2461,18 @@ const cards = {
     "text": "Chest",
     "type": "monster",
     "edition": {
-      "Base Game V2": 2
+      "Base Game V2": 1
     },
     "front": "b2-chest-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Chest1": {
+    "text": "Chest",
+    "type": "monster",
+    "edition": {
+      "Base Game V2": 1
+    },
+    "front": "b2-chest_2-308x420.png",
     "back": "MonsterCardBack-308x420.png"
   },
   "Cursed-Chest": {
@@ -2502,17 +2488,25 @@ const cards = {
     "text": "Dark Chest",
     "type": "monster",
     "edition": {
-      "Base Game V2": 2
+      "Base Game V2": 1
     },
     "front": "b2-dark_chest-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Dark-Chest1": {
+    "text": "Dark Chest",
+    "type": "monster",
+    "edition": {
+      "Base Game V2": 1
+    },
+    "front": "b2-dark_chest_2-308x420.png",
     "back": "MonsterCardBack-308x420.png"
   },
   "Devil-Deal": {
     "text": "Devil Deal",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-devil_deal-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2521,9 +2515,18 @@ const cards = {
     "text": "Gold Chest",
     "type": "monster",
     "edition": {
-      "Base Game V2": 2
+      "Base Game V2": 1
     },
     "front": "b2-gold_chest_2-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Gold-Chest1": {
+    "text": "Gold Chest",
+    "type": "monster",
+    "edition": {
+      "Base Game V2": 1
+    },
+    "front": "b2-gold_chest-308x420.png",
     "back": "MonsterCardBack-308x420.png"
   },
   "Greed-": {
@@ -2557,8 +2560,7 @@ const cards = {
     "text": "Secret Room!",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-secret_room-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2567,8 +2569,7 @@ const cards = {
     "text": "Shop Upgrade!",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Alt Art": 0, //1
+      "Base Game V2": 1
     },
     "front": "b2-shop_upgrade-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2577,9 +2578,7 @@ const cards = {
     "text": "Troll Bombs",
     "type": "monster",
     "edition": {
-      "Base Game V2": 1,
-      "Four Souls+ V2": 1,
-      "Requiem": 1
+      "Base Game V2": 1
     },
     "front": "b2-troll_bombs-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -2633,8 +2632,7 @@ const cards = {
     "text": "Azazel",
     "type": "character",
     "edition": {
-      "Gold Box V2": 1,
-      "Alt Art": 0, //1
+      "Gold Box V2": 1
     },
     "front": "g2-azazel-308x420.png",
     "back": "CharacterCardBack-308x420.png"
@@ -2652,8 +2650,7 @@ const cards = {
     "text": "The Lost",
     "type": "character",
     "edition": {
-      "Gold Box V2": 1,
-      "Alt Art": 0, //1
+      "Gold Box V2": 1
     },
     "front": "g2-the_lost-308x420.png",
     "back": "CharacterCardBack-308x420.png"
@@ -2671,8 +2668,7 @@ const cards = {
     "text": "The Keeper",
     "type": "character",
     "edition": {
-      "Gold Box V2": 1,
-      "Alt Art": 0, //1
+      "Gold Box V2": 1
     },
     "front": "g2-the_keeper-308x420.png",
     "back": "CharacterCardBack-308x420.png"
@@ -2893,6 +2889,15 @@ const cards = {
     "front": "g2-charged_penny-308x420.png",
     "back": "LootCardBack-308x420.png"
   },
+  "Pills-3": {
+    "text": "Pills!",
+    "type": "loot",
+    "edition": {
+      "Gold Box V2": 1
+    },
+    "front": "g2-pills-308x420.png",
+    "back": "LootCardBack-308x420.png"
+  },
   "Credit-Card": {
     "text": "Credit Card",
     "type": "loot",
@@ -2970,8 +2975,7 @@ const cards = {
     "text": "Begotten",
     "type": "monster",
     "edition": {
-      "Gold Box V2": 1,
-      "Alt Art": 0, //1
+      "Gold Box V2": 1
     },
     "front": "g2-begotten-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -3007,8 +3011,7 @@ const cards = {
     "text": "Gaper",
     "type": "monster",
     "edition": {
-      "Gold Box V2": 1,
-      "Alt Art": 0, //1
+      "Gold Box V2": 1
     },
     "front": "g2-gaper-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -3062,8 +3065,7 @@ const cards = {
     "text": "Fistula",
     "type": "monster",
     "edition": {
-      "Gold Box V2": 1,
-      "Alt Art": 0, //1
+      "Gold Box V2": 1
     },
     "front": "g2-fistula-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -3081,8 +3083,7 @@ const cards = {
     "text": "Polycephalus",
     "type": "monster",
     "edition": {
-      "Gold Box V2": 1,
-      "Alt Art": 0, //1
+      "Gold Box V2": 1
     },
     "front": "g2-polycephalus-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -3190,8 +3191,7 @@ const cards = {
     "text": "Guppy",
     "type": "character",
     "edition": {
-      "Four Souls+ V2": 1,
-      "Alt Art": 0, //1
+      "Four Souls+ V2": 1
     },
     "front": "fsp2-guppy-308x420.png",
     "back": "CharacterCardBack-308x420.png"
@@ -3504,6 +3504,33 @@ const cards = {
     "front": "fsp2-lil_battery-308x420.png",
     "back": "LootCardBack-308x420.png"
   },
+  "Pills-4": {
+    "text": "Pills!",
+    "type": "loot",
+    "edition": {
+      "Four Souls+ V2": 1
+    },
+    "front": "fsp2-pills-308x420.png",
+    "back": "LootCardBack-308x420.png"
+  },
+  "Pills-5": {
+    "text": "Pills!",
+    "type": "loot",
+    "edition": {
+      "Four Souls+ V2": 1
+    },
+    "front": "fsp2-pills_2-308x420.png",
+    "back": "LootCardBack-308x420.png"
+  },
+  "Pills-6": {
+    "text": "Pills!",
+    "type": "loot",
+    "edition": {
+      "Four Souls+ V2": 1
+    },
+    "front": "fsp2-pills_3-308x420.png",
+    "back": "LootCardBack-308x420.png"
+  },
   "-Card": {
     "text": "? Card",
     "type": "loot",
@@ -3724,8 +3751,7 @@ const cards = {
     "text": "Dingle",
     "type": "monster",
     "edition": {
-      "Four Souls+ V2": 1,
-      "Alt Art": 0, //1
+      "Four Souls+ V2": 1
     },
     "front": "fsp2-dingle-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -3753,8 +3779,7 @@ const cards = {
     "type": "monster",
     "p3": true,
     "edition": {
-      "Four Souls+ V2": 1,
-      "Alt Art": 0, //1
+      "Four Souls+ V2": 1
     },
     "front": "fsp2-monstro_ii-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -3857,6 +3882,15 @@ const cards = {
       "Four Souls+ V2": 1
     },
     "front": "fsp2-spiked_chest-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Troll-Bombs1": {
+    "text": "Troll Bombs",
+    "type": "monster",
+    "edition": {
+      "Four Souls+ V2": 1
+    },
+    "front": "fsp2-troll_bombs-308x420.png",
     "back": "MonsterCardBack-308x420.png"
   },
   "Bethany": {
@@ -4011,8 +4045,7 @@ const cards = {
     "text": "The Savage",
     "type": "character",
     "edition": {
-      "Requiem": 1,
-      "Alt Art": 0, //1
+      "Requiem": 1
     },
     "front": "r-the_savage-308x420.png",
     "back": "CharacterCardBack-308x420.png"
@@ -4066,8 +4099,7 @@ const cards = {
     "text": "The Capricious",
     "type": "character",
     "edition": {
-      "Requiem": 1,
-      "Alt Art": 0, //1
+      "Requiem": 1
     },
     "front": "r-the_capricious-308x420.png",
     "back": "CharacterCardBack-308x420.png"
@@ -4105,8 +4137,7 @@ const cards = {
     "text": "The Harlot",
     "type": "character",
     "edition": {
-      "Requiem": 1,
-      "Alt Art": 0, //1
+      "Requiem": 1
     },
     "front": "r-the_harlot-308x420.png",
     "back": "CharacterCardBack-308x420.png"
@@ -4229,6 +4260,24 @@ const cards = {
     },
     "front": "r-classic_roller-308x420.png",
     "back": "EternalCardBack-308x420.png"
+  },
+  "Eden1": {
+    "text": "Eden",
+    "type": "character",
+    "edition": {
+      "Requiem": 1
+    },
+    "front": "r-eden_2-308x420.png",
+    "back": "CharacterCardBack-308x420.png"
+  },
+  "Eden2": {
+    "text": "Eden",
+    "type": "character",
+    "edition": {
+      "Requiem": 1
+    },
+    "front": "r-eden-308x420.png",
+    "back": "CharacterCardBack-308x420.png"
   },
   "Abel": {
     "text": "Abel",
@@ -4737,6 +4786,24 @@ const cards = {
     "front": "r-mega_bomb-308x420.png",
     "back": "LootCardBack-308x420.png"
   },
+  "Pills-7": {
+    "text": "Pills!",
+    "type": "loot",
+    "edition": {
+      "Requiem": 1
+    },
+    "front": "r-pills-308x420.png",
+    "back": "LootCardBack-308x420.png"
+  },
+  "Pills-8": {
+    "text": "Pills!",
+    "type": "loot",
+    "edition": {
+      "Requiem": 1
+    },
+    "front": "r-pills_2-308x420.png",
+    "back": "LootCardBack-308x420.png"
+  },
   "Black-Heart": {
     "text": "Black Heart",
     "type": "loot",
@@ -4913,8 +4980,7 @@ const cards = {
     "text": "Dogma",
     "type": "monster",
     "edition": {
-      "Requiem": 1,
-      "The Unboxing of Isaac": 1
+      "Requiem": 1
     },
     "front": "r-dogma-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -5134,8 +5200,7 @@ const cards = {
     "text": "Brownie",
     "type": "monster",
     "edition": {
-      "Requiem": 1,
-      "Alt Art": 0, //1
+      "Requiem": 1
     },
     "front": "r-brownie-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -5162,8 +5227,7 @@ const cards = {
     "text": "Hornfel",
     "type": "monster",
     "edition": {
-      "Requiem": 1,
-      "Alt Art": 0, //1
+      "Requiem": 1
     },
     "front": "r-hornfel-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -5181,8 +5245,7 @@ const cards = {
     "text": "Rag Mega",
     "type": "monster",
     "edition": {
-      "Requiem": 1,
-      "Alt Art": 0, //1
+      "Requiem": 1
     },
     "front": "r-rag_mega-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -5237,8 +5300,7 @@ const cards = {
     "text": "Ultra Greed!",
     "type": "monster",
     "edition": {
-      "Requiem": 1,
-      "Alt Art": 0, //1
+      "Requiem": 1
     },
     "front": "r-ultra_greed-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -5248,8 +5310,7 @@ const cards = {
     "type": "monster",
     "p3": true,
     "edition": {
-      "Requiem": 1,
-      "Alt Art": 0, //2
+      "Requiem": 1
     },
     "front": "r-mega_satan-308x420.png",
     "back": "MonsterCardBack-308x420.png"
@@ -5379,6 +5440,15 @@ const cards = {
       "Requiem": 1
     },
     "front": "r-tnt_barrel-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Troll-Bombs2": {
+    "text": "Troll Bombs",
+    "type": "monster",
+    "edition": {
+      "Requiem": 1
+    },
+    "front": "r-troll_bombs-308x420.png",
     "back": "MonsterCardBack-308x420.png"
   },
   "All-Hallows-Eve": {
@@ -6890,60 +6960,574 @@ const cards = {
     "front": "rwz-strawberry-308x420.png",
     "back": "BonusSoulCardBack-308x420.png"
   },
+  "Isaac1": {
+    "text": "Isaac",
+    "type": "character",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-isaac-308x420.png",
+    "back": "CharacterCardBack-308x420.png"
+  },
+  "Judas1": {
+    "text": "Judas",
+    "type": "character",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-judas-308x420.png",
+    "back": "CharacterCardBack-308x420.png"
+  },
+  "Blue-Baby1": {
+    "text": "Blue Baby",
+    "type": "character",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-blue_baby-308x420.png",
+    "back": "CharacterCardBack-308x420.png"
+  },
+  "Azazel1": {
+    "text": "Azazel",
+    "type": "character",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-azazel-308x420.png",
+    "back": "CharacterCardBack-308x420.png"
+  },
+  "The-Lost1": {
+    "text": "The Lost",
+    "type": "character",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-the_lost-308x420.png",
+    "back": "CharacterCardBack-308x420.png"
+  },
+  "Lilith1": {
+    "text": "Lilith",
+    "type": "character",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-lilith-308x420.png",
+    "back": "CharacterCardBack-308x420.png"
+  },
+  "The-Keeper1": {
+    "text": "The Keeper",
+    "type": "character",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-the_keeper-308x420.png",
+    "back": "CharacterCardBack-308x420.png"
+  },
+  "The-Forgotten1": {
+    "text": "The Forgotten",
+    "type": "character",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-the_forgotten-308x420.png",
+    "back": "CharacterCardBack-308x420.png"
+  },
+  "Guppy1": {
+    "text": "Guppy",
+    "type": "character",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-guppy-308x420.png",
+    "back": "CharacterCardBack-308x420.png"
+  },
+  "The-Capricious1": {
+    "text": "The Capricious",
+    "type": "character",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-the_capricious-308x420.png",
+    "back": "CharacterCardBack-308x420.png"
+  },
+  "The-Savage1": {
+    "text": "The Savage",
+    "type": "character",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-the_savage-308x420.png",
+    "back": "CharacterCardBack-308x420.png"
+  },
+  "The-Harlot1": {
+    "text": "The Harlot",
+    "type": "character",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-the_harlot-308x420.png",
+    "back": "CharacterCardBack-308x420.png"
+  },
+  "Eden3": {
+    "text": "Eden",
+    "type": "character",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-eden-308x420.png",
+    "back": "CharacterCardBack-308x420.png"
+  },
+  "Eden4": {
+    "text": "Eden",
+    "type": "character",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-eden_2-308x420.png",
+    "back": "CharacterCardBack-308x420.png"
+  },
+  "Brimstone1": {
+    "text": "Brimstone",
+    "type": "treasure",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-brimstone-308x420.png",
+    "back": "TreasureCardBack-308x420.png"
+  },
   "Epic-Fetus-": {
     "text": "Epic Fetus!",
     "type": "treasure",
     "edition": {
-      "Alt Art": 0, //1,
-      "Target": 1
+      "Alt Art": 1
     },
     "front": "aa-epic_fetus-308x420.png",
     "back": "TreasureCardBack-308x420.png"
+  },
+  "Godhead1": {
+    "text": "Godhead",
+    "type": "treasure",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-godhead-308x420.png",
+    "back": "TreasureCardBack-308x420.png"
+  },
+  "Guppy-s-Paw1": {
+    "text": "Guppy’s Paw",
+    "type": "treasure",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-guppys_paw-308x420.png",
+    "back": "TreasureCardBack-308x420.png"
+  },
+  "XIII-Death1": {
+    "text": "XIII. Death",
+    "type": "loot",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-xiii_death-308x420.png",
+    "back": "LootCardBack-308x420.png"
+  },
+  "XVII-The-Stars1": {
+    "text": "XVII. The Stars",
+    "type": "loot",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-xvii_the_stars-308x420.png",
+    "back": "LootCardBack-308x420.png"
+  },
+  "Lost-Soul1": {
+    "text": "Lost Soul",
+    "type": "loot",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-lost_soul-308x420.png",
+    "back": "LootCardBack-308x420.png"
+  },
+  "Begotten1": {
+    "text": "Begotten",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-begotten-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
   },
   "Big-Bony": {
     "text": "Big Bony",
     "type": "monster",
     "edition": {
-      "Alt Art": 0, //1
+      "Alt Art": 1
     },
     "front": "aa-big_bony-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Clotty1": {
+    "text": "Clotty",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-clotty-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Delirium1": {
+    "text": "Delirium",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-delirium-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Gaper1": {
+    "text": "Gaper",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-gaper-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Mom-s-Hand1": {
+    "text": "Mom’s Hand",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-moms_hand-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Mulliboom1": {
+    "text": "Mulliboom",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-mulliboom-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Mulligan1": {
+    "text": "Mulligan",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-mulligan-308x420.png",
     "back": "MonsterCardBack-308x420.png"
   },
   "Twitchy": {
     "text": "Twitchy",
     "type": "monster",
     "edition": {
-      "Alt Art": 0, //1
+      "Alt Art": 1
     },
     "front": "aa-twitchy-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Brownie1": {
+    "text": "Brownie",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-brownie-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Daddy-Long-Legs1": {
+    "text": "Daddy Long Legs",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-daddy_long_legs-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Dark-One1": {
+    "text": "Dark One",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-dark_one-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Dingle1": {
+    "text": "Dingle",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-dingle-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Famine1": {
+    "text": "Famine",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-famine-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Fistula1": {
+    "text": "Fistula",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-fistula-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Gurdy1": {
+    "text": "Gurdy",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-gurdy-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Hornfel1": {
+    "text": "Hornfel",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-hornfel-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Larry-Jr-1": {
+    "text": "Larry Jr.",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-larry_jr-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Little-Horn1": {
+    "text": "Little Horn",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-little_horn-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Mega-Fatty1": {
+    "text": "Mega Fatty",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-mega_fatty-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Mega-Satan-1": {
+    "text": "Mega Satan!",
+    "type": "monster",
+    "p3": true,
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-mega_satan-308x420.png",
     "back": "MonsterCardBack-308x420.png"
   },
   "Min-Min": {
     "text": "Min Min",
     "type": "monster",
     "edition": {
-      "Alt Art": 0, //1
+      "Alt Art": 1
     },
     "front": "aa-min_min-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Monstro1": {
+    "text": "Monstro",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-monstro-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Monstro-II1": {
+    "text": "Monstro II",
+    "type": "monster",
+    "p3": true,
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-monstro_ii-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Pestilence1": {
+    "text": "Pestilence",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-pestilence-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Pin1": {
+    "text": "Pin",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-pin-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Polycephalus1": {
+    "text": "Polycephalus",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-polycephalus-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Rag-Man1": {
+    "text": "Rag Man",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-rag_man-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Rag-Mega1": {
+    "text": "Rag Mega",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-rag_mega-308x420.png",
     "back": "MonsterCardBack-308x420.png"
   },
   "The-Beast": {
     "text": "The Beast",
     "type": "monster",
     "edition": {
-      "Alt Art": 0, //1
+      "Alt Art": 1
     },
     "front": "aa-the_beast-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "The-Bloat1": {
+    "text": "The Bloat",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-the_bloat-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "The-Duke-Of-Flies1": {
+    "text": "The Duke Of Flies",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-the_duke_of_flies-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "The-Lamb1": {
+    "text": "The Lamb",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-the_lamb-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Ultra-Greed-1": {
+    "text": "Ultra Greed!",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-ultra_greed-308x420.png",
     "back": "MonsterCardBack-308x420.png"
   },
   "It-Lives-": {
     "text": "It Lives!",
     "type": "monster",
     "edition": {
-      "Alt Art": 0, //1,
-      "Promo": 1
+      "Alt Art": 1
     },
     "front": "aa-it_lives-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Mega-Satan-2": {
+    "text": "Mega Satan!",
+    "type": "monster",
+    "p3": true,
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-mega_satan_2-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Mom-1": {
+    "text": "Mom!",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-mom-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Satan-1": {
+    "text": "Satan!",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-satan-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Ambush-1": {
+    "text": "Ambush!",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-ambush-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Devil-Deal1": {
+    "text": "Devil Deal",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-devil_deal-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Secret-Room-1": {
+    "text": "Secret Room!",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-secret_room-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Shop-Upgrade-1": {
+    "text": "Shop Upgrade!",
+    "type": "monster",
+    "edition": {
+      "Alt Art": 1
+    },
+    "front": "aa-shop_upgrade-308x420.png",
     "back": "MonsterCardBack-308x420.png"
   },
   "Dead-Eye": {
@@ -6962,6 +7546,15 @@ const cards = {
       "Target": 1
     },
     "front": "t-marked-308x420.png",
+    "back": "TreasureCardBack-308x420.png"
+  },
+  "Epic-Fetus-1": {
+    "text": "Epic Fetus!",
+    "type": "treasure",
+    "edition": {
+      "Target": 1
+    },
+    "front": "t-epic_fetus-308x420.png",
     "back": "TreasureCardBack-308x420.png"
   },
   "Lil-Gish": {
@@ -7063,6 +7656,15 @@ const cards = {
     "front": "box-christian_broadcasts-308x420.png",
     "back": "MonsterCardBack-308x420.png"
   },
+  "Dogma1": {
+    "text": "Dogma",
+    "type": "monster",
+    "edition": {
+      "The Unboxing of Isaac": 1
+    },
+    "front": "box-dogma-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
   "TV-Static": {
     "text": "TV Static",
     "type": "monster",
@@ -7070,6 +7672,51 @@ const cards = {
       "The Unboxing of Isaac": 1
     },
     "front": "box-tv_static-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "The-Bloat2": {
+    "text": "The Bloat",
+    "type": "monster",
+    "edition": {
+      "Promo": 1
+    },
+    "front": "p-the_bloat-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "Eden5": {
+    "text": "Eden",
+    "type": "character",
+    "edition": {
+      "Promo": 1
+    },
+    "front": "sp-eden-308x420.png",
+    "back": "CharacterCardBack-308x420.png"
+  },
+  "Eden6": {
+    "text": "Eden",
+    "type": "character",
+    "edition": {
+      "Promo": 1
+    },
+    "front": "psp-eden-308x420.png",
+    "back": "CharacterCardBack-308x420.png"
+  },
+  "The-Bloat3": {
+    "text": "The Bloat",
+    "type": "monster",
+    "edition": {
+      "Promo": 1
+    },
+    "front": "psp-the_bloat-308x420.png",
+    "back": "MonsterCardBack-308x420.png"
+  },
+  "It-Lives-1": {
+    "text": "It Lives!",
+    "type": "monster",
+    "edition": {
+      "Promo": 1
+    },
+    "front": "sp-it_lives-308x420.png",
     "back": "MonsterCardBack-308x420.png"
   },
   "Ultra-Pride": {

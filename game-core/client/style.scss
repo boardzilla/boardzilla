@@ -164,6 +164,9 @@ button {
 .react-draggable-dragging, .external-dragging {
   z-index: 100;
   position: relative;
+  img {
+    filter: drop-shadow(5px 5px 5px #222);
+  }
 }
 
 .counter {
