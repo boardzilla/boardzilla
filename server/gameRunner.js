@@ -31,9 +31,9 @@ class GameRunner {
 
     const cleanup = async () => {
       try {
-        console.log("ending pg lock conn")
+        console.log("ending zk lock conn")
         await lock.unlock()
-        console.log("done ending pg lock conn")
+        console.log("done ending zk lock conn")
       } catch (e) {
         console.error("error ending lock client", e)
       }
