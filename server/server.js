@@ -278,7 +278,7 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
     })
     const sessionUser = await db.SessionUser.findOne({where: {userId: req.user.id, sessionId: session.id}})
     if (sessionUser) {
-      return res.redirect(`/games/${session.gameId == -1 ? 'local' : session.gameId}/?session=${session.id}`)
+      return res.redirect(`/play/${session.id}/`)
     } else {
        const started = await db.SessionAction.findOne({where: {sessionId: session.id}})
        res.render('session', {
