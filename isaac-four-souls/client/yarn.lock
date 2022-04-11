@@ -2371,7 +2371,7 @@ functional-red-black-tree@^1.0.1:
   resolved "https://registry.yarnpkg.com/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
   integrity sha1-GwqzvVU7Kg1jmdKcDj6gslIHgyc=
 
-"game-core-client@link:../../game-core-client":
+"game-core-client@link:../../game-core/client":
   version "0.0.0"
   uid ""
 

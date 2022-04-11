@@ -6,7 +6,7 @@ if [[ -z "$GAME" ]]; then
 fi
 
 export NODE_ENV=development
-export NODE_OPTIONS="--trace-warnings"
+#export NODE_OPTIONS="--trace-warnings"
 
 cd server
 

@@ -2,11 +2,11 @@
 
 set -e
 
-yarn --cwd server install
-yarn --cwd game-core/client install
-yarn --cwd game-core/server install
+yarn --cwd server install --production=false
+yarn --cwd game-core/client install --production=false
+yarn --cwd game-core/server install --production=false
 
 for game in $(cat GAMES); do
-	yarn --cwd $game/client install
-	yarn --cwd $game/server install
+	yarn --cwd $game/client install --production=false
+	yarn --cwd $game/server install --production=false
 done

@@ -4,5 +4,5 @@ set -e
 
 sudo corepack enable
 
-yarn --cwd server install --production=false
+yarn --cwd server install
 yarn --cwd server sequelize db:migrate
