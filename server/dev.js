@@ -43,7 +43,6 @@ async function build(sessionId) {
     await new Promise((resolve) => {
         let resolved = false
         webpack(serverConfig, async () => {
-            console.log("hey there, resolved", resolved)
             if (resolved) {
           await db.SessionAction.destroy({
             where: {
