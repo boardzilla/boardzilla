@@ -35,6 +35,15 @@ button {
     margin-top: 45px;
     max-height: 85%;
     overflow-y: scroll;
+    color: black;
+    .prompt {
+      padding-right: 20px;
+      margin-bottom: 10px;
+      font-size: 120%;
+      padding-left: 10px;
+      color: #006;
+      font-style: italic;
+    }
     button {
       width: 100%;
       margin: 2px;

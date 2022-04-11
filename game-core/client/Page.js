@@ -540,7 +540,7 @@ export default class Page extends Component {
     return (
       <div>
         <div id="messages">
-          {this.state.prompt || this.state.data.prompt}
+          <div className="prompt">{this.state.prompt || this.state.data.prompt}</div>
           {messagesPane == 'choices' &&
            <div>
              {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
@@ -570,21 +570,22 @@ export default class Page extends Component {
           }
 
           {messagesPane == 'setup' &&
-           <span>
-             Players: {this.state.data.players.map(p => p[1]).join(', ')}
+           <>
+             <div className="prompt">
+               Send the URL to other players. Click 'Start' when all players are present.<br/><br/>
+               Players: {this.state.data.players.map(p => p[1]).join(', ')}
+             </div>
              <button onClick={() => this.gameAction('start')}>Start</button>
-           </span>
+           </>
           }
 
           {messagesPane == 'standard' &&
            <>
-             <div>
-               <button className="undo" onClick={() => this.send('undo')}>Undo</button>
-               <button className="reset" onClick={() => confirm("Reset and lose all game history? This cannot be undone") && this.reset()}>Reset</button>
-               {nonBoardActions && Object.entries(nonBoardActions).map(([action, prompt]) => (
-                 <button key={action} onClick={() => this.gameAction(action)}>{showKeybind(prompt)}</button>
-               ))}
-             </div>
+             <button className="undo" onClick={() => this.send('undo')}>Undo</button>
+             <button className="reset" onClick={() => confirm("Reset and lose all game history? This cannot be undone") && this.reset()}>Reset</button>
+             {nonBoardActions && Object.entries(nonBoardActions).map(([action, prompt]) => (
+               <button key={action} onClick={() => this.gameAction(action)}>{showKeybind(prompt)}</button>
+             ))}
              <button className="fab help" onClick={() => this.setState({help: true})}>?</button>
            </>
           }
@@ -595,13 +596,12 @@ export default class Page extends Component {
              <ul>
                <li>Click on or hold Z over an item to see what actions can be taken.</li>
                <li>Most items can be dragged. Drag items to see what moves are possible.</li>
-               <li>Send the URL to other players. Click 'Start' when all players are present.</li>
-               <li>Join us on <a href="https://discord.gg/hkvp9uPA">Discord</a>! Give us your feedback and suggestions.</li>
+               <li>Join us on <a href="https://discord.gg/hkvp9uPA" target="_new">Discord</a>! Give us your feedback and suggestions.</li>
              </ul>
 
            </span>
           }
-          {messagesPane == 'standard' || <button className="fab cancel" onClick={() => this.cancel()}>✕</button>}
+          {messagesPane == 'standard' || messagesPane == 'setup' || <button className="fab cancel" onClick={() => this.cancel()}>✕</button>}
         </div>
 
         {this.props.background}
