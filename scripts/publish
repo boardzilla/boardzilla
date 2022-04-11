@@ -5,13 +5,31 @@ set -e
 build_type() {
 	local game=$1
 	local build_type=$2
-	echo "asd"
 	yarn --cwd $game/$build_type run clean
 	yarn --cwd $game/$build_type run build
 	dir="$game/$build_type/build"
 	digest=$(find "$dir" -type f -exec shasum -a256 {} \; | sed "s~$dir~~g" | LC_ALL=C sort -d | shasum -a256 | awk '{ print $1 }')
 	mkdir -p $game/dist/$build_type/$digest
 	cp -r "$game/$build_type/build/"* "$game/dist/$build_type/$digest"
+}
+
+build() {
+	local game=$1
+	echo "Building ${game}..."
+	rm -rf "${game}/dist"
+	build_type $game "client"
+	build_type $game "server"
+
+	echo "Uploading ${game}..."
+	aws s3 sync --size-only "${game}/dist" "s3://${S3_GAME_BUCKET}/${game}"
+	client_digest=$(ls -1 "${game}/dist/client")
+	server_digest=$(ls -1 "${game}/dist/server")
+
+	echo "Publishing ${game}..."
+	body="{\"serverDigest\":\"${server_digest}\", \"clientDigest\": \"${client_digest}\", \"name\": \"${game}\"}"
+	curl -X PUT -d $body -h "x-publish-token: ${PUBLISH_TOKEN}" https://boardzilla.io/publish
+
+	echo "Done with ${game}"
 }
 
 if [[ -z "$PUBLISH_TOKEN" ]]; then
@@ -24,21 +42,6 @@ if [[ -z "$S3_GAME_BUCKET" ]]; then
     exit 1
 fi
 
-build() {
-	local game=$1
-	rm -rf "${game}/dist"
-	build_type $game "client"
-	build_type $game "server"
-	aws s3 sync --size-only "${game}/dist" "s3://${S3_GAME_BUCKET}/${game}"
-
-	client_digest=$(ls -1 "${game}/dist/client")
-	server_digest=$(ls -1 "${game}/dist/server")
-
-	echo "client_digest $client_digest server_digest $server_digest"
-	body="{\"serverDigest\":\"${server_digest}\", \"clientDigest\": \"${client_digest}\", \"name\": \"${game}\"}"
-	echo $body
-
-	curl -X PUT -d $body -h "x-publish-token: ${PUBLISH_TOKEN}" https://boardzilla.io/publish
-}
-
-build "isaac-four-souls"
+for game in $(cat GAMES); do
+	build $game
+done

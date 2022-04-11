@@ -6,6 +6,7 @@ yarn --cwd server install
 yarn --cwd game-core/client install
 yarn --cwd game-core/server install
 
-# games
-yarn --cwd isaac-four-souls/client install
-yarn --cwd isaac-four-souls/server install
+for game in $(cat GAMES); do
+	yarn --cwd $game/client install
+	yarn --cwd $game/server install
+done
