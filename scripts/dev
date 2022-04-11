@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
-
 if [[ -z "$GAME" ]]; then
     echo "Must provide GAME in environment" 1>&2
     exit 1
@@ -12,7 +10,7 @@ export NODE_OPTIONS="--trace-warnings"
 
 cd server
 
-set +e
+# this can fail and thats okay
 ./node_modules/.bin/sequelize db:drop
 set -e
 ./node_modules/.bin/sequelize db:create
