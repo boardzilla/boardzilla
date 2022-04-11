@@ -1,5 +1,10 @@
-body, li {
-  font-family: sans-serif;
+body {
+  max-width: initial;
+  padding-right: 280px;
+}
+.navbar {
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 button {
@@ -8,43 +13,94 @@ button {
   color: white;
   border-radius: 2px;
   margin: 0 2px;
+  padding: 3px 6px 5px;
 }
 
 #container {
   position: relative;
+  margin: 40px auto;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
-  #game {
-    margin-bottom: 130px;
-  }
   #messages {
     position: fixed;
-    width: 100%;
-    left: 0;
-    bottom: 0;
+    width: 320px;
+    right: 0;
+    top: 0;
     z-index: 200;
-    background: #fec;
+    background: #e8e4e0;
     padding: 10px;
-    box-shadow: 0 -2px 10px black;
-    height: 100px;
-    overflow: scroll;
-  }
-  #context-menu {
-    position: absolute;
-    border: 1px solid black;
-    padding: 0px;
-    background: white;
-    z-index: 200;
-    li {
-      display: block;
-      padding: 2px 6px;
+    box-shadow: 0 0px 5px black;
+    border-radius: 10px 0 0 10px;
+    margin-top: 45px;
+    max-height: 85%;
+    overflow-y: scroll;
+    button {
+      width: 100%;
+      margin: 2px;
+      border-radius: 4px;
+      text-align: left;
+      background: #017;
+      &.undo {
+        background: black;
+      }
+      &.reset {
+        background: #900;
+      }
       &:hover {
-        background: #ccf;
-        color: #00c;
-        cursor: pointer;
+        background: #999;
+      }
+      .keybind {
+        width: 20px;
+        display: inline-block;
+        background: white;
+        color: #c00;
+        margin-right: 5px;
+        text-align: center;
+        border-radius: 2px 0 0 2px;
+        position: relative;
+        top: 1px;
+        left: -2px;
+        font-weight: bold;
+        font-size: 120%;
+        line-height: 100%;
       }
     }
+    .fab {
+      position: absolute;
+      z-index: 100;
+      top: 5px;
+      right: 3px;
+      width: 24px;
+      height: 24px;
+      font-size: 15px;
+      display: block;
+      text-align: center;
+      color: white;
+      border-radius: 12px;
+      color: white;
+      &.cancel {
+        background: red;
+      }
+      &.help {
+        background: blue;
+      }
+    }
+    h1 {
+      font-size: 24px;
+      margin: 0;
+    }
+    ul {
+      padding-left: 0;
+      li {
+        list-style: none;
+        margin-top: 15px;
+        padding: 0 15px;
+      }
+    }
+  }
+  .table {
+    z-index: -100;
   }
   .space {
     position: relative;
@@ -57,13 +113,8 @@ button {
       }
     }
   }
-  .piece {
+  .positioned-piece {
     position: absolute;
-    left: 0;
-    top: 0;
-    &.controlled {
-      display: inline-block;
-    }
   }
   img {
     user-drag: none;
@@ -76,21 +127,21 @@ button {
   }
   div.nametag {
     font-size: 30px;
+    pointer-events: none;
+    opacity: .3;
+    color: black;
+    &.active {
+      opacity: 1;
+    }
   }
 }
 
 #zoomPiece {
-  position: absolute;
-  transform: scale(5);
+  position: relative;
   pointer-events: none;
-  position: absolute;
-  top: 20%;
-  left: 0;
-  right: 0;
-  margin-left: auto;
-  margin-right: auto;
-  width: 100px;
-  z-index: 1000;
+  .scaler {
+    transform-origin: top left;
+  }
   .piece {
     transform: none !important;
   }
@@ -99,10 +150,6 @@ button {
 .hideDragging {
   transition: 0.01s;
   transform: translateX(-9999px);
-}
-
-.react-draggable {
-  width: 0;
 }
 
 .react-draggable-dragging, .external-dragging {
@@ -121,17 +168,24 @@ button {
 }
 
 #choiceFilter {
-  margin-left: 10px;
-  width: 100px;
+  width: 100%;
+  height: 26px;
+  box-sizing: border-box;
+  margin-top: 8px;
 }
 
-.die button {
-  width: 25px;
-  height: 25px;
-  background: #c00;
-  color: white;
-  border: none;
-  border-radius: 4px;
+.die {
+  .shake {
+    transition: transform 0.25s ease-out;
+  }
+  button {
+    width: 25px;
+    height: 25px;
+    background: #c00;
+    color: white;
+    border: none;
+    border-radius: 4px;
+  }
 }
 
 .d6 {
@@ -151,7 +205,7 @@ button {
     transition: transform 1.5s ease-out;
   }
   .die-face {
-    background-color: #eee;
+    background: #eee;
     box-shadow: inset -0.1rem 0.1rem 0.25rem rgba(0, 0, 0, 0.3),
                 inset 0.03rem -0.08rem 0.15rem rgba(0, 0, 0, 0.15);
     display: grid;
@@ -166,15 +220,16 @@ button {
     height: 100%;
     padding: .3rem;
     width: 100%;
+    outline: 1px solid #333;
     .dot {
       align-self: center;
       background-color: #333;
       border-radius: 50%;
       box-shadow: inset -0.05rem 0.05rem 0.1rem rgba(0, 0, 0, 0.5);
       display: block;
-      height: .4rem;
+      height: .5rem;
       justify-self: center;
-      width: .4rem;
+      width: .5rem;
     }
     &[data-face="1"] {
       transform: rotate3d(0, 0, 0, 90deg) translateZ(1.3rem);
