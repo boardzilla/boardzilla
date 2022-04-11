@@ -1,5 +1,5 @@
 <%- include('partials/header') %>
-<h1>Game</h1>
+<h1><%= game %></h1>
 
 <ul>
   <% session.SessionUsers.forEach(sessionUser => { %>
@@ -7,10 +7,7 @@
   <% }) %>
 </ul>
 
-<% if (session.SessionUsers.find(su => su.userId == me)) { %>
-  <!-- TODO proper URL -->
-  <a href="/play/<%= session.id %>/">Enter</a>
-<% } else { %>
+<% if (!started) { %>
   <form action="/user-sessions/<%= session.id %>" method="POST">
     <input type="submit" value="Join"/>
   </form>

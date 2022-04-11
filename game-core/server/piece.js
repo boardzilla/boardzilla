@@ -2,8 +2,8 @@ const GameElement = require('./element');
 
 class Piece extends GameElement {
 
-  move(to) {
-    return this.root().move([this], to || this.parent());
+  move(to, position=0) {
+    return this.root().move([this], to || this.parent(), 1, position);
   }
 
   moveToBottom(to) {
@@ -11,7 +11,7 @@ class Piece extends GameElement {
   }
 
   remove() {
-    return this.move(this.pileNode());
+    return this.move(this.pile());
   }
 }
 

@@ -149,7 +149,35 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
   })
 
   app.get('/', async (req, res) => {
-    const sessions = await db.Session.findAll({ include: [{model:db.GameVersion, include: db.Game}, {model: db.User, as: 'creator'}] })
+    res.render('home')
+  })
+
+  app.get('/sessions', async (req, res) => {
+    if (!req.user.id) return unauthorized(req, res, 'permission denied')
+    let where = {}
+    if (req.query.show != 'all') {
+      const mySessions = await db.SessionUser.findAll({where: {userId: req.user.id}})
+      where = {id: mySessions.map(s => s.sessionId)}
+    }
+    const sessions = await db.Session.findAll({
+      where,
+      order: [['createdAt', 'desc']],
+      include: [
+        {
+          model: db.GameVersion,
+          include: [{model: db.Game}]
+        },
+        {
+          model: db.SessionUser,
+          as: 'SessionUsers',
+          include: [{model: db.User}]
+        },
+        {
+          model: db.User,
+          as: 'creator'
+        }
+      ]
+    })
     res.render('index', {sessions: sessions})
   })
 
@@ -248,12 +276,19 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
         include: [db.Game]
       }]
     })
-    if (req.is('json')) {
-      res.json(session)
+    const sessionUser = await db.SessionUser.findOne({where: {userId: req.user.id, sessionId: session.id}})
+    if (sessionUser) {
+      return res.redirect(`/games/${session.gameId == -1 ? 'local' : session.gameId}/?session=${session.id}`)
     } else {
-      res.render('session', {session, me: req.user.id})
-    }
-  })
+       const started = await db.SessionAction.findOne({where: {sessionId: session.id}})
+       res.render('session', {
+         session,
+         me: req.user.id,
+         started,
+         game: session.getGame().name
+       })
+     }
+   })
 
   app.post('/user-sessions/:id', async (req, res) => {
     if (!req.user.id) return unauthorized(req, res, 'permission denied')
@@ -316,6 +351,12 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
     }
 
     const session = await sessionUser.getSession()
+    const sessionEventKey = gameRunner.sessionEventKey(req.sessionId)
+
+    const publish = async (type, payload) => await redisClient.publish(sessionEventKey, JSON.stringify({type, payload}))
+    const queue = async (type, payload) => await redisClient.rpush(sessionEventKey, JSON.stringify({type, payload}))
+    const sendWS = (type, payload) => ws.send(JSON.stringify({type, payload}))
+
     let locks = []
 
     const sendPlayerView = async jsonData => {
@@ -324,11 +365,9 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
 
     const sendPlayerLocks = async () => {
       const payload = await session.getElementLocks().reduce((locks, lock) => {locks[lock.element] = lock.userId; return locks;}, {})
-      ws.send(JSON.stringify({type: 'updateLocks', payload}))
+      sendWS('updateLocks', payload)
     }
 
-    const publish = async message => await redisClient.publish(gameRunner.sessionEventKey(session.id), JSON.stringify(message))
-    
     const requestLock = async (key) => {
       try {
         await db.ElementLock.destroy({where: {
@@ -341,24 +380,24 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
           throw e
         }
       }
-      await publish({type: 'locks'})
+      await publish('locks')
     }
 
     const releaseLock = async (key) => {
       await db.ElementLock.destroy({where: { sessionId: session.id, userId: sessionUser.userId, element: key }})
       locks = locks.filter(lock => lock.key != key)
-      await publish({type: 'locks'})
+      await publish('locks')
     }
 
     const drag = async ({key, x, y, start, end, endFlip}) => {
       const lock = locks.find(lock => lock.element == key)
       if (!lock || lock.userId != sessionUser.userId) return
-      await publish({type: 'drag', payload: {userId: lock.userId, key, x, y, start, end, endFlip}})
+      await publish('drag', {userId: lock.userId, key, x, y, start, end, endFlip})
     }
 
     const updateElement = ({userId, key, x, y, start, end, endFlip}) => {
       if (userId == sessionUser.userId) return
-      ws.send(JSON.stringify({type: 'updateElement', payload: {key, x, y, start, end, endFlip}}))
+      sendWS('updateElement', {key, x, y, start, end, endFlip})
     }
 
     const sessionRunner = gameRunner.createSessionRunner(session.id)
@@ -367,7 +406,6 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
       return ws.close(1011) // internal error
     })
 
-    const sessionEventKey = gameRunner.sessionEventKey(req.sessionId)
     ws.on('message', async (data) => {
       try {
         const message = JSON.parse(data)
@@ -376,9 +414,10 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
           case 'requestLock': return await requestLock(message.payload.key)
           case 'releaseLock': return await releaseLock(message.payload.key)
           case 'drag': return await drag(message.payload)
+          case 'ping': return publish('active', sessionUser.userId)
           default: {
             message.payload.userId = req.user.id
-            const out = await redisClient.rpush(sessionEventKey, JSON.stringify(message))
+            const out = await queue(message.type, message.payload)
             return out
           }
         }
@@ -399,8 +438,7 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
         case 'state': return await sendPlayerView(data)
         case 'locks': return await sendPlayerLocks()
         case 'drag': return await updateElement(message.payload)
-        case 'ping': return ws.send(JSON.stringify({type: "pong"}))
-        default: return ws.send(data)
+        default: return sendWS(message.type, message.payload)
       }
     })
 
@@ -415,13 +453,16 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
       console.error("error in ws", error)
     })
 
-    subscriber.subscribe(gameRunner.sessionEventKey(session.id), async err => {
+    console.log(`S ${req.user.id} subscribe`)
+      subscriber.subscribe(sessionEventKey, async err => {
       if (err) {
         await sessionRunner.stop()
         return ws.close(1011) // internal error
       }
 
-      redisClient.rpush(sessionEventKey, JSON.stringify({type: 'refresh', payload: {userId: req.user.id}}))
+      console.log(`S ${req.user.id} addPlayer`)
+      const user = await db.User.findByPk(req.user.id)
+      queue('addPlayer', {userId: user.id, username: user.name})
     })
   }
   wss.on("connection", onWssConnection)

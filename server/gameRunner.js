@@ -23,7 +23,7 @@ class GameRunner {
     const lock = new zkLock.ZookeeperLock({
       serverLocator,
       pathPrefix: 'game-runner-',
-      sessionTimeout: 2000
+      sessionTimeout: 10000
     })
 
     let queueClient
@@ -113,11 +113,6 @@ class GameRunner {
               // TODO not enough players but this should be an explicit start command
             })
 
-            await new Promise((resolve) => {
-              if (gameInstance.phase === 'ready') return resolve()
-              gameInstance.once('ready', resolve)
-            })
-
             const gameAction = (userId, sequence, action, ...args) => {
               gameInstance.receiveAction(userId, sequence, action, ...args)
             }
@@ -139,14 +134,19 @@ class GameRunner {
                 case 'update':
                   gameInstance.updateUser(message.payload.userId)
                   return false
+                case 'addPlayer':
+                  gameInstance.addPlayer(message.payload.userId, message.payload.username)
+                  gameInstance.updatePlayers()
+                  return false
                 case 'reset':
                   await queueClient.del(this.sessionEventKey(sessionId))
                   await db.SessionAction.destroy({
                     where: {
-                      sessionId
+                     sessionId,
+                     sequence: {[Sequelize.Op.ne]: 0},
                     }
                   })
-                  await db.Session.update({seed: String(Math.random())}, {where: {id: sessionId}})
+                  await session.update({seed: String(Math.random())})
                   return true
                 case 'undo':
                   await queueClient.del(this.sessionEventKey(sessionId))

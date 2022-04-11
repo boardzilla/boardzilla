@@ -1,22 +1,23 @@
 body {
-  height: 930px;
+  min-width: 1400px;
 }
+
 .table {
   width: 1000px;
   height: 560px;
   top: 120px;
   left: 0;
   position: absolute;
-  background-image: url("images/wood.jpeg");
+  background-image: url("images/playmat.jpg");
+  background-size: 100% 100%;
+  background-position: center;
   [data-players="3"] &, [data-players="4"] & {
     width: 1400px;
+    background-size: 100% 110%;
   }
 }
 
 #container {
-  position: absolute;
-  left: 10px;
-  top: 0;
   height: 800px;
   width: 1000px;
   [data-players="3"] &, [data-players="4"] & {
@@ -25,71 +26,85 @@ body {
   #board {
     position: absolute;
     left: 0;
-    top: 240px;
-    height: 320px;
-    width: 100%;
+    top: 290px;
+    height: 220px;
+    width: 1000px;
+    [data-players="3"] &, [data-players="4"] & {
+      width: 1400px;
+    }
     #characters {
       position: absolute;
-      right: 20px;
-      top: 50px;
+      left: 320px;
+      top: 64px;
       z-index: 20;
     }
     #eternals {
       position: absolute;
-      right: 20px;
-      top: 170px;
+      right: 320px;
+      top: 64px;
       z-index: 20;
     }
     #shop {
       position: absolute;
-      width: 400px;
-      height: 100px;
-      left: 210px;
-      top: 50px;
+      width: 300px;
+      height: 200px;
+      left: 100px;
+      top: 12px;
+      z-index: 10;
     }
     #treasure {
       position: absolute;
-      left: 130px;
-      top: 50px;
+      left: 10px;
+      top: 12px;
     }
     #treasure-discard {
       position: absolute;
-      left: 50px;
-      top: 50px;
+      left: 10px;
+      top: 115px;
     }
     #dungeon {
       position: absolute;
-      width: 400px;
-      height: 100px;
-      left: 210px;
-      top: 170px;
+      width: 300px;
+      height: 200px;
+      right: 100px;
+      top: 12px;
+      z-index: 10;
     }
     #monsters {
       position: absolute;
-      left: 130px;
-      top: 170px;
+      right: 5px;
+      top: 12px;
     }
     #monsters-discard {
       position: absolute;
-      left: 50px;
-      top: 170px;
+      right: 5px;
+      top: 115px;
     }
     #loot {
       position: absolute;
-      right: 220px;
-      top: 50px;
+      left: 415px;
+      top: 12px;
+      [data-players="3"] &, [data-players="4"] & {
+        left: 615px;
+      }
     }
     #loot-discard {
       position: absolute;
-      right: 220px;
-      top: 170px;
+      left: 509px;
+      top: 12px;
+      [data-players="3"] &, [data-players="4"] & {
+        left: 709px;
+      }
     }
-    #bonusSouls {
+    #bonus-souls {
       position: absolute;
-      right: 100px;
-      top: 20px;
-      width: 100px;
-      height: 280px;
+      left: 415px;
+      top: 115px;
+      height: 100px;
+      width: 200px;
+      [data-players="3"] &, [data-players="4"] & {
+        left: 615px;
+      }
     }
     .deck {
       width: 80px;
@@ -101,19 +116,23 @@ body {
     position: absolute;
     left: 0;
     top: 0;
-    height: 240px;
+    height: 290px;
     width: 1000px;
     [data-players="3"] &, [data-players="4"] & {
       width: 700px;
     }
     &.mine {
-      top: 560px;
+      top: 510px;
     }
     &:not(.mine):nth-child(2) {
       left: 700px;
     }
+    &:not(.mine):nth-child(3) {
+      left: 700px;
+      top: 510px;
+    }
     #tableau {
-      height: 120px;
+      height: 170px;
       width: 100%;
       position: absolute;
       top: 0px;
@@ -122,45 +141,74 @@ body {
       height: 120px;
       width: 100%;
       position: absolute;
-      top: 120px;
+      top: 170px;
     }
   }
 
-  .counter[display="hp"] img {
-    width: 18px;
-    margin: 0 1px;
-    position: relative;
-    top: 4px;
+  .counter {
+    button {
+      background: rgba(0,0,0,0);
+      color: black;
+      font-size: 35px;
+      font-weight: bold;
+      line-height: 12px;
+      position: relative;
+      top: 6px;
+      margin: 0;
+      &:focus {
+        outline: none;
+        box-shadow: none;
+      }
+      &:hover {
+        color: #c30;
+      }
+    }
+    &[display="hp"] img {
+      width: 24px;
+      margin: 0 0px;
+      position: relative;
+      top: 7px;
+    }
+    &[display="attack"] img {
+      width: 32px;
+      margin: 0 -4px;
+      position: relative;
+      top: 10px;
+    }
   }
 
   [player="1"] .d6 .die-face {
-    background-color: #e33;
+    background-color: #f66;
   }
 
   [player="2"] .d6 .die-face {
-    background-color: #3e3;
+    background-color: #6c6;
   }
 
   [player="3"] .d6 .die-face {
-    background-color: #33e;
+    background-color: #66f;
   }
 
   [player="4"] .d6 .die-face {
-    background-color: #993;
+    background-color: #b0f;
   }
 
   .card {
-    width: 80px;
+    width: 73.33px;
     height: 100px;
     &[active=true] {
       transform: rotate(90deg);
     }
     img {
       height: 100px;
+      border-radius: 7px;
     }
     .counter {
-      top: -10px;
-      left: 5px;
+      bottom: 10px;
+      left: 2px;
+      color: black;
+      font-weight: bold;
+      position: absolute;
     }
   }
 
@@ -183,7 +231,7 @@ body {
   }
   div.nametag {
     position: absolute;
-    top: 120px;
+    top: 170px;
     width: 100%;
     text-align: center;
   }

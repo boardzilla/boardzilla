@@ -17,8 +17,9 @@ class GameInterface extends EventEmitter {
     super()
     this.random = require('random-seed').create(seed)
     this.players = []
-    this.phase = 'setup'
+    this.phase = 'setup' // setup -> replay -> ready
     this.hiddenKeys = []
+    this.hiddenElements = []
     this.variables = {}
     this.allowedMoveElements = '' // piece selector that is always valid for moving
     this.alwaysAllowedPlays = [] // actions that anyone can take at any time
@@ -29,27 +30,53 @@ class GameInterface extends EventEmitter {
     this.actions = {}
     this.currentPlayer = undefined // 1-indexed from list of players, or undefined if any player can play
     this.currentActions = []
+    this.afterMoves = []
+    this.promptMessage = null;
     this.builtinActions = {
       setCounter: (key, value) => {
-        const counter = this.doc.find(`counter#${key}`);
-        if (counter) counter.set('value', value);
+        const counter = this.doc.find(`counter#${key}`)
+        if (counter) {
+          value = Math.max(value, 0, counter.get('min'))
+          if (counter.get('max')) value = Math.min(value, counter.get('max'))
+          counter.set('value', value)
+          counter.set('moves', counter.get('moves') + 1)
+        }
       },
       rollDie: key => {
-        const die = this.doc.find(`die#${key}`);
+        const die = this.doc.find(`die#${key}`)
         if (die) {
-          die.set('number', this.random(die.get('faces')) + 1);
-          die.set('rolls', die.get('rolls') + 1);
-          console.log(die.get('faces'), die.get('rolls'), die.get('number'))
+          die.set('number', this.random(die.get('faces')) + 1)
+          die.set('rolls', die.get('rolls') + 1)
         }
       },
     }
     this.idSequence = 0
+    this.lastReplaySequence = -1
   }
 
   // start game from scratch and run history. returns when game is done
   async start(history) {
-    if (this.players.length < this.minPlayers) throw Error("not enough players")
-    if (this.phase !== 'setup') throw Error("not ready to start")
+    if (!history.length) { // waiting for start
+      this.sequence = 0
+      this.updatePlayers() // initial game state with only start allowed
+      await new Promise(resolve => this.on('action', (realtime, player, sequence, action) => {
+        if (action == 'start') {
+          if (this.players.length < this.minPlayers) {
+            console.error("not enough players")
+          } else {
+            this.registerAction(player, this.sequence, ['start'])
+            this.removeAllListeners('action')
+            resolve()
+          }
+        }
+      }))
+    } else {
+      history = history.slice(1) //  skip 'start'
+    }
+    this.sequence = 1
+    this.lastReplaySequence = 0
+
+    this.phase = 'replay'
     this.variables = this.initialVariables || {}
     this.idSequence = 0
     times(this.players.length, player => {
@@ -58,12 +85,10 @@ class GameInterface extends EventEmitter {
     })
     this.setupBoard && this.setupBoard(this.board)
     this.currentPlayer = 1
-    this.phase = 'replay'
-    this.sequence = 0
-    console.log(`I: start()`, history)
+    console.log(`I: start()`, history.length)
     this.lastReplaySequence = history.length ? history[history.length - 1][1] : -1
-    this.updatePlayers() // initial game state with no actions allowed
     this.replay(history)
+
     this.phase = 'ready'
     console.log(`I: ready`)
     this.emit('ready')
@@ -92,7 +117,7 @@ class GameInterface extends EventEmitter {
   // send all players state along with allowed actions
   updatePlayers() {
     if (this.sequence <= this.lastReplaySequence) return // dont need to update unless at latest
-    console.log('I: updatePlayers')
+    console.log('I: updatePlayers', this.players)
     times(this.players.length, player => {
       this.emit('update', {
         type: 'state',
@@ -131,11 +156,15 @@ class GameInterface extends EventEmitter {
   }
 
   registerId(ns) {
-    return `${ns}-${++this.idSequence}`;
+    return `${ns}-${++this.idSequence}`
   }
 
   hide(key) {
     this.hiddenKeys.push(key)
+  }
+
+  hideBoard(selector, attrs) {
+    this.hiddenElements.push([selector, attrs])
   }
 
   shownVariables() {
@@ -200,12 +229,14 @@ class GameInterface extends EventEmitter {
     const currentPlayer = this.currentPlayer
     this.currentPlayer = player
 
-    playerView.findNodes(this.hidden(player)).forEach(n => {
-      if (n.getAttribute('class').match(/\bpiece\b/)) {
-        n.removeAttribute('id') //  piece identity is hidden
-      } else {
-        n.innerHTML = '' // space contents are hidden
-      }
+    this.hiddenElements.forEach(([selector, attrs]) => {
+      playerView.findNodes(selector).forEach(n => {
+        n.removeAttribute('id')
+        attrs.forEach(attr => n.removeAttribute(attr))
+        if (n.classList.contains('space')) {
+          n.innerHTML = '' // space contents are hidden
+        }
+      })
     })
 
     playerView.findNodes(".mine").forEach(n => n.classList.add('mine'))
@@ -231,11 +262,13 @@ class GameInterface extends EventEmitter {
       allowedMove: this.allowedMoveElements,
       allowedActions: this.choicesFromActions(player),
       allowedDrags,
+      prompt: this.promptMessage,
     }
   }
 
-  hidden(player) { // eslint-disable-line no-unused-vars
-    return null
+  // provide a fn that should be run after any board moves
+  afterMove(pieceSelector, fn) {
+    this.afterMoves.push([pieceSelector, fn])
   }
 
   // wait for an action from list of actions from current player
@@ -269,6 +302,10 @@ class GameInterface extends EventEmitter {
 
   playersMayAlwaysPlay(actions) {
     this.alwaysAllowedPlays = actions
+  }
+
+  prompt(promptMessage) {
+    this.promptMessage = promptMessage;
   }
 
   // test list of actions for validity and options, returns object of name:{prompt, choices?}
@@ -329,8 +366,6 @@ class GameInterface extends EventEmitter {
       throw Error(`${actionName} is missing 'prompt'`)
     }
     const prompt = action.prompt + (action.key ? ` (${action.key.toUpperCase()})` : '')
-
-    console.log('running action', actionName, argIndex)
 
     if (!action) {
       throw Error(`No such action: ${actionName}`)
@@ -428,7 +463,7 @@ class GameInterface extends EventEmitter {
   }
 
   receiveAction(userId, sequence, action, ...args) {
-    if (this.phase !== 'ready') throw Error("game not active")
+    if (this.phase == 'replay') return
     console.log(`received action (${userId}, ${sequence}, ${action}, ${args})`)
     if (this.listenerCount('action') === 0) {
       console.error(`${this.userId}: no listener`)
@@ -532,7 +567,8 @@ class GameInterface extends EventEmitter {
 
   moveElement(el, x, y) {
     if (el.matches(this.allowedMoveElements)) {
-      el.move()
+      // preserve any initial positioning
+      el.moveToTop()
       el.set('x', x)
       el.set('y', y)
     } else {

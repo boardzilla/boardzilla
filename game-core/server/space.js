@@ -4,39 +4,6 @@ const { times } = require("./utils");
 
 class Space extends GameElement {
 
-  findNode(q = '*') {
-    if (q === null) return null;
-    return this.node.querySelector(this._enhanceQuery(q));
-  }
-
-  findNodes(q = '*') {
-    if (q === null) return [];
-    return this.node.querySelectorAll(this._enhanceQuery(q));
-  }
-
-  empty(q) {
-    return !this.find(q) || this.find(q).node.children.length === 0;
-  }
-
-  count(q) {
-    return this.findNodes(q).length;
-  }
-
-  contains(q) {
-    return !!this.findNode(q);
-  }
-
-  find(q) {
-    if (q instanceof GameElement) return q;
-    return this.wrap(this.findNode(q));
-  }
-
-  findAll(q) {
-    if (q instanceof GameElement) return [q];
-    if (q instanceof Array) return q;
-    return Array.from(this.findNodes(q)).map(node => this.wrap(node));
-  }
-
   space(q) {
     if (q instanceof Space) return q;
     return this.spaces(q)[0];
@@ -57,8 +24,8 @@ class Space extends GameElement {
     return this.findAll(q).filter(el => el instanceof Piece);
   }
 
-  // move pieces to a space, at end of list (on top). use num to limit the number moved
-  move(pieces, to, num) {
+  // move pieces to a space, at end of list (on top). use num to limit the number moved. use position to control child placement (same as slice)
+  move(pieces, to, num, position = 0) {
     const space = this.root().space(to);
     if (!space) throw new Error(`No space found "${to}"`);
     let movables = this.pieces(pieces);
@@ -66,30 +33,35 @@ class Space extends GameElement {
     movables.forEach(piece => {
       piece.set('x');
       piece.set('y');
-      if ((space.get('spreadX') || space.get('spreadY')) && !piece.hasParent(space)) {
-        let x = 0, y = 0;
-        piece.set('x', x);
-        piece.set('y', y);
-        while (space.contains(`[x="${x}"][y="${y}"]`)) {
-          x += space.get('spreadX') || 0;
-          y += space.get('spreadY') || 0;
-          piece.set('x', x);
-          piece.set('y', y);
+      piece.set('left');
+      piece.set('top');
+      piece.set('right');
+      piece.set('bottom');
+      if (!piece.hasParent(space)) {
+        const pos = space.findOpenPosition();
+        if (pos) {
+          piece.set('x', pos.x);
+          piece.set('y', pos.y);
         }
       }
-      space.node.appendChild(piece.node)
+      if (position < 0) {
+        position = -1 - position;
+      } else {
+        position = space.node.childElementCount - position;
+      }
+      space.node.insertBefore(piece.node, space.node.children[position]);
+    });
+    this.game.afterMoves.forEach(([pieceSelector, fn]) => {
+      movables.forEach(piece => {
+        if (piece.matches(pieceSelector)) fn(piece);
+      });
     });
     return movables;
   }
 
   // move pieces to a space, at start of list (on bottom). use num to limit the number moved
   moveToBottom(pieces, to, num) {
-    const space = this.root().space(to);
-    if (!space) throw new Error(`No space found "${to}"`);
-    let movables = this.pieces(pieces);
-    if (num !== undefined) movables = movables.slice(-num);
-    movables.forEach(piece => space.node.insertBefore(piece.node, space.node.children[0]));
-    return movables;
+    this.move(pieces, to, num, -1);
   }
 
   add(pieces, num) {
