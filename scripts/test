@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+
+yarn --cwd server run sequelize db:create
+yarn --cwd server run sequelize db:migrate
+
 set -e
 
 yarn --cwd game-core/server run test

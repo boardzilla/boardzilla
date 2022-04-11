@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -e
+./scripts/install
+
+set +e
+yarn --cwd server run sequelize db:create
+NODE_ENV=test yarn --cwd server run sequelize db:create
