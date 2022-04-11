@@ -176,7 +176,6 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
     const gameVersion = await game.latestVersion()
     const versionNumber = gameVersion ? gameVersion.version + 1 : 1
 
-    console.log(req.body)
     if (gameVersion && gameVersion.serverDigest === req.body.serverDigest && gameVersion.clientDigest === req.body.clientDigest) {
       return res.json({version: gameVersion.version, msg: "no version created, already exists"})
     }
