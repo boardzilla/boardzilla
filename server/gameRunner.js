@@ -61,21 +61,20 @@ class GameRunner {
         await lock.lock(`${sessionId}`)
 
         queueClient = this.redisClient.duplicate()
+        console.log(process.pid, "HAS LOCK")
+        const vm = new NodeVM({
+          console: 'inherit',
+        })
+        const session = await db.Session.findByPk(sessionId)
+        const gameVersion = await session.getGameVersion()
+        const game = await gameVersion.getGame()
+        const serverBuffer = await this.s3Provider.getObject({Key: path.join(game.name, "server", gameVersion.serverDigest, "index.js")}).promise()
+        const gameClass = vm.run(serverBuffer.Body.toString())
+        const gameInstance = new gameClass(session.seed)
 
         while(running) {
           try {
-            console.log(process.pid, "HAS LOCK")
-            const vm = new NodeVM({
-              console: 'inherit',
-            })
-            const session = await db.Session.findByPk(sessionId)
-            const gameVersion = await session.getGameVersion()
-            const game = await gameVersion.getGame()
-            const serverBuffer = await this.s3Provider.getObject({Key: path.join(game.name, "server", gameVersion.serverDigest, "index.js")}).promise()
-            const gameClass = vm.run(serverBuffer.Body.toString())
-            const gameInstance = new gameClass(session.seed)
             const playerViews = {}
-
             gameInstance.on('update', async ({type, userId, payload}) => {
               console.log(`R ${process.pid} ${userId}: update ${type}`)
               if (type == 'state') {

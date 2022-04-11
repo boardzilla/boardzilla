@@ -15,6 +15,8 @@ const AWSMock = require('mock-aws-s3')
 const SECRET_KEY = "asdasdasd"
 const REDIS_URL = "redis://localhost:6379"
 
+process.env.PUBLISH_TOKEN = 'token'
+
 AWSMock.config.basePath = path.resolve(path.join(__dirname))
 
 async function responseMatching(ws, matcher, p) {
@@ -66,15 +68,34 @@ describe("Server", () => {
     })
   })
 
-  it("should allow login", async () => {
-    await db.User.create({name: 'joshbuddy', password: await bcrypt.hash('hello', 10)})
-    const body = await rp.post("http://localhost:3000/login", {json: {name: 'joshbuddy', password: 'hello'}})
-    console.log("body", body)
+  describe('with a valid server', () => {
+    beforeEach(async () => {
+      await db.User.create({name: 'joshbuddy', password: await bcrypt.hash('hello', 10)})
+    })
   })
 
-  it("should create a user", async () => {
-    const body = await rp.post("http://localhost:3000/users", {json: {name: 'joshbuddy', password: 'hello', email: 'joshbuddy@gmail.com'}})
-    assert(body.id, "has no id")
+  it("should allow login", (done) => {
+    request.post("http://localhost:3000/login", {json: {name: 'joshbuddy', password: 'hello'}}, (error, response, body) => {
+      assert(!error)
+      assert(response.statusCode === 302)
+      done()
+    })
+  })
+
+  it("should create a user", (done) => {
+    request.post("http://localhost:3000/users", {json: {name: 'joshbuddy', password: 'hello', email: "someone@gmail.com"}}, (error, response, body) => {
+      assert(!error)
+      assert(response.statusCode === 302)
+      done()
+    })
+  })
+
+  it("should ignore creating a game version without a publish token", (done) => {
+    const headers = {"x-publish-token": 'some-other-token'}
+    request.put("http://localhost:3000/publish", {json: {name: 'hey', serverDigest: "server-digest", clientDigest: "client-digest"}, headers}, (error, response, body) => {
+      assert(response.statusCode === 401)
+      done()
+    })
   })
 
   context("authorized", () => {
@@ -90,17 +111,40 @@ describe("Server", () => {
       })
     })
 
-    // it("should allow creating a new game", (done) => {
-    //   const gameZip = new AdmZip()
-    //   gameZip.addFile("server.js", fs.readFileSync(__dirname + "/fixtures/numberGuesser/server.js"))
-    //   gameZip.addFile("index.js", fs.readFileSync(__dirname + "/fixtures/numberGuesser/client/index.js"))
+    it("should allow creating a new game version", (done) => {
+      const headers = {"x-publish-token": 'token'}
+      request.put("http://localhost:3000/publish", {json: {name: 'hey', serverDigest: "server-digest", clientDigest: "client-digest"}, headers}, (error, response, body) => {
+        assert(!error, "no error")
+        assert(body.version === 1)
+        done()
+      })
+    })
 
-    //   request.post("http://localhost:3000/publish", {json: {name: 'hey', serverDigest: "server-digest", clientDigest: "client-digest"}, headers: this.headers}, (error, response, body) => {
-    //     assert(!error, "no error")
-    //     assert(body.id, "has no id")
-    //     done()
-    //   })
-    // })
+    it("should allow creating a subsequent game version", (done) => {
+      const headers = {"x-publish-token": 'token'}
+      request.put("http://localhost:3000/publish", {json: {name: 'hey', serverDigest: "server-digest", clientDigest: "client-digest"}, headers}, (error, response, body) => {
+        assert(!error, "no error")
+        assert(body.version === 1)
+        request.put("http://localhost:3000/publish", {json: {name: 'hey', serverDigest: "server-digest2", clientDigest: "client-digest2"}, headers}, (error, response, body) => {
+          assert(!error, "no error")
+          assert(body.version === 2)
+          done()
+        })
+      })
+    })
+
+    it("should skip creating an identical version", (done) => {
+      const headers = {"x-publish-token": 'token'}
+      request.put("http://localhost:3000/publish", {json: {name: 'hey', serverDigest: "server-digest", clientDigest: "client-digest"}, headers}, (error, response, body) => {
+        assert(!error, "no error")
+        assert(body.version === 1)
+        request.put("http://localhost:3000/publish", {json: {name: 'hey', serverDigest: "server-digest", clientDigest: "client-digest"}, headers}, (error, response, body) => {
+          assert(!error, "no error")
+          assert(body.version === 1)
+          done()
+        })
+      })
+    })
 
     context("with a game", () => {
       beforeEach(async () => {

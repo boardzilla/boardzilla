@@ -29,9 +29,6 @@ describe("Playing a game", () => {
 
   beforeEach((done) => {
     AWSMock.config.basePath = path.resolve(path.join(__dirname))
-    console.log("s3 bucket base path is ", AWSMock.config.basePath)
-    // const bucketName = path.basename(path.resolve(__dirname, '..'))
-    console.log("s3 bucket name is ", AWSMock.config.basePath, "fixtures")
     const s3Provider = AWSMock.S3({
       params: { Bucket: "fixtures" }
     });

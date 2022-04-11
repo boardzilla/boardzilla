@@ -160,7 +160,7 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
   })
 
   app.put('/publish', async (req, res) => {
-    if (req.headers['authorization'] !== process.env.PUBLISH_TOKEN) {
+    if (req.headers['x-publish-token'] !== process.env.PUBLISH_TOKEN) {
       return res.status(401).end('unauthorized')
     }
 
@@ -173,19 +173,19 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
       },
     });
 
-    const gameVersion = await db.GameVersion.find({
-      gameId: game.id,
-    })
-    const versionNumber = gameVersion === null ? 1 : gameVersion.version + 1
-    if (gameVersion.serverDigest === req.post.serverDigest && gameVersion.clientDigest === req.post.clientDigest) {
+    const gameVersion = await game.latestVersion()
+    const versionNumber = gameVersion ? gameVersion.version + 1 : 1
+
+    console.log(req.body)
+    if (gameVersion && gameVersion.serverDigest === req.body.serverDigest && gameVersion.clientDigest === req.body.clientDigest) {
       return res.json({version: gameVersion.version, msg: "no version created, already exists"})
     }
 
     const version = await db.GameVersion.create({
       gameId: game.id,
       version: versionNumber,
-      serverDigest: req.post.serverDigest,
-      clientDigest: req.post.clientDigest,
+      serverDigest: req.body.serverDigest,
+      clientDigest: req.body.clientDigest,
     })
     res.json({version: version.version})
   })
@@ -229,9 +229,6 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
 
     const game = await db.Game.findByPk(req.body.gameId)
     const gameVersion = await game.latestVersion()
-    console.log("GAME", game)
-    console.log("GAME", gameVersion)
-
     const session = await db.Session.create({gameVersionId: gameVersion.id, creatorId: req.user.id, seed: String(Math.random())})
     await db.SessionUser.create({userId: req.user.id, sessionId: session.id})
     if (req.is('json')) {

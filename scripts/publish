@@ -33,7 +33,7 @@ build() {
 	body="{\"serverDigest\":\"${server_digest}\", \"clientDigest\": \"${client_digest}\", \"name\": \"${game}\"}"
 	echo $body
 
-	curl -X PUT -d $body -h "Authorization: ${PUBLISH_TOKEN}" https://boardzilla.io/publish
+	curl -X PUT -d $body -h "x-publish-token: ${PUBLISH_TOKEN}" https://boardzilla.io/publish
 }
 
 build "isaac-four-souls"
