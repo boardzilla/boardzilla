@@ -79,7 +79,6 @@ class GameInterface extends EventEmitter {
 
   // add player to game
   addPlayer(userId, username) {
-    console.log('addPlayer', arguments)
     if (this.players.find(p => p[0] == userId)) return
     if (this.phase !== 'setup') throw Error("not able to add players while playing")
     if (this.players.length == this.maxPlayers) throw Error("game already full")

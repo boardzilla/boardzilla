@@ -7,12 +7,13 @@ const spies = require('chai-spies');
 chai.use(spies);
 const expect = chai.expect;
 const { times } = require("../utils");
+const { DOMParser } = require("linkedom");
 
 describe("GameInterface", () => {
   beforeEach(() => {
     this.updateSpy = chai.spy(console.log)
     this.spendSpy = chai.spy(console.log)
-    const game = this.interface = new Interface(101)
+    const game = this.interface = new Interface(1)
     game.on('update', this.updateSpy)
     game.minPlayers = 4;
     [101,102,103,104].forEach(p => game.addPlayer(p))
@@ -123,14 +124,9 @@ describe("GameInterface", () => {
       })
     })
 
-    it('ignores out of sequence', done => {
+    it('processes out of sequence', async () => {
       setTimeout(() => this.interface.emit('action', true, 1, 1, 'hi'), 100)
-      setTimeout(done, 200)
-      this.interface.waitForAction().then(() => {
-        assert(false, 'waitForAction completed early')
-        expect(this.interface.registerAction).not.to.have.been.called
-        done()
-      })
+      await this.interface.waitForAction(['hi'], 1)
     })
 
     it('resolves on action eventually', async () => {
@@ -152,7 +148,11 @@ describe("GameInterface", () => {
     it("looks random", () => {
       times(10, i => this.interface.board.addSpace('#a', 's', {n: i}));
       this.interface.board.shuffle();
-      console.log(this.interface.board.doc.innerHTML);
+      const doc = (new DOMParser).parseFromString(this.interface.getState().doc, 'text/xml')
+      expect(doc.querySelectorAll("s").length).to.equal(10)
+      doc.querySelectorAll("s").forEach((n, i) => {
+        expect(parseInt(n.getAttribute("n"))).to.not.equal(i + 1)
+      })
     });
   });
 })
