@@ -263,7 +263,7 @@ export default class Page extends Component {
       this.send('releaseLock', {key});
       event.stopPropagation();
     } else {
-      if (event instanceof TouchEvent) {
+      if (window.TouchEvent && event instanceof window.TouchEvent) {
         this.handleClick(choiceFromKey(key), event);
       }
     }
