@@ -11,5 +11,20 @@ module.exports = {
     ecmaVersion: 'latest',
   },
   rules: {
+    'no-unused-vars': [
+      'error',
+      {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+      },
+    ],
+    'no-underscore-dangle': [
+      'error',
+      { enforceInMethodNames: false },
+    ],
+    'new-cap': [
+      'off',
+    ],
   },
 };
