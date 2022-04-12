@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [[ -z "$1" ]]; then
+    echo "Usage: ./script/deploy [environment]" 1>&2
+    exit 1
+fi
+
+# eb doesn't correctly deal with symlinks
+# see: https://github.com/aws/aws-elastic-beanstalk-cli/pull/91
+for game in $(cat GAMES); do
+	echo "Cleaning up $game"
+	rm -rf "$game/client/node_modules"
+	rm -rf "$game/server/node_modules"
+done
+
+eb deploy $1
+
+./scripts/install

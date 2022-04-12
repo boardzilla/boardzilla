@@ -17,24 +17,26 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(js|jsx)$/,
-        exclude: /node_modules/,
-        loader: 'babel-loader',
-        options: {
-          "presets": [
-            path.resolve(__dirname, 'node_modules/@babel/preset-env'),
-            path.resolve(__dirname, 'node_modules/@babel/preset-react'),
-          ]
-        },
+        test: /\.jsx?$/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            "presets": ['@babel/preset-env', '@babel/preset-react']
+          },
+        }
       },
       {
         test: /\.s[ac]ss$/i,
         use: [
           "style-loader",
-          "css-loader",
-          "sass-loader",
+          "css-loader?url=false",
+          'sass-loader'
         ],
       },
+      {
+        test: /\.(gif|jpe?g|png|svg)$/,
+        use: 'asset/resource'
+      }
     ],
   },
   plugins: [
