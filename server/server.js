@@ -192,8 +192,6 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
       return res.status(401).end('unauthorized')
     }
 
-    console.log("req.body", req.body)
-
     const [game, _] = await db.Game.findOrCreate({
       where: {
         name: req.body.name,
@@ -239,11 +237,9 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
     const gameVersion = session.GameVersion
     const game = gameVersion.Game
     const s3Path = path.join(game.name, "client", gameVersion.clientDigest, req.params[0])
-    console.log("s3Path", s3Path)
     const s3Params = {Key: s3Path}
     try {
       const info = await s3Provider.headObject(s3Params).promise()
-      console.log("info", info)
       res.set('Content-Type', info.ContentType)
       res.set('Content-Length', info.ContentLength)
       const stream = s3Provider.getObject(s3Params).createReadStream()
