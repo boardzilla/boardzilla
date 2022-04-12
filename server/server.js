@@ -155,7 +155,7 @@ module.exports = ({
   });
 
   app.get('/sessions', async (req, res) => {
-    if (!req.user.id) return unauthorized(req, res, 'permission denied');
+    if (!req.user) return unauthorized(req, res, 'permission denied');
     let where = {};
     if (req.query.show != 'all') {
       const mySessions = await db.SessionUser.findAll({ where: { userId: req.user.id } });
@@ -290,12 +290,12 @@ module.exports = ({
       session,
       me: req.user.id,
       started,
-      game: session.getGame().name,
+      game: session.GameVersion.Game.name,
     });
   });
 
   app.post('/user-sessions/:id', async (req, res) => {
-    if (!req.user.id) return unauthorized(req, res, 'permission denied');
+    if (!req.user) return unauthorized(req, res, 'permission denied');
     const userSession = await db.SessionUser.create({ userId: req.user.id, sessionId: req.params.id });
     if (req.is('json')) {
       res.json({ id: userSession.id });
