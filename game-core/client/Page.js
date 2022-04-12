@@ -109,6 +109,9 @@ export default class Page extends Component {
         case "active":
           this.setState(state => ({playerStatus: Object.assign({}, state.playerStatus, {[res.payload]: new Date()})}));
           break;
+        case 'reload':
+          location.reload()
+          break
       }
     };
     document.addEventListener('touchmove', e => {

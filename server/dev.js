@@ -29,6 +29,9 @@ if (!fs.existsSync(gamePath)) {
 
 function modifyBuild(config) {
     config.watch = true
+    config.watchOptions = {
+        followSymlinks: true,
+    }
 }
 
 async function build(sessionId) {
