@@ -1,163 +1,165 @@
-const url = require('url')
-const WebSocket = require("ws")
-const express = require("express")
-const http = require("http")
-const Redis = require("ioredis");
-const bodyParser = require('body-parser')
-const jwt = require("jsonwebtoken")
-const { Sequelize } = require('sequelize')
-const bcrypt = require('bcrypt')
-const db = require('./models')
-const GameRunner = require('./gameRunner')
-const cookieParser = require('cookie-parser')
-const path = require('path')
+const url = require('url');
+const WebSocket = require('ws');
+const express = require('express');
+const http = require('http');
+const Redis = require('ioredis');
+const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
+const { Sequelize } = require('sequelize');
+const bcrypt = require('bcrypt');
+const cookieParser = require('cookie-parser');
+const path = require('path');
+const db = require('./models');
+const GameRunner = require('./gameRunner');
 
-module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
+module.exports = ({
+  secretKey, redisUrl, s3Provider, zkConnectionString,
+}) => {
   function loginUser(user, res) {
-    const token = jwt.sign({id: user.id}, secretKey)
-    res.cookie('jwt',token)
+    const token = jwt.sign({ id: user.id }, secretKey);
+    res.cookie('jwt', token);
   }
 
-  const app = express()
-  const server = http.createServer(app)
-  const redisClient = new Redis(redisUrl)
-  const devMode = process.env.NODE_ENV === 'development'
+  const app = express();
+  const server = http.createServer(app);
+  const redisClient = new Redis(redisUrl);
+  const devMode = process.env.NODE_ENV === 'development';
 
-  const gameRunner = new GameRunner(redisUrl, s3Provider, zkConnectionString)
+  const gameRunner = new GameRunner(redisUrl, s3Provider, zkConnectionString);
 
-  app.set('view engine', 'ejs')
-  app.set('views', __dirname + '/views')
-  app.use(bodyParser.json({limit: '50mb'}))
-  app.use(bodyParser.urlencoded({ extended: true }))
-  app.use(cookieParser())
+  app.set('view engine', 'ejs');
+  app.set('views', `${__dirname}/views`);
+  app.use(bodyParser.json({ limit: '50mb' }));
+  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(cookieParser());
   app.use((req, res, next) => {
-    res.locals.info = req.cookies.info
-    res.locals.error = req.cookies.error
-    res.clearCookie('info')
-    res.clearCookie('error')
-    next()
-  })
+    res.locals.info = req.cookies.info;
+    res.locals.error = req.cookies.error;
+    res.clearCookie('info');
+    res.clearCookie('error');
+    next();
+  });
 
   app.use((req, res, next) => {
-    res.locals.user = null
+    res.locals.user = null;
     try {
       verifyToken(req, (error, user) => {
         if (error) {
-          throw error
+          throw error;
         }
         if (user) {
-          req.user = user
-          res.locals.user = user
+          req.user = user;
+          res.locals.user = user;
         }
-        return next()
-      })
+        return next();
+      });
     } catch (error) {
-      console.error("verifyToken: ", error)
-      return next()
+      console.error('verifyToken: ', error);
+      return next();
     }
-  })
+  });
 
   function verifyToken(req, callback) {
-    let token = null
-    if (req.headers["authorization"]) {
-      token = req.headers.authorization.replace("JWT ", "")
+    let token = null;
+    if (req.headers.authorization) {
+      token = req.headers.authorization.replace('JWT ', '');
     } else if (req.cookies && req.cookies.jwt) {
-      token = req.cookies.jwt
+      token = req.cookies.jwt;
     }
     if (!token) {
-      return callback()
+      return callback();
     }
     jwt.verify(token, secretKey, { ignoreExpiration: true }, (err, user) => {
-      if (err) return callback(err, null)
-      db.User.findOne({ where: {id: user.id} }).then(user => callback(null, user)).catch(e => callback(e, null))
-    })
+      if (err) return callback(err, null);
+      db.User.findOne({ where: { id: user.id } }).then((user) => callback(null, user)).catch((e) => callback(e, null));
+    });
   }
 
   function unauthorized(req, res, message) {
-    res.cookie('error', message)
-    res.redirect('/login')
+    res.cookie('error', message);
+    res.redirect('/login');
   }
 
   app.post('/users', async (req, res) => {
-    const name = req.body.name
-    const rawPassword = req.body.password
-    const email = req.body.email
+    const { name } = req.body;
+    const rawPassword = req.body.password;
+    const { email } = req.body;
 
     if (rawPassword === null || rawPassword === '') {
-      return res.status(400).end("password required")
+      return res.status(400).end('password required');
     }
 
     if (name === null || name === '') {
-      return res.status(400).end("name required")
+      return res.status(400).end('name required');
     }
 
     if (email === null || email === '') {
-      return res.status(400).end("email required")
+      return res.status(400).end('email required');
     }
 
-    const password = await bcrypt.hash(rawPassword, 10)
+    const password = await bcrypt.hash(rawPassword, 10);
     try {
-      const user = await db.User.create({name, password, email})
+      const user = await db.User.create({ name, password, email });
 
-      loginUser(user, res)    
+      loginUser(user, res);
 
-      res.cookie('info', "Registered successfully!")
-      res.redirect('/')
+      res.cookie('info', 'Registered successfully!');
+      res.redirect('/');
     } catch (e) {
       if (e instanceof Sequelize.UniqueConstraintError) {
-        switch(e.errors[0].path) {
+        switch (e.errors[0].path) {
           case 'name':
-            res.cookie('error', "Username taken")
-            break
+            res.cookie('error', 'Username taken');
+            break;
           case 'email':
-            res.cookie('error', "Email taken")
-            break
+            res.cookie('error', 'Email taken');
+            break;
           default:
-            console.error("error", e)
-            res.cookie('error', "Unknown error")
+            console.error('error', e);
+            res.cookie('error', 'Unknown error');
         }
-        res.render('register')
+        res.render('register');
       } else {
-        throw e
+        throw e;
       }
     }
-  })
+  });
 
   app.get('/login', async (req, res) => {
-    res.render('login')
-  })
+    res.render('login');
+  });
 
   app.get('/register', async (req, res) => {
-    res.render('register')
-  })
+    res.render('register');
+  });
 
   app.post('/login', async (req, res) => {
-    const name = req.body.name || ''
-    const password = req.body.password || ''
-    const user = await db.User.findOne({ where: {name} })
-    if (!user) return unauthorized(req, res, 'incorrect login')
-    const correctPassword = await bcrypt.compare(password, user.password)
-    if (!correctPassword) return unauthorized(req, res, 'incorrect login')
-    loginUser(user, res)    
-    res.cookie('info', "Logged in successfully!")
-    res.redirect("/")
-  })
+    const name = req.body.name || '';
+    const password = req.body.password || '';
+    const user = await db.User.findOne({ where: { name } });
+    if (!user) return unauthorized(req, res, 'incorrect login');
+    const correctPassword = await bcrypt.compare(password, user.password);
+    if (!correctPassword) return unauthorized(req, res, 'incorrect login');
+    loginUser(user, res);
+    res.cookie('info', 'Logged in successfully!');
+    res.redirect('/');
+  });
 
   app.get('/logout', async (req, res) => {
-    res.clearCookie('jwt')
-    res.redirect("/")
-  })
+    res.clearCookie('jwt');
+    res.redirect('/');
+  });
 
   app.get('/', async (req, res) => {
-    res.render('home')
-  })
+    res.render('home');
+  });
 
   app.get('/sessions', async (req, res) => {
-    if (!req.user.id) return unauthorized(req, res, 'permission denied')
-    let where = {}
+    if (!req.user.id) return unauthorized(req, res, 'permission denied');
+    let where = {};
     if (req.query.show != 'all') {
-      const mySessions = await db.SessionUser.findAll({where: {userId: req.user.id}})
-      where = {id: mySessions.map(s => s.sessionId)}
+      const mySessions = await db.SessionUser.findAll({ where: { userId: req.user.id } });
+      where = { id: mySessions.map((s) => s.sessionId) };
     }
     const sessions = await db.Session.findAll({
       where,
@@ -165,31 +167,31 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
       include: [
         {
           model: db.GameVersion,
-          include: [{model: db.Game}]
+          include: [{ model: db.Game }],
         },
         {
           model: db.SessionUser,
           as: 'SessionUsers',
-          include: [{model: db.User}]
+          include: [{ model: db.User }],
         },
         {
           model: db.User,
-          as: 'creator'
-        }
-      ]
-    })
-    res.render('index', {sessions: sessions})
-  })
+          as: 'creator',
+        },
+      ],
+    });
+    res.render('index', { sessions });
+  });
 
   app.get('/sessions/new', async (req, res) => {
-    if (!req.user) return unauthorized(req, res, 'permission denied')
-    const games = await db.Game.findAll({attributes: ['name', [Sequelize.fn('max', Sequelize.col('id')), 'maxId']], group: ['name'], raw: true})
-    res.render('sessions-new', {games: games})
-  })
+    if (!req.user) return unauthorized(req, res, 'permission denied');
+    const games = await db.Game.findAll({ attributes: ['name', [Sequelize.fn('max', Sequelize.col('id')), 'maxId']], group: ['name'], raw: true });
+    res.render('sessions-new', { games });
+  });
 
   app.put('/publish', async (req, res) => {
     if (req.headers['x-publish-token'] !== process.env.PUBLISH_TOKEN) {
-      return res.status(401).end('unauthorized')
+      return res.status(401).end('unauthorized');
     }
 
     const [game, _] = await db.Game.findOrCreate({
@@ -201,11 +203,11 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
       },
     });
 
-    const gameVersion = await game.latestVersion()
-    const versionNumber = gameVersion ? gameVersion.version + 1 : 1
+    const gameVersion = await game.latestVersion();
+    const versionNumber = gameVersion ? gameVersion.version + 1 : 1;
 
     if (gameVersion && gameVersion.serverDigest === req.body.serverDigest && gameVersion.clientDigest === req.body.clientDigest) {
-      return res.json({version: gameVersion.version, msg: "no version created, already exists"})
+      return res.json({ version: gameVersion.version, msg: 'no version created, already exists' });
     }
 
     const version = await db.GameVersion.create({
@@ -213,262 +215,270 @@ module.exports = ({secretKey, redisUrl, s3Provider, zkConnectionString }) => {
       version: versionNumber,
       serverDigest: req.body.serverDigest,
       clientDigest: req.body.clientDigest,
-    })
-    res.json({version: version.version})
-  })
+    });
+    res.json({ version: version.version });
+  });
 
   app.get('/play/:id/*', async (req, res) => {
-    if (!req.user) return unauthorized(req, res, 'permission denied')
+    if (!req.user) return unauthorized(req, res, 'permission denied');
     const session = await db.Session.findByPk(req.params.id, {
       include: [{
         model: db.SessionUser,
         include: db.User,
-      },{
+      }, {
         model: db.GameVersion,
-        include: [db.Game]
-      }]
-    })
+        include: [db.Game],
+      }],
+    });
     if (!session) {
-      res.status(404).end('No such game')
+      res.status(404).end('No such game');
     }
     if (!req.params[0]) {
-      return res.render('client', {userId: req.user.id, entry: 'index.js'})
+      return res.render('client', { userId: req.user.id, entry: 'index.js' });
     }
-    const gameVersion = session.GameVersion
-    const game = gameVersion.Game
-    const s3Path = path.join(game.name, "client", gameVersion.clientDigest, req.params[0])
-    const s3Params = {Key: s3Path}
+    const gameVersion = session.GameVersion;
+    const game = gameVersion.Game;
+    const s3Path = path.join(game.name, 'client', gameVersion.clientDigest, req.params[0]);
+    const s3Params = { Key: s3Path };
     try {
-      const info = await s3Provider.headObject(s3Params).promise()
-      res.set('Content-Type', info.ContentType)
-      res.set('Content-Length', info.ContentLength)
-      const stream = s3Provider.getObject(s3Params).createReadStream()
+      const info = await s3Provider.headObject(s3Params).promise();
+      res.set('Content-Type', info.ContentType);
+      res.set('Content-Length', info.ContentLength);
+      const stream = s3Provider.getObject(s3Params).createReadStream();
       stream.on('error', (e) => {
-        console.log("error while streaming", e)
-      })
+        console.log('error while streaming', e);
+      });
       stream.pipe(res);
-    } catch(e) {
-      console.log("error getting", s3Path, e)
-      res.status(404).end('not found')        
+    } catch (e) {
+      console.log('error getting', s3Path, e);
+      res.status(404).end('not found');
     }
-  })
+  });
 
   app.post('/sessions', async (req, res) => {
-    if (!req.user) return unauthorized(req, res, 'permission denied')
-    if (!req.body.gameId) return res.status(400).end('no game specified')
+    if (!req.user) return unauthorized(req, res, 'permission denied');
+    if (!req.body.gameId) return res.status(400).end('no game specified');
 
-    const game = await db.Game.findByPk(req.body.gameId)
-    const gameVersion = await game.latestVersion()
-    const session = await db.Session.create({gameVersionId: gameVersion.id, creatorId: req.user.id, seed: String(Math.random())})
-    await db.SessionUser.create({userId: req.user.id, sessionId: session.id})
+    const game = await db.Game.findByPk(req.body.gameId);
+    const gameVersion = await game.latestVersion();
+    const session = await db.Session.create({ gameVersionId: gameVersion.id, creatorId: req.user.id, seed: String(Math.random()) });
+    await db.SessionUser.create({ userId: req.user.id, sessionId: session.id });
     if (req.is('json')) {
-      res.json({id: session.id})
+      res.json({ id: session.id });
     } else {
-      res.redirect('/sessions/' + session.id)
+      res.redirect(`/sessions/${session.id}`);
     }
-  })
+  });
 
   app.get('/sessions/:id', async (req, res) => {
-    if (!req.user) return unauthorized(req, res, 'permission denied')
+    if (!req.user) return unauthorized(req, res, 'permission denied');
     const session = await db.Session.findByPk(req.params.id, {
       include: [{
         model: db.SessionUser,
         include: db.User,
-      },{
+      }, {
         model: db.GameVersion,
-        include: [db.Game]
-      }]
-    })
-    const sessionUser = await db.SessionUser.findOne({where: {userId: req.user.id, sessionId: session.id}})
+        include: [db.Game],
+      }],
+    });
+    const sessionUser = await db.SessionUser.findOne({ where: { userId: req.user.id, sessionId: session.id } });
     if (sessionUser) {
-      return res.redirect(`/play/${session.id}/`)
-    } else {
-       const started = await db.SessionAction.findOne({where: {sessionId: session.id}})
-       res.render('session', {
-         session,
-         me: req.user.id,
-         started,
-         game: session.getGame().name
-       })
-     }
-   })
+      return res.redirect(`/play/${session.id}/`);
+    }
+    const started = await db.SessionAction.findOne({ where: { sessionId: session.id } });
+    res.render('session', {
+      session,
+      me: req.user.id,
+      started,
+      game: session.getGame().name,
+    });
+  });
 
   app.post('/user-sessions/:id', async (req, res) => {
-    if (!req.user.id) return unauthorized(req, res, 'permission denied')
-    const userSession = await db.SessionUser.create({userId: req.user.id, sessionId: req.params.id})
+    if (!req.user.id) return unauthorized(req, res, 'permission denied');
+    const userSession = await db.SessionUser.create({ userId: req.user.id, sessionId: req.params.id });
     if (req.is('json')) {
-      res.json({id: userSession.id})
+      res.json({ id: userSession.id });
     } else {
-      res.redirect('/sessions/' + req.params.id)
+      res.redirect(`/sessions/${req.params.id}`);
     }
-  })
+  });
 
   if (devMode) {
     server.reload = async () => {
-      const sessions = await db.Session.findAll()
+      const sessions = await db.Session.findAll();
       for (const session of sessions) {
-        await redisClient.publish(gameRunner.sessionEventKey(session.id), JSON.stringify({type: 'reload'}))
+        await redisClient.publish(gameRunner.sessionEventKey(session.id), JSON.stringify({ type: 'reload' }));
       }
-    }
+    };
   }
 
   app.get('/play', async (req, res) => {
-    const sessions = await db.Session.findAll({ include: [db.Game, {model: db.User, as: 'creator'}] })
-    res.render('index', {sessions: sessions})
-  })
+    const sessions = await db.Session.findAll({ include: [db.Game, { model: db.User, as: 'creator' }] });
+    res.render('index', { sessions });
+  });
 
   const verifyClient = async (info, verified) => {
-    cookieParser()(info.req, null, () => {})
+    cookieParser()(info.req, null, () => {});
     try {
       verifyToken(info.req, (error, user) => {
         if (error || !user) {
-          console.error("verifyClient fail: ", error, user)
-          return verified(false, 401, "Unauthorized")
+          console.error('verifyClient fail: ', error, user);
+          return verified(false, 401, 'Unauthorized');
         }
-        info.req.user = user
-        verified(true)
-      })
+        info.req.user = user;
+        verified(true);
+      });
     } catch (error) {
-      console.error("verifyClient: ", error)
-      throw error
+      console.error('verifyClient: ', error);
+      throw error;
     }
-  }
+  };
 
-  const wss = new WebSocket.Server({verifyClient, server})
+  const wss = new WebSocket.Server({ verifyClient, server });
 
   wss.shouldHandle = (req) => {
-    const path = url.parse(req.url).pathname
-    const match = path.match(/\/sessions\/([^/]+)/)
+    const path = url.parse(req.url).pathname;
+    const match = path.match(/\/sessions\/([^/]+)/);
     if (match) {
-      req.sessionId = match[1]
-      return true
-    } else {
-      return false
+      req.sessionId = match[1];
+      return true;
     }
-  }
+    return false;
+  };
 
   const onWssConnection = async (ws, req) => {
-    const sessionUser = await db.SessionUser.findOne({where: {userId: req.user.id, sessionId: req.sessionId}})
+    const sessionUser = await db.SessionUser.findOne({ where: { userId: req.user.id, sessionId: req.sessionId } });
     if (!sessionUser) {
-      return ws.close(4001)
+      return ws.close(4001);
     }
 
-    const session = await sessionUser.getSession()
-    const sessionEventKey = gameRunner.sessionEventKey(req.sessionId)
+    const session = await sessionUser.getSession();
+    const sessionEventKey = gameRunner.sessionEventKey(req.sessionId);
 
-    const publish = async (type, payload) => await redisClient.publish(sessionEventKey, JSON.stringify({type, payload}))
-    const queue = async (type, payload) => await redisClient.rpush(sessionEventKey, JSON.stringify({type, payload}))
-    const sendWS = (type, payload) => ws.send(JSON.stringify({type, payload}))
+    const publish = async (type, payload) => await redisClient.publish(sessionEventKey, JSON.stringify({ type, payload }));
+    const queue = async (type, payload) => await redisClient.rpush(sessionEventKey, JSON.stringify({ type, payload }));
+    const sendWS = (type, payload) => ws.send(JSON.stringify({ type, payload }));
 
-    let locks = []
+    let locks = [];
 
-    const sendPlayerView = async jsonData => {
-      ws.send(jsonData)
-    }
+    const sendPlayerView = async (jsonData) => {
+      ws.send(jsonData);
+    };
 
     const sendPlayerLocks = async () => {
-      const payload = await session.getElementLocks().reduce((locks, lock) => {locks[lock.element] = lock.userId; return locks;}, {})
-      sendWS('updateLocks', payload)
-    }
+      const payload = await session.getElementLocks().reduce((locks, lock) => { locks[lock.element] = lock.userId; return locks; }, {});
+      sendWS('updateLocks', payload);
+    };
 
     const requestLock = async (key) => {
       try {
-        await db.ElementLock.destroy({where: {
-          sessionId: session.id,
-          updatedAt: {[Sequelize.Op.lt]: new Date() - 60000}
-        }})
-        locks.push(await db.ElementLock.create({ sessionId: session.id, userId: sessionUser.userId, element: key }))
+        await db.ElementLock.destroy({
+          where: {
+            sessionId: session.id,
+            updatedAt: { [Sequelize.Op.lt]: new Date() - 60000 },
+          },
+        });
+        locks.push(await db.ElementLock.create({ sessionId: session.id, userId: sessionUser.userId, element: key }));
       } catch (e) {
         if (!(e instanceof db.Sequelize.UniqueConstraintError)) {
-          throw e
+          throw e;
         }
       }
-      await publish('locks')
-    }
+      await publish('locks');
+    };
 
     const releaseLock = async (key) => {
-      await db.ElementLock.destroy({where: { sessionId: session.id, userId: sessionUser.userId, element: key }})
-      locks = locks.filter(lock => lock.key != key)
-      await publish('locks')
-    }
+      await db.ElementLock.destroy({ where: { sessionId: session.id, userId: sessionUser.userId, element: key } });
+      locks = locks.filter((lock) => lock.key != key);
+      await publish('locks');
+    };
 
-    const drag = async ({key, x, y, start, end, endFlip}) => {
-      const lock = locks.find(lock => lock.element == key)
-      if (!lock || lock.userId != sessionUser.userId) return
-      await publish('drag', {userId: lock.userId, key, x, y, start, end, endFlip})
-    }
+    const drag = async ({
+      key, x, y, start, end, endFlip,
+    }) => {
+      const lock = locks.find((lock) => lock.element == key);
+      if (!lock || lock.userId != sessionUser.userId) return;
+      await publish('drag', {
+        userId: lock.userId, key, x, y, start, end, endFlip,
+      });
+    };
 
-    const updateElement = ({userId, key, x, y, start, end, endFlip}) => {
-      if (userId == sessionUser.userId) return
-      sendWS('updateElement', {key, x, y, start, end, endFlip})
-    }
+    const updateElement = ({
+      userId, key, x, y, start, end, endFlip,
+    }) => {
+      if (userId == sessionUser.userId) return;
+      sendWS('updateElement', {
+        key, x, y, start, end, endFlip,
+      });
+    };
 
-    const sessionRunner = gameRunner.createSessionRunner(session.id)
-    sessionRunner.once('error', error => {
-      console.error("error starting session!", error)
-      return ws.close(1011) // internal error
-    })
+    const sessionRunner = gameRunner.createSessionRunner(session.id);
+    sessionRunner.once('error', (error) => {
+      console.error('error starting session!', error);
+      return ws.close(1011); // internal error
+    });
 
     ws.on('message', async (data) => {
       try {
-        const message = JSON.parse(data)
-        console.debug(`S ${req.user.id}: ws message`, message.type)
-        switch(message.type) {
-          case 'requestLock': return await requestLock(message.payload.key)
-          case 'releaseLock': return await releaseLock(message.payload.key)
-          case 'drag': return await drag(message.payload)
-          case 'ping': return publish('active', sessionUser.userId)
+        const message = JSON.parse(data);
+        console.debug(`S ${req.user.id}: ws message`, message.type);
+        switch (message.type) {
+          case 'requestLock': return await requestLock(message.payload.key);
+          case 'releaseLock': return await releaseLock(message.payload.key);
+          case 'drag': return await drag(message.payload);
+          case 'ping': return publish('active', sessionUser.userId);
           default: {
-            message.payload.userId = req.user.id
-            const out = await queue(message.type, message.payload)
-            return out
+            message.payload.userId = req.user.id;
+            const out = await queue(message.type, message.payload);
+            return out;
           }
         }
-      } catch(e) {
-        console.error("error", data, e)
+      } catch (e) {
+        console.error('error', data, e);
       }
-    })
+    });
 
-    const subscriber = new Redis(redisUrl)
-    subscriber.on("message", async (channel, data) => {
-      const message = JSON.parse(data)
-      console.debug(`S ${req.user.id}: redis message`, message.type, message.userId)
+    const subscriber = new Redis(redisUrl);
+    subscriber.on('message', async (channel, data) => {
+      const message = JSON.parse(data);
+      console.debug(`S ${req.user.id}: redis message`, message.type, message.userId);
       // TODO better as seperate channels for each user and all users?
       if (message.userId && message.userId != req.user.id) {
-        return
+        return;
       }
       switch (message.type) {
-        case 'state': return await sendPlayerView(data)
-        case 'locks': return await sendPlayerLocks()
-        case 'drag': return await updateElement(message.payload)
-        default: return sendWS(message.type, message.payload)
+        case 'state': return await sendPlayerView(data);
+        case 'locks': return await sendPlayerLocks();
+        case 'drag': return await updateElement(message.payload);
+        default: return sendWS(message.type, message.payload);
       }
-    })
+    });
 
-    ws.on("close", async () => {
-      await sessionRunner.stop()
-      await subscriber.quit()
-    })
+    ws.on('close', async () => {
+      await sessionRunner.stop();
+      await subscriber.quit();
+    });
 
-    ws.on("error", async error => {
-      await sessionRunner.stop()
-      await subscriber.quit()
-      console.error("error in ws", error)
-    })
+    ws.on('error', async (error) => {
+      await sessionRunner.stop();
+      await subscriber.quit();
+      console.error('error in ws', error);
+    });
 
-    console.log(`S ${req.user.id} subscribe`)
-      subscriber.subscribe(sessionEventKey, async err => {
+    console.log(`S ${req.user.id} subscribe`);
+    subscriber.subscribe(sessionEventKey, async (err) => {
       if (err) {
-        await sessionRunner.stop()
-        return ws.close(1011) // internal error
+        await sessionRunner.stop();
+        return ws.close(1011); // internal error
       }
 
-      console.log(`S ${req.user.id} addPlayer`)
-      const user = await db.User.findByPk(req.user.id)
-      queue('addPlayer', {userId: user.id, username: user.name})
-    })
-  }
-  wss.on("connection", onWssConnection)
+      console.log(`S ${req.user.id} addPlayer`);
+      const user = await db.User.findByPk(req.user.id);
+      queue('addPlayer', { userId: user.id, username: user.name });
+    });
+  };
+  wss.on('connection', onWssConnection);
 
-  return server
-}
+  return server;
+};

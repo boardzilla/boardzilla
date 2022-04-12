@@ -1,9 +1,8 @@
 const GameElement = require('./element');
 const Piece = require('./piece');
-const { times } = require("./utils");
+const { times } = require('./utils');
 
 class Space extends GameElement {
-
   space(q) {
     if (q instanceof Space) return q;
     return this.spaces(q)[0];
@@ -11,7 +10,7 @@ class Space extends GameElement {
 
   spaces(q) {
     if (q instanceof Array) return q;
-    return this.findAll(q).filter(el => el instanceof Space);
+    return this.findAll(q).filter((el) => el instanceof Space);
   }
 
   piece(q) {
@@ -21,7 +20,7 @@ class Space extends GameElement {
 
   pieces(q) {
     if (q instanceof Array) return q;
-    return this.findAll(q).filter(el => el instanceof Piece);
+    return this.findAll(q).filter((el) => el instanceof Piece);
   }
 
   // move pieces to a space, at end of list (on top). use num to limit the number moved. use position to control child placement (same as slice)
@@ -30,7 +29,7 @@ class Space extends GameElement {
     if (!space) throw new Error(`No space found "${to}"`);
     let movables = this.pieces(pieces);
     if (num !== undefined) movables = movables.slice(-num);
-    movables.forEach(piece => {
+    movables.forEach((piece) => {
       piece.set('x');
       piece.set('y');
       piece.set('left');
@@ -52,7 +51,7 @@ class Space extends GameElement {
       space.node.insertBefore(piece.node, space.node.children[position]);
     });
     this.game.afterMoves.forEach(([pieceSelector, fn]) => {
-      movables.forEach(piece => {
+      movables.forEach((piece) => {
         if (piece.matches(pieceSelector)) fn(piece);
       });
     });
@@ -73,9 +72,9 @@ class Space extends GameElement {
   }
 
   shuffle() {
-    times(this.node.childElementCount - 1, i => {
+    times(this.node.childElementCount - 1, (i) => {
       const r = this.game.random(this.node.childElementCount + 1 - i);
-      this.node.insertBefore(this.node.children[r], null)
+      this.node.insertBefore(this.node.children[r], null);
     });
   }
 
@@ -89,13 +88,13 @@ class Space extends GameElement {
   }
 
   sort(fn) {
-    Space.sort(Array.from(this.node.children).map(node => this.wrap(node)), fn).
-         map(pair => pair.node).
-         forEach(i => this.node.insertBefore(i, null));
+    Space.sort(Array.from(this.node.children).map((node) => this.wrap(node)), fn)
+      .map((pair) => pair.node)
+      .forEach((i) => this.node.insertBefore(i, null));
   }
 
-  static sort(set, fn = n => n.id) {
-    const comp = typeof fn === 'function' ? fn : el => el.get(fn);
+  static sort(set, fn = (n) => n.id) {
+    const comp = typeof fn === 'function' ? fn : (el) => el.get(fn);
     return set.sort((a, b) => comp(a) > comp(b) && 1 || (comp(a) < comp(b) && -1 || 0));
   }
 

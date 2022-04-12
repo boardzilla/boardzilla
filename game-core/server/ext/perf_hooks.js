@@ -1,1 +1,1 @@
-exports.performance = {now() { return +new Date; }};
+exports.performance = { now() { return +new Date(); } };

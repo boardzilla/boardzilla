@@ -1,287 +1,295 @@
-const GameInterface = require('game-core-server/interface')
-const { editions, cards } = require('./data')
+const GameInterface = require('game-core-server/interface');
+const { editions, cards } = require('./data');
 
 class FourSouls extends GameInterface {
   constructor(seed) {
-    super(seed)
+    super(seed);
     this.minPlayers = 1;
     this.maxPlayers = 4;
 
-    this.setupPlayerMat = mat => {
-      const tableau = mat.addSpace('#tableau', 'area', {spreadX: 80});
-      mat.addSpace('#hand', 'area', {spreadX: 80});
-      tableau.addComponent('counter', {display: 'hp', initialValue: 2, max: 5, bottom: 10});
-      tableau.addComponent('counter', {display: 'attack', initialValue: 1, max: 8, left: 120, bottom: 10});
-      tableau.addComponent('counter', {display: 'coin', initialValue: 3, max: 50, right: 10, bottom: 10});
-      tableau.addComponent('die', {faces: 6, right: 40, top: 10});
+    this.setupPlayerMat = (mat) => {
+      const tableau = mat.addSpace('#tableau', 'area', { spreadX: 80 });
+      mat.addSpace('#hand', 'area', { spreadX: 80 });
+      tableau.addComponent('counter', {
+        display: 'hp', initialValue: 2, max: 5, bottom: 10,
+      });
+      tableau.addComponent('counter', {
+        display: 'attack', initialValue: 1, max: 8, left: 120, bottom: 10,
+      });
+      tableau.addComponent('counter', {
+        display: 'coin', initialValue: 3, max: 50, right: 10, bottom: 10,
+      });
+      tableau.addComponent('die', { faces: 6, right: 40, top: 10 });
     };
 
-    this.setupBoard = board => {
+    this.setupBoard = (board) => {
       const charactersDeck = board.addSpace('#characters', 'deck');
-      Object.entries(cards).filter(c => c[1].type=='character').forEach(c => addCard(c, charactersDeck));
-      charactersDeck.shuffle()
+      Object.entries(cards).filter((c) => c[1].type == 'character').forEach((c) => addCard(c, charactersDeck));
+      charactersDeck.shuffle();
       const eternalsDeck = board.addSpace('#eternals', 'deck');
-      Object.entries(cards).filter(c => c[1].type=='eternal').forEach(c => addCard(c, eternalsDeck));
-      eternalsDeck.shuffle()
+      Object.entries(cards).filter((c) => c[1].type == 'eternal').forEach((c) => addCard(c, eternalsDeck));
+      eternalsDeck.shuffle();
 
       const lootDeck = board.addSpace('#loot', 'deck');
-      Object.entries(cards).filter(c => c[1].type=='loot').forEach(c => addCard(c, lootDeck));
-      lootDeck.shuffle()
+      Object.entries(cards).filter((c) => c[1].type == 'loot').forEach((c) => addCard(c, lootDeck));
+      lootDeck.shuffle();
       board.addSpace('#loot-discard', 'deck');
 
       const treasureDeck = board.addSpace('#treasure', 'deck');
-      Object.entries(cards).filter(c => c[1].type=='treasure').forEach(c => addCard(c, treasureDeck));
-      treasureDeck.shuffle()
+      Object.entries(cards).filter((c) => c[1].type == 'treasure').forEach((c) => addCard(c, treasureDeck));
+      treasureDeck.shuffle();
       board.addSpace('#treasure-discard', 'deck');
-      board.addSpace('#shop', 'area', {spreadX: 80});
+      board.addSpace('#shop', 'area', { spreadX: 80 });
 
       const monsterDeck = board.addSpace('#monsters', 'deck');
-      Object.entries(cards).filter(c => c[1].type=='monster').forEach(c => addCard(c, monsterDeck));
-      monsterDeck.shuffle()
+      Object.entries(cards).filter((c) => c[1].type == 'monster').forEach((c) => addCard(c, monsterDeck));
+      monsterDeck.shuffle();
       board.addSpace('#monsters-discard', 'deck');
-      const dungeon = board.addSpace('#dungeon', 'area', {spreadX: 80});
-      dungeon.addComponent('counter', {display: 'hp', initialValue:1, max: 8, left: 20, top: 100});
+      const dungeon = board.addSpace('#dungeon', 'area', { spreadX: 80 });
+      dungeon.addComponent('counter', {
+        display: 'hp', initialValue: 1, max: 8, left: 20, top: 100,
+      });
 
-      board.addSpace('#bonus-souls', 'area', {spreadX: 47});
+      board.addSpace('#bonus-souls', 'area', { spreadX: 47 });
     };
 
     const addCard = ([id, card], deck) => {
-      Object.entries(card.edition).forEach(([edition, count]) => deck.addPieces(count, "#" + id, 'card', {...card, edition}));
-    }
+      Object.entries(card.edition).forEach(([edition, count]) => deck.addPieces(count, `#${id}`, 'card', { ...card, edition }));
+    };
 
-    this.afterMove('#hand card, deck card', card => {card.set('active', false); card.set('flipped', false)});
+    this.afterMove('#hand card, deck card', (card) => { card.set('active', false); card.set('flipped', false); });
 
-    this.hideBoard(`card[flipped], #player-mat:not(.mine) #hand card, #loot card, #treasure card, #monsters card, #characters card, #eternals card`, ['front', 'text', 'edition']);
+    this.hideBoard('card[flipped], #player-mat:not(.mine) #hand card, #loot card, #treasure card, #monsters card, #characters card, #eternals card', ['front', 'text', 'edition']);
 
     this.actions = {
       shuffle: {
-        select: "deck",
-        prompt: "Shuffle",
-        action: deck => deck.shuffle(),
+        select: 'deck',
+        prompt: 'Shuffle',
+        action: (deck) => deck.shuffle(),
       },
       flip: {
-        select: ".mine card",
-        prompt: "Flip",
-        action: card => card.set('flipped', !card.get('flipped'))
+        select: '.mine card',
+        prompt: 'Flip',
+        action: (card) => card.set('flipped', !card.get('flipped')),
       },
       activate: {
-        select: ".mine #tableau card:not([active]):not([flipped])",
-        prompt: "Tap",
-        key: "x",
-        action: card => card.set('active', true)
+        select: '.mine #tableau card:not([active]):not([flipped])',
+        prompt: 'Tap',
+        key: 'x',
+        action: (card) => card.set('active', true),
       },
       deactivate: {
-        prompt: "Untap",
-        select: ".mine #tableau card[active]:not([flipped])",
-        key: "x",
-        action: card => card.set('active', false)
+        prompt: 'Untap',
+        select: '.mine #tableau card[active]:not([flipped])',
+        key: 'x',
+        action: (card) => card.set('active', false),
       },
       deactivateAll: {
-        prompt: "Untap all",
-        select: ".mine #tableau card[active]:not([flipped])",
-        key: "l",
-        action: card => card.parent().findAll('card[active]').forEach(c => c.set('active', false))
+        prompt: 'Untap all',
+        select: '.mine #tableau card[active]:not([flipped])',
+        key: 'l',
+        action: (card) => card.parent().findAll('card[active]').forEach((c) => c.set('active', false)),
       },
       play: {
-        prompt: "Play onto board",
-        key: "d",
-        drag: ".mine #hand card",
-        onto: ".mine #tableau"
+        prompt: 'Play onto board',
+        key: 'd',
+        drag: '.mine #hand card',
+        onto: '.mine #tableau',
       },
       remove: {
-        prompt: "Put back in your hand",
-        drag: ".mine #tableau card",
-        onto: ".mine #hand",
+        prompt: 'Put back in your hand',
+        drag: '.mine #tableau card',
+        onto: '.mine #hand',
       },
       draw: {
-        prompt: "Draw",
-        drag: "deck card, #loot-discard card",
-        key: "d",
-        onto: ".mine #hand",
+        prompt: 'Draw',
+        drag: 'deck card, #loot-discard card',
+        key: 'd',
+        onto: '.mine #hand',
       },
       drawMultiple: {
-        prompt: "Draw multiple",
-        select: "deck",
-        key: "m",
+        prompt: 'Draw multiple',
+        select: 'deck',
+        key: 'm',
         next: {
-          prompt: "How many?",
+          prompt: 'How many?',
           min: 2,
           max: 6,
           action: (deck, n) => deck.move('card', '.mine #hand', n),
         },
       },
       drawOne: {
-        prompt: "Draw specific card",
-        select: "deck",
-        key: "i",
+        prompt: 'Draw specific card',
+        select: 'deck',
+        key: 'i',
         next: {
-          prompt: "Select card",
-          select: deck => deck.findAll("card").map(c => c.get('text')),
+          prompt: 'Select card',
+          select: (deck) => deck.findAll('card').map((c) => c.get('text')),
           action: (deck, text) => deck.find(`card[text="${text}"]`).move('.mine #tableau'),
-        }
+        },
       },
       purchase: {
-        prompt: "Purchase",
-        drag: "#shop card, #treasure card",
-        key: "p",
-        onto: ".mine #tableau",
+        prompt: 'Purchase',
+        drag: '#shop card, #treasure card',
+        key: 'p',
+        onto: '.mine #tableau',
       },
       intoLootDeckTop: {
-        prompt: "Put on top of deck",
-        key: "t",
+        prompt: 'Put on top of deck',
+        key: 't',
         drag: '.mine card[type="loot"], #loot-discard card',
         onto: '#loot',
       },
       intoLootDeckBottom: {
-        prompt: "Put bottom of deck",
-        key: "b",
+        prompt: 'Put bottom of deck',
+        key: 'b',
         select: '.mine card[type="loot"]',
-        action: card => card.moveToBottom('#loot')
+        action: (card) => card.moveToBottom('#loot'),
       },
       discardLoot: {
-        prompt: "Discard",
-        key: "f",
+        prompt: 'Discard',
+        key: 'f',
         drag: '#loot card, .mine card[type="loot"]',
         onto: '#loot-discard',
       },
       playLoot: {
-        prompt: "Play",
-        key: "p",
+        prompt: 'Play',
+        key: 'p',
         drag: '.mine card[type="loot"]',
         onto: '#loot-discard',
       },
       intoShop: {
-        prompt: "Put into shop",
-        key: "s",
+        prompt: 'Put into shop',
+        key: 's',
         drag: '#treasure card, #treasure-discard card, .mine card[type="treasure"]',
         onto: '#shop',
       },
       discardTreasure: {
-        prompt: "Discard",
-        key: "f",
+        prompt: 'Discard',
+        key: 'f',
         drag: '#treasure card, #shop card, .mine card[type="treasure"]',
         onto: '#treasure-discard',
       },
       intoTreasureDeck: {
-        prompt: "Put top of deck",
-        key: "t",
+        prompt: 'Put top of deck',
+        key: 't',
         drag: '#treasure-discard card, #shop card, .mine card[type="treasure"]',
         onto: '#treasure',
       },
       intoTreasureDeckBottom: {
-        prompt: "Put bottom of deck",
-        key: "b",
+        prompt: 'Put bottom of deck',
+        key: 'b',
         select: '#treasure-discard card, #shop card, .mine card[type="treasure"]',
-        action: card => card.moveToBottom('#treasure')
+        action: (card) => card.moveToBottom('#treasure'),
       },
       intoDungeon: {
-        prompt: "Put into dungeon",
-        key: "s",
+        prompt: 'Put into dungeon',
+        key: 's',
         drag: '#monsters card, #monsters-discard card, .mine card[type="monster"]',
         onto: '#dungeon',
       },
       takeMonster: {
-        prompt: "Play onto board",
-        key: "p",
+        prompt: 'Play onto board',
+        key: 'p',
         drag: '#board card[type="monster"]',
         onto: '.mine #tableau',
       },
       discardMonster: {
-        prompt: "Discard",
-        key: "f",
+        prompt: 'Discard',
+        key: 'f',
         drag: '#board card[type="monster"], .mine card[type="monster"]',
         onto: '#monsters-discard',
       },
       intoMonsterDeck: {
-        prompt: "Put top of deck",
-        key: "t",
+        prompt: 'Put top of deck',
+        key: 't',
         drag: '#board card[type="monster"], .mine card[type="monster"]',
         onto: '#monsters',
       },
       intoMonsterDeckBottom: {
-        prompt: "Put bottom of deck",
-        key: "b",
+        prompt: 'Put bottom of deck',
+        key: 'b',
         select: '#board card[type="monster"], .mine card[type="monster"]',
-        action: card => card.moveToBottom('#monsters')
+        action: (card) => card.moveToBottom('#monsters'),
       },
       intoMonsterDeckAt: {
-        prompt: "Put nth card down in deck",
-        key: "n",
+        prompt: 'Put nth card down in deck',
+        key: 'n',
         select: '#board card[type="monster"], .mine card[type="monster"]',
         next: {
-          prompt: "How far down into deck?",
+          prompt: 'How far down into deck?',
           min: 2,
           max: 6,
           action: (card, position) => card.move('#monsters', position - 1),
-        }
+        },
       },
       takeBonus: {
-        prompt: "Claim bonus soul",
-        key: "d",
+        prompt: 'Claim bonus soul',
+        key: 'd',
         drag: "#board card[type='bonus']",
-        onto: ".mine #tableau"
+        onto: '.mine #tableau',
       },
       discardBonus: {
-        prompt: "Discard",
-        key: "f",
+        prompt: 'Discard',
+        key: 'f',
         drag: ".mine card[type='bonus']",
-        onto: "#bonus-souls"
+        onto: '#bonus-souls',
       },
       giveCard: {
-        prompt: "Give to player",
-        promptOnto: "Which player",
-        key: "g",
+        prompt: 'Give to player',
+        promptOnto: 'Which player',
+        key: 'g',
         drag: ".mine #tableau card, .mine card[type='monster']",
-        onto: "#player-mat:not(.mine) #tableau",
+        onto: '#player-mat:not(.mine) #tableau',
       },
       giveLoot: {
-        prompt: "Give to player",
-        promptOnto: "Which player",
-        key: "g",
+        prompt: 'Give to player',
+        promptOnto: 'Which player',
+        key: 'g',
         drag: ".mine #hand card[type='loot']",
-        onto: "#player-mat:not(.mine) #hand",
+        onto: '#player-mat:not(.mine) #hand',
       },
       giveAllLoot: {
-        prompt: "Give all cards to player",
-        select: ".mine #hand card",
+        prompt: 'Give all cards to player',
+        select: '.mine #hand card',
         next: {
-          prompt: "Which player?",
-          select: "#player-mat:not(.mine) #hand",
+          prompt: 'Which player?',
+          select: '#player-mat:not(.mine) #hand',
           action: (from, to) => from.parent().move('card', to),
         },
       },
       addCounter: {
-        prompt: "Add counter",
-        key: "c",
-        select: ".mine card:empty, #board card:empty",
-        action: card => card.addComponent('counter', {max: 99}),
+        prompt: 'Add counter',
+        key: 'c',
+        select: '.mine card:empty, #board card:empty',
+        action: (card) => card.addComponent('counter', { max: 99 }),
       },
       removeCounter: {
-        prompt: "Remove counter",
-        key: "c",
-        select: ".mine card:not(:empty), #board card:not(:empty)",
-        action: card => card.find('counter').destroy(),
+        prompt: 'Remove counter',
+        key: 'c',
+        select: '.mine card:not(:empty), #board card:not(:empty)',
+        action: (card) => card.find('counter').destroy(),
       },
       intoCharDeckTop: {
-        prompt: "Put back in deck",
-        key: "f",
+        prompt: 'Put back in deck',
+        key: 'f',
         drag: '.mine card[type="character"]',
         onto: '#characters',
       },
       intoEternalDeckTop: {
-        prompt: "Put back in deck",
-        key: "f",
+        prompt: 'Put back in deck',
+        key: 'f',
         drag: '.mine card[type="eternal"]',
         onto: '#eternals',
       },
       removeP3: {
-        prompt: `Remove 3+ player cards`,
-        if: () => this.doc.find("#board card[p3], #player-mat card[p3]"),
-        action: () => this.doc.clear("#board card[p3], #player-mat card[p3]"),
+        prompt: 'Remove 3+ player cards',
+        if: () => this.doc.find('#board card[p3], #player-mat card[p3]'),
+        action: () => this.doc.clear('#board card[p3], #player-mat card[p3]'),
       },
       start: {
-        prompt: "Begin game"
-      }
+        prompt: 'Begin game',
+      },
     };
 
     const startingActions = ['start', 'intoCharDeckTop', 'intoEternalDeckTop', 'removeP3'];
@@ -291,8 +299,8 @@ class FourSouls extends GameInterface {
         prompt: `Remove ${edition}`,
         if: () => this.doc.find(`#board card[edition="${edition}"], #player-mat card[edition="${edition}"]`),
         action: () => this.doc.clear(`#board card[edition="${edition}"], #player-mat card[edition="${edition}"]`),
-      }
-    })
+      };
+    });
 
     this.play = async () => {
       this.playersMayAlwaysMove('.mine card, .mine counter, #board counter, .mine die, #shop card, #dungeon card, #bonus-souls card');
@@ -306,19 +314,18 @@ class FourSouls extends GameInterface {
       this.board.find('#characters').destroy();
       this.board.find('#eternals').destroy();
       this.prompt();
-      const bonusSouls = Object.entries(cards).filter(c => c[1].type=='bonus');
-      [1,2,3].forEach(() => {
+      const bonusSouls = Object.entries(cards).filter((c) => c[1].type == 'bonus');
+      [1, 2, 3].forEach(() => {
         const soul = bonusSouls.splice(this.random(bonusSouls.length), 1)[0];
         addCard(soul, this.board.find('#bonus-souls'));
       });
 
-      const allActions = Object.keys(this.actions).filter(a => !startingActions.includes(a));
-      while(true) {
+      const allActions = Object.keys(this.actions).filter((a) => !startingActions.includes(a));
+      while (true) {
         await this.anyPlayerPlay(allActions);
       }
     };
-
   }
 }
 
-module.exports = FourSouls
+module.exports = FourSouls;

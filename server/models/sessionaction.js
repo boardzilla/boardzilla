@@ -1,4 +1,3 @@
-'use strict';
 module.exports = (sequelize, DataTypes) => {
   const SessionAction = sequelize.define('SessionAction', {
     sessionId: DataTypes.INTEGER,
@@ -6,8 +5,8 @@ module.exports = (sequelize, DataTypes) => {
     player: DataTypes.INTEGER,
     action: DataTypes.JSON,
   }, {});
-  SessionAction.associate = function(models) {
-    models.SessionAction.belongsTo(models.Session, {foreignKey: 'sessionId'})
+  SessionAction.associate = function (models) {
+    models.SessionAction.belongsTo(models.Session, { foreignKey: 'sessionId' });
   };
   return SessionAction;
 };

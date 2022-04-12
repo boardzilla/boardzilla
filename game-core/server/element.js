@@ -1,5 +1,5 @@
 const gameElements = [];
-const { times } = require("./utils");
+const { times } = require('./utils');
 
 class GameElement {
   constructor(node, caller = {}) {
@@ -12,16 +12,16 @@ class GameElement {
 
   _enhanceQuery(q) {
     return q.replace(/\.mine/g, `[player="${this.game.currentPlayer}"]`)
-            .replace(/#(\d)/g, '#\\3$1 ')
-            .replace(/([#=])(\d)/g, '$1\\3$2 ')
-            .replace(/="([^"]+)/g, (_, p1) => `="${escape(p1)}`);
+      .replace(/#(\d)/g, '#\\3$1 ')
+      .replace(/([#=])(\d)/g, '$1\\3$2 ')
+      .replace(/="([^"]+)/g, (_, p1) => `="${escape(p1)}`);
   }
 
   wrap(node) {
     if (!node) return null;
-    const element = gameElements.find(el => el && el.test(node));
+    const element = gameElements.find((el) => el && el.test(node));
     if (!element) throw Error(`No wrapper for node ${node.nodeName}`);
-    return new element.className(node, {game: this.game, document: this.document});
+    return new element.className(node, { game: this.game, document: this.document });
   }
 
   static wrapNodeAs(index, className, test) {
@@ -29,21 +29,21 @@ class GameElement {
   }
 
   attributes() {
-    return Array.from(this.node.attributes).
-                 filter(attr => attr.name !== 'class' && attr.name !== 'id').
-                 reduce((attrs, attr) => Object.assign(attrs, { [attr.name]: unescape(!attr.value || isNaN(attr.value) ? attr.value : +attr.value) }), {});
+    return Array.from(this.node.attributes)
+      .filter((attr) => attr.name !== 'class' && attr.name !== 'id')
+      .reduce((attrs, attr) => Object.assign(attrs, { [attr.name]: unescape(!attr.value || isNaN(attr.value) ? attr.value : +attr.value) }), {});
   }
 
   get(name) {
     try {
       return JSON.parse(this.attributes()[name]);
-    } catch(e) {
+    } catch (e) {
       return this.attributes()[name];
     }
   }
 
   set(name, value) {
-    if (value === false || value === "" || value === undefined) {
+    if (value === false || value === '' || value === undefined) {
       this.node.removeAttribute(name);
     } else {
       this.node.setAttribute(name, escape(value));
@@ -80,7 +80,7 @@ class GameElement {
   findAll(q) {
     if (q instanceof GameElement) return [q];
     if (q instanceof Array) return q;
-    return Array.from(this.findNodes(q)).map(node => this.wrap(node));
+    return Array.from(this.findNodes(q)).map((node) => this.wrap(node));
   }
 
   player() {
@@ -96,7 +96,7 @@ class GameElement {
   }
 
   hasParent(el) {
-    let node = this.node;
+    let { node } = this;
     while (node.parentNode) {
       node = node.parentNode;
       if (node == el.node) return true;
@@ -107,7 +107,7 @@ class GameElement {
   // return full path to element, e.g. "2-1-3"
   branch() {
     const branch = [];
-    let node = this.node;
+    let { node } = this;
     while (node.parentNode && node.parentNode.parentNode) {
       branch.unshift(Array.from(node.parentNode.childNodes).indexOf(node) + 1);
       node = node.parentNode;
@@ -140,11 +140,11 @@ class GameElement {
   }
 
   duplicate() {
-    return this.wrap(this.node.parentNode.appendChild(this.node.cloneNode(true)))
+    return this.wrap(this.node.parentNode.appendChild(this.node.cloneNode(true)));
   }
 
   destroy() {
-    this.node.parentNode.removeChild(this.node)
+    this.node.parentNode.removeChild(this.node);
   }
 
   addPiece(name, type, attrs) {
@@ -157,17 +157,18 @@ class GameElement {
 
   addComponent(name, attrs = {}) {
     if (name == 'counter') {
-      const id = this.game.registerId('counter')
-      this.addPiece('#' + id, 'counter', Object.assign({
+      const id = this.game.registerId('counter');
+      this.addPiece(`#${id}`, 'counter', {
         value: attrs.initialValue || 0,
         min: attrs.min || 0,
         max: attrs.max,
-        moves: 0
-      }, attrs))
+        moves: 0,
+        ...attrs,
+      });
     }
     if (name == 'die') {
-      const id = this.game.registerId('die')
-      this.addPiece('#' + id, 'die', Object.assign({number: 1, rolls: 0}, attrs))
+      const id = this.game.registerId('die');
+      this.addPiece(`#${id}`, 'die', { number: 1, rolls: 0, ...attrs });
     }
   }
 
@@ -176,7 +177,7 @@ class GameElement {
     if (name[0] !== '#') throw Error(`id ${name} must start with #`);
     el.id = name.slice(1);
     el.className = className;
-    Object.keys(attrs).forEach(attr => el.setAttribute(attr, escape(attrs[attr])));
+    Object.keys(attrs).forEach((attr) => el.setAttribute(attr, escape(attrs[attr])));
     if (attrs.left == undefined && attrs.top == undefined && attrs.right == undefined && attrs.bottom == undefined) {
       const pos = this.findOpenPosition();
       if (pos) {
@@ -190,12 +191,13 @@ class GameElement {
 
   findOpenPosition() {
     if (this.get('spreadX') || this.get('spreadY')) {
-      let x = 0, y = 0;
+      let x = 0; let
+        y = 0;
       while (this.contains(`[x="${x}"][y="${y}"]`)) {
         x += this.get('spreadX') || 0;
         y += this.get('spreadY') || 0;
       }
-      return {x, y};
+      return { x, y };
     }
   }
 
@@ -219,7 +221,7 @@ class GameElement {
   // return element from branch
   pieceAt(key) {
     return this.root().find(
-      'game > ' + key.split('-').map(index => `*:nth-child(${index})`).join(' > ')
+      `game > ${key.split('-').map((index) => `*:nth-child(${index})`).join(' > ')}`,
     );
   }
 

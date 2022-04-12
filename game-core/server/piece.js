@@ -1,8 +1,7 @@
 const GameElement = require('./element');
 
 class Piece extends GameElement {
-
-  move(to, position=0) {
+  move(to, position = 0) {
     return this.root().move([this], to || this.parent(), 1, position);
   }
 
@@ -17,4 +16,4 @@ class Piece extends GameElement {
 
 GameElement.wrapNodeAs(2, Piece, GameElement.isPieceNode);
 
-module.exports = Piece
+module.exports = Piece;

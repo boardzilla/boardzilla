@@ -6,6 +6,15 @@
   "author": "Joshua Hull <joshbuddy@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "run": "cd server && yarn start:prod"
+    "run": "cd server && yarn start:prod",
+    "lint": "./node_modules/.bin/eslint .",
+    "lint:fix": "./node_modules/.bin/eslint . --fix"
+  },
+  "devDependencies": {
+    "@eslint/create-config": "^0.1.2",
+    "eslint": "^7.32.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-react": "^7.29.4"
   }
 }

@@ -1,6 +1,6 @@
 const path = require('path');
 
-const mode = process.env.NODE_ENV || "development"
+const mode = process.env.NODE_ENV || 'development';
 
 module.exports = {
   mode,
@@ -10,12 +10,12 @@ module.exports = {
     filename: 'index.js',
     path: path.resolve(__dirname, 'build'),
     library: {
-      type: "commonjs-module",
+      type: 'commonjs-module',
     },
   },
   resolve: {
     fallback: {
-      events: require.resolve("events/"),
+      events: require.resolve('events/'),
       canvas: path.resolve(__dirname, '../../game-core/server/ext/canvas.js'),
       perf_hooks: path.resolve(__dirname, '../../game-core/server/ext/perf_hooks.js'),
     },
@@ -27,5 +27,5 @@ module.exports = {
         type: 'javascript/auto',
       },
     ],
-  }
-} 
+  },
+};
