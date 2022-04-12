@@ -26,8 +26,8 @@ build() {
 	server_digest=$(ls -1 "${game}/dist/server")
 
 	echo "Publishing ${game}..."
-	body="{\\\"serverDigest\\\":\\\"${server_digest}\\\", \\\"clientDigest\\\": \\\"${client_digest}\\\", \\\"name\\\": \\\"${game}\\\"}"
-	curl -vvv -X PUT -d "${body}" -H "x-publish-token: ${PUBLISH_TOKEN}" https://boardzilla.io/publish
+	body="{\"serverDigest\":\"${server_digest}\",\"clientDigest\":\"${client_digest}\",\"name\":\"${game}\"}"
+	curl -vvv -g -X PUT -d ${body} -H'Content-Type: application/json' -H "x-publish-token: ${PUBLISH_TOKEN}" https://boardzilla.io/publish
 
 	echo "Done with ${game}"
 }
