@@ -1,0 +1,8 @@
+{
+  "name": "boardzilla",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:joshbuddy/boardzilla.git",
+  "author": "Joshua Hull <joshbuddy@gmail.com>",
+  "license": "MIT"
+}
