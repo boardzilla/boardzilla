@@ -3,16 +3,19 @@ body {
 }
 
 .table {
-  width: 1000px;
-  height: 560px;
+  width: 980px;
+  height: 540px;
   top: 120px;
   left: 0;
   position: absolute;
   background-image: url("images/playmat.jpg");
   background-size: 100% 100%;
   background-position: center;
+  border-width: 10px;
+  border-color: #960 #640 #430 #850;
+  border-style: solid;
   [data-players="3"] &, [data-players="4"] & {
-    width: 1400px;
+    width: 1380px;
     background-size: 100% 110%;
   }
 }

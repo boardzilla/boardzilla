@@ -373,7 +373,7 @@ export default class Page extends Component {
     const key = branch(node).join('-');
 
     const props = {
-      key,
+      key: node.id ? '#' + node.id : key,
       "data-key": key,
       ...attributes,
       className: classNames(type, node.className),
@@ -469,7 +469,7 @@ export default class Page extends Component {
     contents = <div {...props}>{contents}</div>;
     if (position) contents = (
       <div
-        key={key}
+        key={node.id ? '#' + node.id : key}
         className={classNames({
           'positioned-piece': node.classList.contains('piece') && !frozen,
           "external-dragging": externallyControlled
@@ -487,7 +487,7 @@ export default class Page extends Component {
           disabled={externallyControlled}
           onDrag={(e, data) => this.dragging(key, data.x, data.y, e)}
           onStop={(e, data) => this.stopDrag(key, data.x, data.y, e)}
-          key={key}
+          key={node.id ? '#' + node.id : key}
           position={position || {x:0, y:0}}
           scale={parentFlipped ? -1 : 1}
         >
