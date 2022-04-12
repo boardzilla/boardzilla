@@ -142,11 +142,11 @@ export default class Page extends Component {
         }
       }
       let key = this.state.zoomPiece || (mouse.x != undefined && keyAtPoint(mouse.x, mouse.y));
-      if (key[0] == '#') {
-        const el = document.querySelector(`#game ${key.replace(/#(\d)/g, '#\\3$1 ')}`);
-        key = el && el.dataset && el.dataset.key;
-      }
       if (key) {
+        if (key[0] == '#') {
+          const el = document.querySelector(`#game ${key.replace(/#(\d)/g, '#\\3$1 ')}`);
+          key = el && el.dataset && el.dataset.key;
+        }
         const choice = choiceFromKey(key);
         const action = Object.entries(this.state.actions || this.actionsFor(choice)).find(([_, a]) => a.key && a.key.toLowerCase() == e.key);
         if (action) this.gameAction(action[0], ...this.state.args, action[1].choice);
@@ -262,6 +262,10 @@ export default class Page extends Component {
       }
       this.send('releaseLock', {key});
       event.stopPropagation();
+    } else {
+      if (event instanceof TouchEvent) {
+        this.handleClick(choiceFromKey(key), event);
+      }
     }
   }
 
@@ -271,6 +275,7 @@ export default class Page extends Component {
       this.send('update');
     }
     let zooming = false;
+    console.log(choice, event, elementByKey(keyFromChoice(choice)));
     if (choiceHasKey(choice) && elementByKey(keyFromChoice(choice)).classList.contains('piece') && !elementByKey(keyFromChoice(choice)).classList.contains('component')) {
       this.zoomOnPiece(elementByKey(keyFromChoice(choice)));
       event.stopPropagation();
