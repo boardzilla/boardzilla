@@ -4,5 +4,8 @@
   "main": "index.js",
   "repository": "git@github.com:joshbuddy/boardzilla.git",
   "author": "Joshua Hull <joshbuddy@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "run": "cd server && yarn start:prod"
+  }
 }

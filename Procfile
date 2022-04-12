@@ -1,1 +1,1 @@
-web: yarn --pwd server run start:prod
+web: cd server && yarn start:prod
