@@ -234,9 +234,9 @@ module.exports = ({
       res.status(404).end('No such game');
     }
     if (!req.params[0]) {
-      const sessionUser = await db.SessionUser.findOne({where: {userId: req.user.id, sessionId: session.id}})
+      const sessionUser = await db.SessionUser.findOne({ where: { userId: req.user.id, sessionId: session.id } });
       if (!sessionUser) {
-        return res.redirect('/sessions/' + session.id)
+        return res.redirect(`/sessions/${session.id}`);
       }
       return res.render('client', { userId: req.user.id, entry: 'index.js' });
     }
