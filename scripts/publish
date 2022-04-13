@@ -5,8 +5,9 @@ set -e
 build_type() {
 	local game=$1
 	local build_type=$2
-	yarn --cwd $game/$build_type run clean
-	yarn --cwd $game/$build_type run build
+	local ext=$3
+	rm -rf "${game}/${build_type}/build"
+	./node_modules/.bin/webpack -c "${game}/${build_type}/webpack.config.${ext}"
 	dir="$game/$build_type/build"
 	digest=$(find "$dir" -type f -exec shasum -a256 {} \; | sed "s~$dir~~g" | LC_ALL=C sort -d | shasum -a256 | awk '{ print $1 }')
 	mkdir -p $game/dist/$build_type/$digest
@@ -17,8 +18,8 @@ build() {
 	local game=$1
 	echo "Building ${game}..."
 	rm -rf "${game}/dist"
-	build_type $game "client"
-	build_type $game "server"
+	build_type $game "client" "cjs"
+	build_type $game "server" "js"
 
 	echo "Uploading ${game}..."
 	aws s3 sync --size-only "${game}/dist" "s3://${S3_GAME_BUCKET}/${game}"
