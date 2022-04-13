@@ -145,8 +145,7 @@ class GameRunner {
                   await db.SessionAction.destroy({
                     where: {
                       sessionId,
-                      // FIXME: this causes multiple players to join
-                      //sequence: { [Sequelize.Op.ne]: 0 },
+                      sequence: { [Sequelize.Op.ne]: 0 },
                     },
                   });
                   await session.update({ seed: String(Math.random()) });
