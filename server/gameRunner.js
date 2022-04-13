@@ -99,7 +99,8 @@ class GameRunner {
               );
             };
 
-            const users = await session.getSessionUsers().map((su) => su.getUser());
+            const sessionUsers = await session.getSessionUsers({include: 'User'})
+            const users = sessionUsers.map(su => su.User)
             users.forEach((user) => gameInstance.addPlayer(user.id, user.name));
 
             const history = (await session.getActions({ order: ['sequence'] })).map((action) => (
