@@ -99,7 +99,8 @@ class GameRunner {
               );
             };
 
-            const users = await session.getSessionUsers().map((su) => su.getUser());
+            const sessionUsers = await session.getSessionUsers({include: 'User'})
+            const users = sessionUsers.map(su => su.User)
             users.forEach((user) => gameInstance.addPlayer(user.id, user.name));
 
             const history = (await session.getActions({ order: ['sequence'] })).map((action) => (
@@ -144,7 +145,8 @@ class GameRunner {
                   await db.SessionAction.destroy({
                     where: {
                       sessionId,
-                      sequence: { [Sequelize.Op.ne]: 0 },
+                      // FIXME: this causes multiple players to join
+                      //sequence: { [Sequelize.Op.ne]: 0 },
                     },
                   });
                   await session.update({ seed: String(Math.random()) });
