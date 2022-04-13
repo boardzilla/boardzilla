@@ -2,6 +2,7 @@
 
 set -e
 
+yarn install --production=false
 yarn --cwd server install --production=false
 yarn --cwd game-core/client install --production=false
 yarn --cwd game-core/server install --production=false
