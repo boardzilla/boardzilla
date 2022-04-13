@@ -371,7 +371,7 @@ module.exports = ({
     };
 
     const sendPlayerLocks = async () => {
-      const payload = await session.getElementLocks().reduce((locks, lock) => { locks[lock.element] = lock.userId; return locks; }, {});
+      const payload = (await session.getElementLocks()).reduce((locks, lock) => { locks[lock.element] = lock.userId; return locks; }, {});
       sendWS('updateLocks', payload);
     };
 
