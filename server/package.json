@@ -29,8 +29,8 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "request": "^2.88.0",
-    "sequelize": "^5.12.2",
-    "sequelize-cli": "^5.5.0",
+    "sequelize": "^6.19.0",
+    "sequelize-cli": "^6.4.1",
     "vm2": "^3.8.3",
     "ws": "^7.1.1",
     "zk-lock": "^2.1.3"
