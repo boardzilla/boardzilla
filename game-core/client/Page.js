@@ -301,8 +301,7 @@ export default class Page extends Component {
   }
 
   zoomOnPiece(element) {
-    const identifier = element.id ? '#' + element.id : keyFromEl(element); // use the id if we have it so we can keep the piece even if the board changes
-    this.setState({zoomPiece: identifier, zoomOriginalSize: {height: element.offsetHeight, width: element.offsetWidth}});
+    this.setState({zoomPiece: keyFromEl(element), zoomOriginalSize: {height: element.offsetHeight, width: element.offsetWidth}});
   }
 
   // return available actions association to this element {action: {choice, prompt},...}
@@ -378,7 +377,7 @@ export default class Page extends Component {
     const key = branch(node).join('-');
 
     const props = {
-      key: node.id ? '#' + node.id : key,
+      key,
       "data-key": key,
       ...attributes,
       className: classNames(type, node.className),
@@ -474,7 +473,7 @@ export default class Page extends Component {
     contents = <div {...props}>{contents}</div>;
     if (position) contents = (
       <div
-        key={node.id ? '#' + node.id : key}
+        key={key}
         className={classNames({
           'positioned-piece': node.classList.contains('piece') && !frozen,
           "external-dragging": externallyControlled
@@ -492,7 +491,7 @@ export default class Page extends Component {
           disabled={externallyControlled}
           onDrag={(e, data) => this.dragging(key, data.x, data.y, e)}
           onStop={(e, data) => this.stopDrag(key, data.x, data.y, e)}
-          key={node.id ? '#' + node.id : key}
+          key={key}
           position={position || {x:0, y:0}}
           scale={parentFlipped ? -1 : 1}
         >
