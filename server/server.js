@@ -99,7 +99,9 @@ module.exports = ({
 
     const password = await bcrypt.hash(rawPassword, 10);
     try {
-      const user = await db.User.create({ name, password, email });
+      const user = await db.User.create({
+        name, password, email, lowerName: Sequelize.fn('lower', name),
+      });
 
       loginUser(user, res);
 
@@ -136,7 +138,12 @@ module.exports = ({
   app.post('/login', async (req, res) => {
     const name = req.body.name || '';
     const password = req.body.password || '';
-    const user = await db.User.findOne({ where: { name } });
+    const user = await db.User.findOne({
+      where: Sequelize.where(
+        Sequelize.col('lowerName'),
+        Sequelize.fn('lower', name),
+      ),
+    });
     if (!user) return unauthorized(req, res, 'incorrect login');
     const correctPassword = await bcrypt.compare(password, user.password);
     if (!correctPassword) return unauthorized(req, res, 'incorrect login');
