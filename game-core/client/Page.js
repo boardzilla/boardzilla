@@ -33,6 +33,7 @@ export default class Page extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      connected: false,
       action: null, // currently selected action
       args: [], // current action args
       prompt: null, // current prompt
@@ -56,7 +57,8 @@ export default class Page extends Component {
 
   componentDidMount() {
     this.webSocket=new ReconnectingWebSocket((location.protocol == 'http:' ? 'ws://' : 'wss://') + document.location.host + '/sessions/' + this.props.session);
-
+    this.webSocket.onopen = e => this.setState({connected: true})
+    this.webSocket.onclose = e => this.setState({connected: false})
     this.webSocket.onmessage = e => {
       const res = JSON.parse(e.data);
       console.log("Received", res.type, res);
@@ -444,7 +446,7 @@ export default class Page extends Component {
       const player = attributes.player && this.state.data.players[attributes.player - 1];
       if (player) contents.push(
         <div key="nametag"
-          className={classNames("nametag", {active: new Date() - this.state.playerStatus[player[0]] < IDLE_WAIT})}>
+          className={classNames("nametag", {active: this.activePlayer(player[0])})}>
           {player[1]}
         </div>
       );
@@ -544,6 +546,7 @@ export default class Page extends Component {
     return (
       <div>
         <div id="messages">
+          <div>{this.selfActivePlayer() ? "🟢 connected": "🔴 not connected"}</div>
           <div className="prompt">{this.state.prompt || this.state.data.prompt}</div>
           {messagesPane == 'choices' &&
            <div>
@@ -613,5 +616,13 @@ export default class Page extends Component {
         {this.state.data.phase === 'ready' && this.state.data.doc && this.renderBoard(boardXml)}
       </div>
     );
+  }
+
+  activePlayer(userId) {
+    return this.state.connected && (new Date() - this.state.playerStatus[userId] < IDLE_WAIT)
+  }
+
+  selfActivePlayer() {
+    return this.activePlayer(this.props.userId)
   }
 }
