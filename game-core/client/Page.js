@@ -26,7 +26,8 @@ import './style.scss';
 const DRAG_TOLERANCE = 1;
 const PING_INTERVAL = 7500;
 const IDLE_WAIT = 10000;
-const SIDEBAR_WIDTH = 320;
+const IS_MOBILE_PORTRAIT = !!(window.matchMedia("(orientation: portrait)").matches && window.TouchEvent);
+let SIDEBAR_WIDTH = 320;
 let mouse = {};
 
 export default class Page extends Component {
@@ -57,8 +58,8 @@ export default class Page extends Component {
 
   componentDidMount() {
     this.webSocket=new ReconnectingWebSocket((location.protocol == 'http:' ? 'ws://' : 'wss://') + document.location.host + '/sessions/' + this.props.session);
-    this.webSocket.onopen = e => this.setState({connected: true})
-    this.webSocket.onclose = e => this.setState({connected: false})
+    this.webSocket.onopen = () => this.setState({connected: true});
+    this.webSocket.onclose = () => this.setState({connected: false});
     this.webSocket.onmessage = e => {
       const res = JSON.parse(e.data);
       console.log("Received", res.type, res);
@@ -69,6 +70,9 @@ export default class Page extends Component {
             if (Object.entries(res.payload.allowedActions).length == 1) {
               const [action, details] = Object.entries(res.payload.allowedActions)[0];
               this.setState({action, args: details.args, prompt: details.prompt, choices: details.choices});
+            }
+            if (this.state.zoomPiece) {
+              this.setState({actions: this.actionsFor(choiceFromKey(this.state.zoomPiece))});
             }
             document.getElementsByTagName('body')[0].dataset.players = this.state.data.players && this.state.data.players.length;
           }
@@ -112,14 +116,14 @@ export default class Page extends Component {
           this.setState(state => ({playerStatus: Object.assign({}, state.playerStatus, {[res.payload]: new Date()})}));
           break;
         case 'reload':
-          location.reload()
-          break
+          location.reload();
+          break;
       }
     };
     document.addEventListener('touchmove', e => {
-      let el = document.elementFromPoint(e.touches[0].pageX, e.touches[0].pageY);
+      let el = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
       if (el && this.state.dragging) {
-        while (!el.classList.contains("space") && el.parentNode) el = el.parentNode;
+        while (el.classList && !el.classList.contains("space") && el.parentNode) el = el.parentNode;
         this.setState({dragOver: keyFromEl(el)});
       }
     });
@@ -154,9 +158,22 @@ export default class Page extends Component {
         if (action) this.gameAction(action[0], ...this.state.args, action[1].choice);
       }
     });
-    /* window.visualViewport.addEventListener('resize', console.log);
-     * window.visualViewport.addEventListener('scroll', console.log);
-     * document.addEventListener('wheel', console.log); */
+
+    if (IS_MOBILE_PORTRAIT) {
+      const resize = e => {
+        const vp = e ? e.target : window.visualViewport;
+        const style = document.querySelector('#messages').style;
+        const scale = .5 / vp.scale;
+        style.transform = `scale(${scale})`;
+        style.bottom = `${window.innerHeight - vp.height - vp.offsetTop}px`;
+        style.left = `${vp.offsetLeft}px`;
+      };
+      window.visualViewport.addEventListener('resize', resize);
+      window.visualViewport.addEventListener('scroll', resize);
+      SIDEBAR_WIDTH = window.screen.width;
+      resize();
+    }
+
     this.send('refresh');
     setInterval(() => this.send('ping'), PING_INTERVAL);
   }
@@ -174,7 +191,7 @@ export default class Page extends Component {
         action: [action, ...args]
       },
     );
-    this.setState({actions: null, zoomPiece: null, action: null, args: [], prompt: null, choices: null, filter: ''});
+    this.setState(state => ({actions: null, zoomPiece: null, action: null, args: [], prompt: null, choices: null, filter: '', data: Object.assign({}, state.data, {allowedActions: undefined})}));
   }
 
   reset() {
@@ -277,7 +294,6 @@ export default class Page extends Component {
       this.send('update');
     }
     let zooming = false;
-    console.log(choice, event, elementByKey(keyFromChoice(choice)));
     if (choiceHasKey(choice) && elementByKey(keyFromChoice(choice)).classList.contains('piece') && !elementByKey(keyFromChoice(choice)).classList.contains('component')) {
       this.zoomOnPiece(elementByKey(keyFromChoice(choice)));
       event.stopPropagation();
@@ -357,14 +373,16 @@ export default class Page extends Component {
     let otherPlayers = 0;
     return (
       <div id="game">
-        {[...new Set([
-          ...board.querySelectorAll('#player-mat.mine ~ #player-mat'),
-          ...board.querySelectorAll('#player-mat:not(.mine)')
-        ])].map(
-          mat => this.renderGameElement(mat, otherPlayers++<2)
-        )}
-        {this.renderGameElement(board.querySelector('#board'))}
-        {this.renderGameElement(board.querySelector(`#player-mat.mine`))}
+        <div id="game-container">
+          {[...new Set([
+            ...board.querySelectorAll('#player-mat.mine ~ #player-mat'),
+            ...board.querySelectorAll('#player-mat:not(.mine)')
+          ])].map(
+            mat => this.renderGameElement(mat, otherPlayers++<2)
+          )}
+          {this.renderGameElement(board.querySelector('#board'))}
+          {this.renderGameElement(board.querySelector(`#player-mat.mine`))}
+        </div>
       </div>
     );
   }
@@ -468,7 +486,9 @@ export default class Page extends Component {
       wrappedStyle.pointerEvents = "none";
     }
 
-    if (position && (position.x != undefined && position.x != 0 || position.y == undefined && position.y != 0) && !frozen && !this.isAllowedMove(node) && !this.isAllowedDrag(key)) {
+    const draggable = !frozen && (this.isAllowedMove(node) || this.isAllowedDrag(key)) && (this.state.zoomPiece || !IS_MOBILE_PORTRAIT);
+
+    if (position && (position.x != undefined && position.x != 0 || position.y == undefined && position.y != 0) && !frozen && !draggable) {
       wrappedStyle.transform = `translate(${position.x}px, ${position.y}px)`;
     }
 
@@ -486,7 +506,7 @@ export default class Page extends Component {
       </div>
     );
 
-    if (!frozen && (this.isAllowedMove(node) || this.isAllowedDrag(key))) {
+    if (draggable) {
       props.onTouchEnd = e => this.handleClick(choiceFromKey(key), e);
       return (
         <Draggable
@@ -544,8 +564,8 @@ export default class Page extends Component {
     };
 
     return (
-      <div>
-        <div id="messages">
+      <div id="layout">
+        <div id="messages" className={messagesPane} style={{width: IS_MOBILE_PORTRAIT ? 2 * SIDEBAR_WIDTH: 20 + SIDEBAR_WIDTH}}> {/* why is this 2 and not devicePixelRatio ?? */}
           <div>{this.selfActivePlayer() ? "🟢 connected": "🔴 not connected"}</div>
           <div className="prompt">{this.state.prompt || this.state.data.prompt}</div>
           {messagesPane == 'choices' &&
@@ -562,7 +582,7 @@ export default class Page extends Component {
           }
 
           {messagesPane == 'actions' &&
-           <div>
+           <div id="actionContainer">
              {zoomEl &&
               <div id="zoomPiece" style={{width: SIDEBAR_WIDTH, height: zoomScale * this.state.zoomOriginalSize.height}}>
                 <div className="scaler" style={{width: this.state.zoomOriginalSize.width, height: this.state.zoomOriginalSize.height, transform: `scale(${zoomScale})`}}>
@@ -570,9 +590,11 @@ export default class Page extends Component {
                 </div>
               </div>
              }
-             {actions && Object.entries(actions).map(([a, {choice, prompt}]) => (
-               <button key={a} onClick={e => {this.gameAction(a, ...this.state.args, choice); e.stopPropagation()}}>{showKeybind(prompt)}</button>
-             ))}
+             <div id="actions" style={IS_MOBILE_PORTRAIT ? {width: SIDEBAR_WIDTH - 30} : {}}>
+               {actions && Object.entries(actions).map(([a, {choice, prompt}]) => (
+                 <button key={a} onClick={e => {this.gameAction(a, ...this.state.args, choice); e.stopPropagation()}}>{showKeybind(prompt)}</button>
+               ))}
+             </div>
            </div>
           }
 
@@ -587,22 +609,22 @@ export default class Page extends Component {
           }
 
           {messagesPane == 'standard' &&
-           <>
+           <div id="actions">
              <button className="undo" onClick={() => this.send('undo')}>Undo</button>
              <button className="reset" onClick={() => confirm("Reset and lose all game history? This cannot be undone") && this.reset()}>Reset</button>
              {nonBoardActions && Object.entries(nonBoardActions).map(([action, prompt]) => (
                <button key={action} onClick={() => this.gameAction(action)}>{showKeybind(prompt)}</button>
              ))}
              <button className="fab help" onClick={() => this.setState({help: true})}>?</button>
-           </>
+           </div>
           }
 
           {messagesPane == 'help' &&
            <span>
              <h1>How to play</h1>
              <ul>
-               <li>Click on or hold Z over an item to see what actions can be taken.</li>
-               <li>Most items can be dragged. Drag items to see what moves are possible.</li>
+               <li>Click on {IS_MOBILE_PORTRAIT || 'or hold Z over '}an item to see what actions can be taken.</li>
+               <li>Most items can be dragged. {IS_MOBILE_PORTRAIT && 'Touch an item to bring up the action menu, then drag' || 'Drag items to see what moves are possible'}.</li>
                <li>Join us on <a href="https://discord.gg/hkvp9uPA" target="_new">Discord</a>! Give us your feedback and suggestions.</li>
              </ul>
 
