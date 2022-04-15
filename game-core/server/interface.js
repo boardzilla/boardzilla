@@ -54,7 +54,7 @@ class GameInterface extends EventEmitter {
     this.lastReplaySequence = -1;
   }
 
-  // start game from scratch and run history. returns when game is done
+  // start game from scratch and run history. resolves when game is done
   async start(history) {
     if (!history.length) { // waiting for start
       this.sequence = 0;
@@ -104,7 +104,7 @@ class GameInterface extends EventEmitter {
 
   // add player to game
   addPlayer(userId, username) {
-    if (this.players.find((p) => p[0] == userId)) return;
+    if (this.players.find(p => p[0] == userId)) return;
     if (this.phase !== 'setup') throw Error('not able to add players while playing');
     if (this.players.length == this.maxPlayers) throw Error('game already full');
     this.players.push([userId, username]);

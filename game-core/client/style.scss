@@ -1,6 +1,8 @@
 body {
-  max-width: initial;
-  padding-right: 280px;
+  margin: 0;
+  padding: 0;
+  min-width: fit-content;
+  max-width: unset;
 }
 .navbar {
   max-width: 800px;
@@ -22,20 +24,24 @@ button {
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
+  min-height: 100vh;
+  min-width: 100vw;
+  #layout {
+    grid-area: game;
+    position: relative;
+    width: fit-content;
+    justify-self: center;
+  }
   #messages {
     position: fixed;
-    width: 320px;
-    right: 0;
-    top: 0;
     z-index: 200;
     background: #e8e4e0;
     padding: 10px;
     box-shadow: 0 0px 5px black;
     border-radius: 10px 0 0 10px;
-    margin-top: 45px;
-    max-height: 85%;
     overflow-y: scroll;
     color: black;
+    box-sizing: border-box;
     .prompt {
       padding-right: 20px;
       margin-bottom: 10px;
@@ -43,6 +49,9 @@ button {
       padding-left: 10px;
       color: #006;
       font-style: italic;
+    }
+    #actionContainer {
+      position: relative;
     }
     button {
       width: 100%;
@@ -88,6 +97,7 @@ button {
       color: white;
       border-radius: 12px;
       color: white;
+      padding: 4px;
       &.cancel {
         background: red;
       }
@@ -141,6 +151,65 @@ button {
     color: black;
     &.active {
       opacity: 1;
+    }
+  }
+}
+
+@media(orientation: landscape) {
+  #container {
+    display: grid;
+    grid-template-columns: auto 380px;
+    grid-template-rows: 1fr;
+    grid-template-areas: "game messages";
+    #messages {
+      grid-area: messages;
+      right: 0;
+      top: 0;
+      margin-top: 45px;
+      max-height: 85%;
+    }
+  }
+}
+
+@media(orientation: portrait) {
+  #container {
+    #messages {
+      left: 0;
+      bottom: 0;
+      width: 380px;
+      transform-origin: left bottom;
+      font-size: 5vw;
+      max-height: 900px;
+      overflow-y: scroll;
+      &.actions {
+        overflow-y: hidden;
+        #actions {
+          button .keybind {
+            display: none;
+          }
+          overflow-y: scroll;
+          height: 100%;
+          width: 345px;
+          position: absolute;
+          bottom: 0;
+          right: 0;
+        }
+      }
+      h1 {
+        font-size: 6vw;
+      }
+      button {
+        padding: 0.8vw 1vh;
+        &.fab {
+          width: 8vw;
+          height: 8vw;
+          border-radius: 4vh;
+          font-size: 3vw;
+        }
+      }
+      #choiceFilter {
+        height: 7vw;
+      }
     }
   }
 }
