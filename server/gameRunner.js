@@ -179,7 +179,11 @@ class GameRunner {
           }
           console.log('R ending game loop');
         }
-        await queueClient.quit();
+        try {
+          await queueClient.quit();
+        } catch (e) {
+          console.debug('error while quitting', e);
+        }
       } catch (e) {
         console.log('error in game runner loop', e);
         Sentry.captureException(e, {extra: {sessionId}});
