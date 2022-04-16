@@ -398,12 +398,13 @@ class GameInterface extends EventEmitter {
     } if (action.select) {
       if (action.select instanceof Array) {
         nextPrompt = this.chooseAction(action.select, prompt, nextAction, argIndex)(...args);
-      } if (typeof action.select === 'string') {
+      } else if (typeof action.select === 'string') {
         nextPrompt = this.chooseAction(this.doc.findAll(action.select), prompt, nextAction, argIndex)(...args);
-      } if (typeof action.select === 'function') {
+      } else if (typeof action.select === 'function') {
         nextPrompt = this.chooseAction(action.select(...args), prompt, nextAction, argIndex)(...args);
+      } else {
+        throw Error(`'select' for ${actionName} must be a list or a finder`);
       }
-      throw Error(`'select' for ${actionName} must be a list or a finder`);
     } else if (action.max !== undefined || action.min !== undefined) { // simple numerical
       if (action.max === undefined || action.min === undefined) {
         throw Error(`${actionName} needs both 'min' and 'max'`);
@@ -530,7 +531,6 @@ class GameInterface extends EventEmitter {
           this.currentPlayer = player;
           try {
             this.runAction(action, deserializedArgs);
-            console.log('logs', this.logs);
           } catch (e) {
             if (e instanceof IncompleteActionError) {
               console.log('got IncompleteActionError', e);
@@ -563,7 +563,7 @@ class GameInterface extends EventEmitter {
 
   log(message) {
     this.logs[this.sequence] = message;
-    this.emit('log', message);
+    this.emit('log', new Date(), this.sequence, message);
   }
 
   logEntry(action, ...args) {
@@ -574,12 +574,12 @@ class GameInterface extends EventEmitter {
           if (sub[1] !== '0') {
             const namedArg = args[parseInt(sub[1], 10) - 1];
             if (namedArg && namedArg[player]) return namedArg[player].shown || namedArg[player].hidden;
-            return '';
+            return namedArg;
           }
           return this.currentPlayerName();
         });
       } else {
-        entry[userId] = `${this.currentPlayerName()} : ${action.prompt} ${args.map(a => a && (a[player].shown || a[player].hidden)).join(' ')}`.trim();
+        entry[userId] = `${this.currentPlayerName()} : ${action.prompt} ${args.map(a => (a && a[player] ? a[player].shown || a[player].hidden : a)).join(' ')}`.trim();
       }
       return entry;
     }, {});
@@ -589,7 +589,7 @@ class GameInterface extends EventEmitter {
   // namedElements[el][player]
   namedElements(elements, previousNames) {
     return Object.entries(elements).map(([i, el]) => {
-      if (!(el instanceof GameElement)) return null;
+      if (!(el instanceof GameElement)) return el;
       return times(this.players.length, fromPlayer => {
         if (previousNames[i] && previousNames[i][fromPlayer - 1].shown) return previousNames[i][fromPlayer - 1];
         const { currentPlayer } = this;

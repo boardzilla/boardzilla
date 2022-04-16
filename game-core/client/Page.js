@@ -49,6 +49,7 @@ export default class Page extends Component {
       zoomPiece: null, // the zoomed piece
       help: false, // show help content
       playerStatus: {[props.userId]: new Date()}, // timestamps of last ping from each player
+      logs: {},
     };
     this.components = {
       counter: Counter,
@@ -118,6 +119,8 @@ export default class Page extends Component {
         case 'reload':
           location.reload();
           break;
+        case 'log':
+          this.setState(state => ({logs: Object.assign({}, state.logs, {[res.payload.sequence]: res.payload.message})}));
       }
     };
     document.addEventListener('touchmove', e => {
@@ -531,7 +534,7 @@ export default class Page extends Component {
     const nonBoardActions = this.nonBoardActions();
     const boardXml = this.state.data.doc && xmlToNode(this.state.data.doc);
 
-    let messagesPane = null, zoomScale, zoomEl, actions = this.state.actions;
+    let messagesPane = 'hidden', zoomScale, zoomEl, actions = this.state.actions;
     if (!this.state.dragging) {
       if (this.state.zoomPiece) {
         zoomEl = pieceAt(boardXml, this.state.zoomPiece);
@@ -546,7 +549,7 @@ export default class Page extends Component {
       } else if (actions && actions.length || zoomEl) {
         messagesPane = 'actions';
         if (zoomEl) {
-          zoomScale = SIDEBAR_WIDTH / this.state.zoomOriginalSize.width;
+          zoomScale = SIDEBAR_WIDTH / this.state.zoomOriginalSize.width * (this.state.bigZoom ? 2 : 1);
         }
       } else if (this.state.data) {
         if (this.state.data.phase == 'setup') {
@@ -568,7 +571,11 @@ export default class Page extends Component {
 
     return (
       <div id="layout">
-        <div id="messages" className={messagesPane} style={{width: IS_MOBILE_PORTRAIT ? 2 * SIDEBAR_WIDTH: 20 + SIDEBAR_WIDTH}}> {/* why is this 2 and not devicePixelRatio ?? */}
+        <div
+          id="messages"
+          className={classNames(messagesPane, {"big-zoom": this.state.bigZoom})}
+          style={{width: IS_MOBILE_PORTRAIT ? 2 * SIDEBAR_WIDTH: 20 + SIDEBAR_WIDTH}}
+        > {/* why is this 2 and not devicePixelRatio ?? */}
           <div>{this.selfActivePlayer() ? "🟢 connected": "🔴 not connected"}</div>
           <div className="prompt">{this.state.prompt || this.state.data.prompt}</div>
           {messagesPane == 'choices' &&
@@ -587,17 +594,23 @@ export default class Page extends Component {
           {messagesPane == 'actions' &&
            <div id="actionContainer">
              {zoomEl &&
-              <div id="zoomPiece" style={{width: SIDEBAR_WIDTH, height: zoomScale * this.state.zoomOriginalSize.height}}>
+              <div
+                id="zoomPiece"
+                onClick={() => this.setState({ bigZoom: IS_MOBILE_PORTRAIT && !this.state.bigZoom })}
+                style={{width: SIDEBAR_WIDTH, height: zoomScale * this.state.zoomOriginalSize.height}}
+              >
                 <div className="scaler" style={{width: this.state.zoomOriginalSize.width, height: this.state.zoomOriginalSize.height, transform: `scale(${zoomScale})`}}>
                   {this.renderGameElement(zoomEl, false, false, true)}
                 </div>
               </div>
              }
-             <div id="actions" style={IS_MOBILE_PORTRAIT ? {width: SIDEBAR_WIDTH - 30} : {}}>
-               {actions && Object.entries(actions).map(([a, {choice, prompt}]) => (
-                 <button key={a} onClick={e => {this.gameAction(a, ...this.state.args, choice); e.stopPropagation()}}>{showKeybind(prompt)}</button>
-               ))}
-             </div>
+             {!this.state.bigZoom &&
+              <div id="actions" style={IS_MOBILE_PORTRAIT ? {width: SIDEBAR_WIDTH - 30} : {}}>
+                {actions && Object.entries(actions).map(([a, {choice, prompt}]) => (
+                  <button key={a} onClick={e => {this.gameAction(a, ...this.state.args, choice); e.stopPropagation()}}>{showKeybind(prompt)}</button>
+                ))}
+              </div>
+             }
            </div>
           }
 
@@ -634,6 +647,12 @@ export default class Page extends Component {
            </span>
           }
           {messagesPane == 'standard' || messagesPane == 'setup' || <button className="fab cancel" onClick={() => this.cancel()}>✕</button>}
+          {!this.state.bigZoom &&
+           <div id="log">
+             <a className="expander" onClick={() => this.setState({expandLogs: !this.state.expandLogs})}>{this.state.expandLogs ? '▼' : '▲'}</a>
+             <ul>{Object.values(this.state.logs).slice(this.state.expandLogs ? -100 : -2).map(l => <li>{l}</li>)}</ul>
+           </div>
+          }
         </div>
 
         {this.props.background}

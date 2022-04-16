@@ -424,7 +424,9 @@ module.exports = ({
       });
     };
 
-    const sendLog = message => sendWS('log', typeof message === 'object' ? message[String(sessionUser.userId)] : message);
+    const sendLog = ({ timestamp, sequence, message }) => (
+      sendWS('log', { timestamp, sequence, message: typeof message === 'object' ? message[String(sessionUser.userId)] : message })
+    );
 
     const sessionRunner = gameRunner.createSessionRunner(session.id);
     sessionRunner.once('error', (error) => {

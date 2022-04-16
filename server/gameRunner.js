@@ -82,7 +82,7 @@ class GameRunner {
               await publish({ type, userId, payload });
             });
 
-            gameInstance.on('log', message => publish({ type: 'log', payload: message }));
+            gameInstance.on('log', (timestamp, sequence, message) => publish({ type: 'log', payload: { timestamp, sequence, message } }));
 
             gameInstance.registerAction = async (player, action) => {
               try {
