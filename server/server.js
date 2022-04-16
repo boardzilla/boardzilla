@@ -100,7 +100,7 @@ module.exports = ({
     const password = await bcrypt.hash(rawPassword, 10);
     try {
       const user = await db.User.create({
-        name, password, email, lowerName: Sequelize.fn('lower', name),
+        name, password, email,
       });
 
       loginUser(user, res);
@@ -111,6 +111,7 @@ module.exports = ({
       if (e instanceof Sequelize.UniqueConstraintError) {
         switch (e.errors[0].path) {
           case 'name':
+          case 'lower(name::text)':
             res.cookie('error', 'Username taken');
             break;
           case 'email':
@@ -140,7 +141,7 @@ module.exports = ({
     const password = req.body.password || '';
     const user = await db.User.findOne({
       where: Sequelize.where(
-        Sequelize.col('lowerName'),
+        Sequelize.fn('lower', Sequelize.col('name')),
         Sequelize.fn('lower', name),
       ),
     });
