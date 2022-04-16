@@ -9,6 +9,9 @@ const { Sequelize } = require('sequelize');
 const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
 const path = require('path');
+const Sentry = require('@sentry/node');
+const Tracing = require('@sentry/tracing');
+
 const db = require('./models');
 const GameRunner = require('./gameRunner');
 
@@ -21,6 +24,24 @@ module.exports = ({
   }
 
   const app = express();
+
+  if (process.env.NODE_ENV === 'production') {
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      integrations: [
+        // enable HTTP calls tracing
+        new Sentry.Integrations.Http({ tracing: true }),
+        // enable Express.js middleware tracing
+        new Tracing.Integrations.Express({ app }),
+      ],
+
+      // Set tracesSampleRate to 1.0 to capture 100%
+      // of transactions for performance monitoring.
+      // We recommend adjusting this value in production
+      tracesSampleRate: 1.0,
+    });
+  }
+
   const server = http.createServer(app);
   const redisClient = new Redis(redisUrl);
   const devMode = process.env.NODE_ENV === 'development';
@@ -38,6 +59,8 @@ module.exports = ({
     }
     next();
   });
+  app.use(Sentry.Handlers.requestHandler());
+  app.use(Sentry.Handlers.tracingHandler());
   app.use(bodyParser.json({ limit: '50mb' }));
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(cookieParser());
@@ -506,6 +529,15 @@ module.exports = ({
     return null;
   };
   wss.on('connection', onWssConnection);
+
+  app.use(Sentry.Handlers.errorHandler());
+  // Optional fallthrough error handler
+  app.use((err, req, res, next) => {
+    // The error id is attached to `res.sentry` to be returned
+    // and optionally displayed to the user for support.
+    res.statusCode = 500;
+    res.end(`${res.sentry}\n`);
+  });
 
   return server;
 };
