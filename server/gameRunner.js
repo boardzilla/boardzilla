@@ -6,6 +6,7 @@ const Redis = require('ioredis');
 const path = require('path');
 const { Sequelize } = require('sequelize');
 const db = require('./models');
+const Sentry = require('@sentry/node');
 
 class GameRunner {
   constructor(redisUrl, s3Provider, zkConnectionString) {
@@ -181,6 +182,7 @@ class GameRunner {
         await queueClient.quit();
       } catch (e) {
         console.log('error in game runner loop', e);
+        Sentry.captureException(e, {extra: {sessionId}});
       } finally {
         await cleanup();
       }

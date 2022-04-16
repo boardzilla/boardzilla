@@ -13,6 +13,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@sentry/node": "^6.19.6",
+    "@sentry/tracing": "^6.19.6",
     "aws-sdk": "^2.1109.0",
     "bcrypt": "^3.0.6",
     "body-parser": "^1.20.0",
