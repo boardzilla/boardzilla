@@ -650,7 +650,7 @@ export default class Page extends Component {
           {!this.state.bigZoom &&
            <div id="log">
              <a className="expander" onClick={() => this.setState({expandLogs: !this.state.expandLogs})}>{this.state.expandLogs ? '▼' : '▲'}</a>
-             <ul>{Object.values(this.state.logs).slice(this.state.expandLogs ? -100 : -2).map(l => <li>{l}</li>)}</ul>
+             <ul>{Object.entries(this.state.logs).slice(this.state.expandLogs ? -100 : -2).map(([k, l]) => <li key={k}>{l}</li>)}</ul>
            </div>
           }
         </div>
