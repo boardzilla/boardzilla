@@ -27,8 +27,17 @@ module.exports = ({
 
   const gameRunner = new GameRunner(redisUrl, s3Provider, zkConnectionString);
 
+  app.enable('trust proxy');
   app.set('view engine', 'ejs');
   app.set('views', `${__dirname}/views`);
+
+  // force https
+  app.use((request, response, next) => {
+    if (process.env.NODE_ENV === 'production' && !request.secure) {
+      return response.redirect(`https://${request.headers.host}${request.url}`);
+    }
+    next();
+  });
   app.use(bodyParser.json({ limit: '50mb' }));
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(cookieParser());
