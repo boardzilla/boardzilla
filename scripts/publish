@@ -16,6 +16,19 @@ build_type() {
 
 build() {
 	local game=$1
+	local publish_mode=$2
+
+	if [[ -z "$publish_mode" ]]; then
+	    echo "Usage: scripts/publish [game] [release|beta]" 1>&2
+	    exit 1
+	fi
+
+	local beta="true"
+
+	if [ "$publish_mode" = "release" ]; then
+	    beta="false"
+	fi
+
 	echo "Building ${game}..."
 	rm -rf "${game}/dist"
 	build_type $game "client" "cjs"
@@ -27,7 +40,7 @@ build() {
 	server_digest=$(ls -1 "${game}/dist/server")
 
 	echo "Publishing ${game}..."
-	body="{\"serverDigest\":\"${server_digest}\",\"clientDigest\":\"${client_digest}\",\"name\":\"${game}\"}"
+	body="{\"serverDigest\":\"${server_digest}\",\"clientDigest\":\"${client_digest}\",\"name\":\"${game}\",\"beta\":${beta}}"
 	curl -vvv -g -X PUT -d ${body} -H'Content-Type: application/json' -H "x-publish-token: ${PUBLISH_TOKEN}" https://boardzilla.io/publish
 
 	echo "Done with ${game}"
@@ -43,6 +56,21 @@ if [[ -z "$S3_GAME_BUCKET" ]]; then
     exit 1
 fi
 
-for game in $(cat GAMES); do
-	build $game
-done
+game=$1
+publish_mode=$2
+
+if [[ -z "$game" ]]; then
+    echo "Usage: scripts/publish [game] [release|beta]" 1>&2
+    echo "" 1>&2
+    echo "No game specified!" 1>&2
+    exit 1
+fi
+
+if [[ -z "$publish_mode" ]]; then
+    echo "Usage: scripts/publish [game] [release|beta]" 1>&2
+    echo "" 1>&2
+    echo "No publish_mode specified!" 1>&2
+    exit 1
+fi
+
+build $game $publish_mode

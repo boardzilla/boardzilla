@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
     serverDigest: DataTypes.STRING,
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
+    beta: DataTypes.BOOLEAN,
   });
   GameVersion.associate = function (models) {
     models.GameVersion.belongsTo(models.Game, { foreignKey: 'gameId' });

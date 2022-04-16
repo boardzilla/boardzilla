@@ -232,6 +232,7 @@ module.exports = ({
       version: versionNumber,
       serverDigest: req.body.serverDigest,
       clientDigest: req.body.clientDigest,
+      beta: req.body.beta,
     });
     res.json({ version: version.version });
   });
@@ -248,7 +249,7 @@ module.exports = ({
       }],
     });
     if (!session) {
-      res.status(404).end('No such game');
+      return res.status(404).end('No such game');
     }
     if (!req.params[0]) {
       const sessionUser = await db.SessionUser.findOne({ where: { userId: req.user.id, sessionId: session.id } });
@@ -279,9 +280,8 @@ module.exports = ({
   app.post('/sessions', async (req, res) => {
     if (!req.user) return unauthorized(req, res, 'permission denied');
     if (!req.body.gameId) return res.status(400).end('no game specified');
-
     const game = await db.Game.findByPk(req.body.gameId);
-    const gameVersion = await game.latestVersion();
+    const gameVersion = req.body.beta ? await game.latestVersion() : await game.latestStableVersion();
     const session = await db.Session.create({ gameVersionId: gameVersion.id, creatorId: req.user.id, seed: String(Math.random()) });
     await db.SessionUser.create({ userId: req.user.id, sessionId: session.id });
     if (req.is('json')) {
