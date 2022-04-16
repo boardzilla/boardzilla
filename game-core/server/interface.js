@@ -44,6 +44,7 @@ class GameInterface extends EventEmitter {
           if (counter.get('max')) newValue = Math.min(newValue, counter.get('max'));
           counter.set('value', newValue);
           counter.set('moves', counter.get('moves') + 1);
+          this.log(`${this.currentPlayerName()} set ${counter.get('display')} to ${newValue}`);
         }
       },
       rollDie: key => {
@@ -413,8 +414,8 @@ class GameInterface extends EventEmitter {
     }
     if (!test) {
       namedArgs = this.namedElements(args, namedArgs);
-      const logs = this.logEntries(action, ...namedArgs);
-      if (logs) this.log(logs);
+      const logEntry = this.logEntry(action, ...namedArgs);
+      if (logEntry) this.log(logEntry);
     }
     return nextPrompt || prompt;
   }
@@ -562,26 +563,26 @@ class GameInterface extends EventEmitter {
 
   log(message) {
     this.logs[this.sequence] = message;
+    this.emit('log', message);
   }
 
-  logEntries(action, ...args) {
+  logEntry(action, ...args) {
     if (action.drag) args = args.slice(0, 2);
-    return times(this.players.length, player => {
-      let log = '';
+    return Object.entries(this.players).reduce((entry, [player, [userId]]) => {
       if (action.log) {
-        log = action.log.replace(/\$(\d+)/g, sub => {
+        entry[userId] = action.log.replace(/\$(\d+)/g, sub => {
           if (sub[1] !== '0') {
-            const name = args[parseInt(sub[1], 10) - 1];
-            if (name && name[player - 1]) return name[player - 1].shown || name[player - 1].hidden;
+            const namedArg = args[parseInt(sub[1], 10) - 1];
+            if (namedArg && namedArg[player]) return namedArg[player].shown || namedArg[player].hidden;
             return '';
           }
           return this.currentPlayerName();
         });
       } else {
-        log = `${this.currentPlayerName()} : ${action.prompt} ${args.map(a => a && (a[player - 1].shown || a[player - 1].hidden)).join(' ')}`;
+        entry[userId] = `${this.currentPlayerName()} : ${action.prompt} ${args.map(a => a && (a[player].shown || a[player].hidden)).join(' ')}`.trim();
       }
-      return log;
-    });
+      return entry;
+    }, {});
   }
 
   // takes [arg, arg...] and returns [ [ {hidden: argname}, {showm: argname},... ], [ {hidden: argname}, {showm: argname},... ],... ]

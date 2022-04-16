@@ -130,7 +130,7 @@ class FourSouls extends GameInterface {
       },
       intoLootDeckTop: {
         prompt: 'Put on top of deck',
-        log: '$0 put $1 on the top of deck',
+        log: '$0 put $1 on top of the deck',
         key: 't',
         drag: '.mine card[type="loot"], #loot-discard card',
         onto: '#loot',

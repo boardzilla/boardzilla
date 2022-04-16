@@ -424,6 +424,8 @@ module.exports = ({
       });
     };
 
+    const sendLog = message => sendWS('log', typeof message === 'object' ? message[String(sessionUser.userId)] : message);
+
     const sessionRunner = gameRunner.createSessionRunner(session.id);
     sessionRunner.once('error', (error) => {
       console.error('error starting session!', error);
@@ -462,6 +464,7 @@ module.exports = ({
         case 'state': return sendPlayerView(data);
         case 'locks': return sendPlayerLocks();
         case 'drag': return updateElement(message.payload);
+        case 'log': return sendLog(message.payload);
         default: return sendWS(message.type, message.payload);
       }
     });

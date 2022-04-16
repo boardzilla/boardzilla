@@ -82,6 +82,8 @@ class GameRunner {
               await publish({ type, userId, payload });
             });
 
+            gameInstance.on('log', message => publish({ type: 'log', payload: message }));
+
             gameInstance.registerAction = async (player, action) => {
               try {
                 await session.createAction({ player, sequence: gameInstance.sequence, action });
