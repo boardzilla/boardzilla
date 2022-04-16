@@ -14,6 +14,9 @@ X ..mobile layout
 - bonus souls at start and replaceable
 - rooms
 - log???
+  - each action creates a log{seq: [0: 'action', 1: 'action'...]...}
+  - state broadcast with new log entry and merged into state
+  - need a full refresh?
 - mouse tracking
 - movement echo???
   - send last pos (zone,x,y)

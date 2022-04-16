@@ -40,6 +40,22 @@ module.exports = ({
     next();
   });
 
+  function verifyToken(req, callback) {
+    let token = null;
+    if (req.headers.authorization) {
+      token = req.headers.authorization.replace('JWT ', '');
+    } else if (req.cookies && req.cookies.jwt) {
+      token = req.cookies.jwt;
+    }
+    if (!token) {
+      return callback();
+    }
+    jwt.verify(token, secretKey, { ignoreExpiration: true }, (err, user) => {
+      if (err) return callback(err, null);
+      db.User.findOne({ where: { id: user.id } }).then(u => callback(null, u)).catch(e => callback(e, null));
+    });
+  }
+
   app.use((req, res, next) => {
     res.locals.user = null;
     try {
@@ -58,22 +74,6 @@ module.exports = ({
       return next();
     }
   });
-
-  function verifyToken(req, callback) {
-    let token = null;
-    if (req.headers.authorization) {
-      token = req.headers.authorization.replace('JWT ', '');
-    } else if (req.cookies && req.cookies.jwt) {
-      token = req.cookies.jwt;
-    }
-    if (!token) {
-      return callback();
-    }
-    jwt.verify(token, secretKey, { ignoreExpiration: true }, (err, user) => {
-      if (err) return callback(err, null);
-      db.User.findOne({ where: { id: user.id } }).then((user) => callback(null, user)).catch((e) => callback(e, null));
-    });
-  }
 
   function unauthorized(req, res, message) {
     res.cookie('error', message);
@@ -164,7 +164,7 @@ module.exports = ({
   app.get('/sessions', async (req, res) => {
     if (!req.user) return unauthorized(req, res, 'permission denied');
     let where = {};
-    if (req.query.show != 'all') {
+    if (req.query.show !== 'all') {
       const mySessions = await db.SessionUser.findAll({ where: { userId: req.user.id } });
       where = { id: mySessions.map((s) => s.sessionId) };
     }
@@ -318,9 +318,9 @@ module.exports = ({
   if (devMode) {
     server.reload = async () => {
       const sessions = await db.Session.findAll();
-      for (const session of sessions) {
-        await redisClient.publish(gameRunner.sessionEventKey(session.id), JSON.stringify({ type: 'reload' }));
-      }
+      sessions.forEach(session => {
+        redisClient.publish(`session-events-${session.id}`, JSON.stringify({ type: 'reload' }));
+      });
     };
   }
 
@@ -338,7 +338,7 @@ module.exports = ({
           return verified(false, 401, 'Unauthorized');
         }
         info.req.user = user;
-        verified(true);
+        return verified(true);
       });
     } catch (error) {
       console.error('verifyClient: ', error);
@@ -349,8 +349,8 @@ module.exports = ({
   const wss = new WebSocket.Server({ verifyClient, server });
 
   wss.shouldHandle = (req) => {
-    const path = url.parse(req.url).pathname;
-    const match = path.match(/\/sessions\/([^/]+)/);
+    const { pathname } = url.parse(req.url);
+    const match = pathname.match(/\/sessions\/([^/]+)/);
     if (match) {
       req.sessionId = match[1];
       return true;
@@ -365,10 +365,10 @@ module.exports = ({
     }
 
     const session = await sessionUser.getSession();
-    const sessionEventKey = gameRunner.sessionEventKey(req.sessionId);
+    const sessionEventKey = `session-events-${req.sessionId}`;
 
-    const publish = async (type, payload) => await redisClient.publish(sessionEventKey, JSON.stringify({ type, payload }));
-    const queue = async (type, payload) => await redisClient.rpush(sessionEventKey, JSON.stringify({ type, payload }));
+    const publish = async (type, payload) => redisClient.publish(sessionEventKey, JSON.stringify({ type, payload }));
+    const queue = async (type, payload) => redisClient.rpush(sessionEventKey, JSON.stringify({ type, payload }));
     const sendWS = (type, payload) => ws.send(JSON.stringify({ type, payload }));
 
     let locks = [];
@@ -401,15 +401,15 @@ module.exports = ({
 
     const releaseLock = async (key) => {
       await db.ElementLock.destroy({ where: { sessionId: session.id, userId: sessionUser.userId, element: key } });
-      locks = locks.filter((lock) => lock.key != key);
+      locks = locks.filter((lock) => lock.key !== key);
       await publish('locks');
     };
 
     const drag = async ({
       key, x, y, start, end, endFlip,
     }) => {
-      const lock = locks.find((lock) => lock.element == key);
-      if (!lock || lock.userId != sessionUser.userId) return;
+      const lock = locks.find(l => l.element === key);
+      if (!lock || lock.userId !== sessionUser.userId) return;
       await publish('drag', {
         userId: lock.userId, key, x, y, start, end, endFlip,
       });
@@ -418,7 +418,7 @@ module.exports = ({
     const updateElement = ({
       userId, key, x, y, start, end, endFlip,
     }) => {
-      if (userId == sessionUser.userId) return;
+      if (userId === sessionUser.userId) return;
       sendWS('updateElement', {
         key, x, y, start, end, endFlip,
       });
@@ -455,13 +455,13 @@ module.exports = ({
       const message = JSON.parse(data);
       console.debug(`S ${req.user.id}: redis message`, message.type, message.userId);
       // TODO better as seperate channels for each user and all users?
-      if (message.userId && message.userId != req.user.id) {
-        return;
+      if (message.userId && message.userId !== req.user.id) {
+        return null;
       }
       switch (message.type) {
-        case 'state': return await sendPlayerView(data);
-        case 'locks': return await sendPlayerLocks();
-        case 'drag': return await updateElement(message.payload);
+        case 'state': return sendPlayerView(data);
+        case 'locks': return sendPlayerLocks();
+        case 'drag': return updateElement(message.payload);
         default: return sendWS(message.type, message.payload);
       }
     });
@@ -488,6 +488,7 @@ module.exports = ({
       const user = await db.User.findByPk(req.user.id);
       queue('addPlayer', { userId: user.id, username: user.name });
     });
+    return null;
   };
   wss.on('connection', onWssConnection);
 

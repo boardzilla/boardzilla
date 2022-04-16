@@ -10,7 +10,7 @@ class GameElement {
     this.type = node.nodeName.toLowerCase();
   }
 
-  _enhanceQuery(q) {
+  enhanceQuery(q) {
     return q.replace(/\.mine/g, `[player="${this.game.currentPlayer}"]`)
       .replace(/#(\d)/g, '#\\3$1 ')
       .replace(/([#=])(\d)/g, '$1\\3$2 ')
@@ -19,7 +19,7 @@ class GameElement {
 
   wrap(node) {
     if (!node) return null;
-    const element = gameElements.find((el) => el && el.test(node));
+    const element = gameElements.find(el => el && el.test(node));
     if (!element) throw Error(`No wrapper for node ${node.nodeName}`);
     return new element.className(node, { game: this.game, document: this.document });
   }
@@ -30,8 +30,8 @@ class GameElement {
 
   attributes() {
     return Array.from(this.node.attributes)
-      .filter((attr) => attr.name !== 'class' && attr.name !== 'id')
-      .reduce((attrs, attr) => Object.assign(attrs, { [attr.name]: unescape(!attr.value || isNaN(attr.value) ? attr.value : +attr.value) }), {});
+      .filter(attr => attr.name !== 'class' && attr.name !== 'id')
+      .reduce((attrs, attr) => Object.assign(attrs, { [attr.name]: unescape(!attr.value || Number.isNaN(Number(attr.value)) ? attr.value : Number(attr.value)) }), {});
   }
 
   get(name) {
@@ -50,14 +50,28 @@ class GameElement {
     }
   }
 
+  // human readable name of this element from the perspective of player
+  name(player, hidden) {
+    const noun = this.id && !hidden ? this.get('name') || this.id : this.type;
+    let pronoun = '';
+    if (!this.id || hidden) {
+      if (this.matches('.mine *')) {
+        pronoun = this.game.currentPlayer === player ? 'my' : 'their';
+      } else {
+        pronoun = 'a';
+      }
+    }
+    return `${pronoun} ${noun}`.trim();
+  }
+
   findNode(q = '*') {
     if (q === null) return null;
-    return this.node.querySelector(this._enhanceQuery(q));
+    return this.node.querySelector(this.enhanceQuery(q));
   }
 
   findNodes(q = '*') {
     if (q === null) return [];
-    return this.node.querySelectorAll(this._enhanceQuery(q));
+    return this.node.querySelectorAll(this.enhanceQuery(q));
   }
 
   empty(q) {
@@ -80,7 +94,7 @@ class GameElement {
   findAll(q) {
     if (q instanceof GameElement) return [q];
     if (q instanceof Array) return q;
-    return Array.from(this.findNodes(q)).map((node) => this.wrap(node));
+    return Array.from(this.findNodes(q)).map(node => this.wrap(node));
   }
 
   player() {
@@ -92,14 +106,14 @@ class GameElement {
   }
 
   matches(q) {
-    return this.node.matches(this._enhanceQuery(q));
+    return this.node.matches(this.enhanceQuery(q));
   }
 
   hasParent(el) {
     let { node } = this;
     while (node.parentNode) {
       node = node.parentNode;
-      if (node == el.node) return true;
+      if (node === el.node) return true;
     }
     return false;
   }
@@ -156,7 +170,7 @@ class GameElement {
   }
 
   addComponent(name, attrs = {}) {
-    if (name == 'counter') {
+    if (name === 'counter') {
       const id = this.game.registerId('counter');
       this.addPiece(`#${id}`, 'counter', {
         value: attrs.initialValue || 0,
@@ -166,7 +180,7 @@ class GameElement {
         ...attrs,
       });
     }
-    if (name == 'die') {
+    if (name === 'die') {
       const id = this.game.registerId('die');
       this.addPiece(`#${id}`, 'die', { number: 1, rolls: 0, ...attrs });
     }
@@ -176,9 +190,10 @@ class GameElement {
     const el = this.document.createElement(type);
     if (name[0] !== '#') throw Error(`id ${name} must start with #`);
     el.id = name.slice(1);
-    el.className = className;
-    Object.keys(attrs).forEach((attr) => el.setAttribute(attr, escape(attrs[attr])));
-    if (attrs.left == undefined && attrs.top == undefined && attrs.right == undefined && attrs.bottom == undefined) {
+    el.className = `${className} ${attrs.class}`;
+    delete attrs.class;
+    Object.keys(attrs).forEach(attr => el.setAttribute(attr, escape(attrs[attr])));
+    if (attrs.left === undefined && attrs.top === undefined && attrs.right === undefined && attrs.bottom === undefined) {
       const pos = this.findOpenPosition();
       if (pos) {
         el.setAttribute('x', pos.x);
@@ -199,6 +214,7 @@ class GameElement {
       }
       return { x, y };
     }
+    return null;
   }
 
   moveToTop() {
@@ -206,11 +222,11 @@ class GameElement {
   }
 
   static isSpaceNode(node) {
-    return node && node.className === 'space';
+    return node && node.classList.contains('space');
   }
 
   static isPieceNode(node) {
-    return node && node.className === 'piece';
+    return node && node.classList.contains('piece');
   }
 
   // return string representation, e.g. "$el(2-1-3)"
@@ -221,7 +237,7 @@ class GameElement {
   // return element from branch
   pieceAt(key) {
     return this.root().find(
-      `game > ${key.split('-').map((index) => `*:nth-child(${index})`).join(' > ')}`,
+      `game > ${key.split('-').map(index => `*:nth-child(${index})`).join(' > ')}`,
     );
   }
 
