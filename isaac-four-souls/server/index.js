@@ -51,7 +51,7 @@ class FourSouls extends GameInterface {
 
     this.afterMove('#hand card, deck card', (card) => { card.set('active', false); card.set('flipped', false); });
 
-    this.hideBoard('card[flipped], .player-mat:not(.mine) #hand card, #loot card, #treasure card, #monsters card, #characters card, #eternals card', ['front', 'text', 'edition']);
+    this.hideBoard('card[flipped], .player-mat:not(.mine) #hand card, #loot card, #treasure card, #monsters card, #characters card, #eternals card', ['front', 'name', 'edition']);
 
     this.actions = {
       shuffle: {
@@ -118,8 +118,8 @@ class FourSouls extends GameInterface {
         key: 'i',
         next: {
           prompt: 'Select card',
-          select: (deck) => deck.findAll('card').map((c) => c.get('text')),
-          action: (deck, text) => deck.find(`card[text="${text}"]`).move('.mine #tableau'),
+          select: (deck) => deck.findAll('card').map((c) => c.get('name')),
+          action: (deck, name) => deck.find(`card[name="${name}"]`).move('.mine #tableau'),
         },
       },
       purchase: {
