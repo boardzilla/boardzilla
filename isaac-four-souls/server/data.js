@@ -14,7 +14,7 @@ const editions = [
 
 const cards = {
   Isaac: {
-    text: 'Isaac',
+    name: 'Isaac',
     type: 'character',
     edition: {
       'Base Game V2': 1,
@@ -23,7 +23,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'The-D6': {
-    text: 'The D6',
+    name: 'The D6',
     type: 'eternal',
     edition: {
       'Base Game V2': 1,
@@ -32,7 +32,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   Maggy: {
-    text: 'Maggy',
+    name: 'Maggy',
     type: 'character',
     edition: {
       'Base Game V2': 1,
@@ -41,7 +41,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Yum-Heart': {
-    text: 'Yum Heart',
+    name: 'Yum Heart',
     type: 'eternal',
     edition: {
       'Base Game V2': 1,
@@ -50,7 +50,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   Cain: {
-    text: 'Cain',
+    name: 'Cain',
     type: 'character',
     edition: {
       'Base Game V2': 1,
@@ -59,7 +59,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Sleight-Of-Hand': {
-    text: 'Sleight Of Hand',
+    name: 'Sleight Of Hand',
     type: 'eternal',
     edition: {
       'Base Game V2': 1,
@@ -68,7 +68,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   Judas: {
-    text: 'Judas',
+    name: 'Judas',
     type: 'character',
     edition: {
       'Base Game V2': 1,
@@ -77,7 +77,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Book-Of-Belial': {
-    text: 'Book Of Belial',
+    name: 'Book Of Belial',
     type: 'eternal',
     edition: {
       'Base Game V2': 1,
@@ -86,7 +86,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'Blue-Baby': {
-    text: 'Blue Baby',
+    name: 'Blue Baby',
     type: 'character',
     edition: {
       'Base Game V2': 1,
@@ -95,7 +95,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Forever-Alone': {
-    text: 'Forever Alone',
+    name: 'Forever Alone',
     type: 'eternal',
     edition: {
       'Base Game V2': 1,
@@ -104,7 +104,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   Eve: {
-    text: 'Eve',
+    name: 'Eve',
     type: 'character',
     edition: {
       'Base Game V2': 1,
@@ -113,7 +113,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'The-Curse': {
-    text: 'The Curse',
+    name: 'The Curse',
     type: 'eternal',
     edition: {
       'Base Game V2': 1,
@@ -122,7 +122,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   Samson: {
-    text: 'Samson',
+    name: 'Samson',
     type: 'character',
     edition: {
       'Base Game V2': 1,
@@ -131,7 +131,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Blood-Lust': {
-    text: 'Blood Lust',
+    name: 'Blood Lust',
     type: 'eternal',
     edition: {
       'Base Game V2': 1,
@@ -140,7 +140,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   Lazarus: {
-    text: 'Lazarus',
+    name: 'Lazarus',
     type: 'character',
     edition: {
       'Base Game V2': 1,
@@ -149,7 +149,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Lazarus-Rags': {
-    text: 'Lazarus’ Rags',
+    name: 'Lazarus’ Rags',
     type: 'eternal',
     edition: {
       'Base Game V2': 1,
@@ -158,7 +158,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   Lilith: {
-    text: 'Lilith',
+    name: 'Lilith',
     type: 'character',
     edition: {
       'Base Game V2': 1,
@@ -167,7 +167,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Incubus: {
-    text: 'Incubus',
+    name: 'Incubus',
     type: 'eternal',
     edition: {
       'Base Game V2': 1,
@@ -176,7 +176,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Forgotten': {
-    text: 'The Forgotten',
+    name: 'The Forgotten',
     type: 'character',
     edition: {
       'Base Game V2': 1,
@@ -185,7 +185,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'The-Bone': {
-    text: 'The Bone',
+    name: 'The Bone',
     type: 'eternal',
     edition: {
       'Base Game V2': 1,
@@ -194,7 +194,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   Eden: {
-    text: 'Eden',
+    name: 'Eden',
     type: 'character',
     edition: {
       'Base Game V2': 1,
@@ -203,7 +203,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Belly-Button': {
-    text: 'Belly Button',
+    name: 'Belly Button',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -212,7 +212,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Bob-s-Brain': {
-    text: 'Bob’s Brain',
+    name: 'Bob’s Brain',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -221,7 +221,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Breakfast: {
-    text: 'Breakfast',
+    name: 'Breakfast',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -230,7 +230,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Brimstone: {
-    text: 'Brimstone',
+    name: 'Brimstone',
     type: 'treasure',
     p3: true,
     edition: {
@@ -240,7 +240,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Bum-Bo-': {
-    text: 'Bum-Bo!',
+    name: 'Bum-Bo!',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -249,7 +249,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Cambion-Conception': {
-    text: 'Cambion Conception',
+    name: 'Cambion Conception',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -258,7 +258,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Champion-Belt': {
-    text: 'Champion Belt',
+    name: 'Champion Belt',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -267,7 +267,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Charged-Baby': {
-    text: 'Charged Baby',
+    name: 'Charged Baby',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -276,7 +276,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Cheese-Grater': {
-    text: 'Cheese Grater',
+    name: 'Cheese Grater',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -285,7 +285,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Curse-Of-The-Tower': {
-    text: 'Curse Of The Tower',
+    name: 'Curse Of The Tower',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -294,7 +294,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Dad-s-Lost-Coin': {
-    text: 'Dad’s Lost Coin',
+    name: 'Dad’s Lost Coin',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -303,7 +303,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Dark-Bum': {
-    text: 'Dark Bum',
+    name: 'Dark Bum',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -312,7 +312,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Dead-Bird': {
-    text: 'Dead Bird',
+    name: 'Dead Bird',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -321,7 +321,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Dinner: {
-    text: 'Dinner',
+    name: 'Dinner',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -330,7 +330,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Dry-Baby': {
-    text: 'Dry Baby',
+    name: 'Dry Baby',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -339,7 +339,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Eden-s-Blessing': {
-    text: 'Eden’s Blessing',
+    name: 'Eden’s Blessing',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -348,7 +348,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Empty-Vessel': {
-    text: 'Empty Vessel',
+    name: 'Empty Vessel',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -357,7 +357,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Eye-Of-Greed': {
-    text: 'Eye Of Greed',
+    name: 'Eye Of Greed',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -366,7 +366,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Fanny-Pack': {
-    text: 'Fanny Pack',
+    name: 'Fanny Pack',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -375,7 +375,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Finger-': {
-    text: 'Finger!',
+    name: 'Finger!',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -384,7 +384,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Goat-Head': {
-    text: 'Goat Head',
+    name: 'Goat Head',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -393,7 +393,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Greed-s-Gullet': {
-    text: 'Greed’s Gullet',
+    name: 'Greed’s Gullet',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -402,7 +402,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Guppy-s-Collar': {
-    text: 'Guppy’s Collar',
+    name: 'Guppy’s Collar',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -411,7 +411,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Ipecac: {
-    text: 'Ipecac',
+    name: 'Ipecac',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -420,7 +420,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Meat-': {
-    text: 'Meat!',
+    name: 'Meat!',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -429,7 +429,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Mom-s-Box': {
-    text: 'Mom’s Box',
+    name: 'Mom’s Box',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -438,7 +438,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Mom-s-Coin-Purse': {
-    text: 'Mom’s Coin Purse',
+    name: 'Mom’s Coin Purse',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -447,7 +447,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Mom-s-Purse': {
-    text: 'Mom’s Purse',
+    name: 'Mom’s Purse',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -456,7 +456,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Mom-s-Razor': {
-    text: 'Mom’s Razor',
+    name: 'Mom’s Razor',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -465,7 +465,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Monstro-s-Tooth': {
-    text: 'Monstro’s Tooth',
+    name: 'Monstro’s Tooth',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -474,7 +474,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Polydactyly: {
-    text: 'Polydactyly',
+    name: 'Polydactyly',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -483,7 +483,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Restock: {
-    text: 'Restock',
+    name: 'Restock',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -492,7 +492,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Sacred-Heart': {
-    text: 'Sacred Heart',
+    name: 'Sacred Heart',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -501,7 +501,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Shadow: {
-    text: 'Shadow',
+    name: 'Shadow',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -510,7 +510,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Shiny-Rock': {
-    text: 'Shiny Rock',
+    name: 'Shiny Rock',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -519,7 +519,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Spider-Mod': {
-    text: 'Spider Mod',
+    name: 'Spider Mod',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -528,7 +528,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Starter-Deck': {
-    text: 'Starter Deck',
+    name: 'Starter Deck',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -537,7 +537,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Steamy-Sale-': {
-    text: 'Steamy Sale!',
+    name: 'Steamy Sale!',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -546,7 +546,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Suicide-King': {
-    text: 'Suicide King',
+    name: 'Suicide King',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -555,7 +555,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Synthoil: {
-    text: 'Synthoil',
+    name: 'Synthoil',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -564,7 +564,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Tarot-Cloth': {
-    text: 'Tarot Cloth',
+    name: 'Tarot Cloth',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -573,7 +573,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-Blue-Map': {
-    text: 'The Blue Map',
+    name: 'The Blue Map',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -582,7 +582,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-Chest': {
-    text: 'The Chest',
+    name: 'The Chest',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -591,7 +591,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-Compass': {
-    text: 'The Compass',
+    name: 'The Compass',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -600,7 +600,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-D10': {
-    text: 'The D10',
+    name: 'The D10',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -609,7 +609,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-Dead-Cat': {
-    text: 'The Dead Cat',
+    name: 'The Dead Cat',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -618,7 +618,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-Habit': {
-    text: 'The Habit',
+    name: 'The Habit',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -627,7 +627,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-Map': {
-    text: 'The Map',
+    name: 'The Map',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -636,7 +636,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-Midas-Touch': {
-    text: 'The Midas Touch',
+    name: 'The Midas Touch',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -645,7 +645,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-Polaroid': {
-    text: 'The Polaroid',
+    name: 'The Polaroid',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -654,7 +654,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-Relic': {
-    text: 'The Relic',
+    name: 'The Relic',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -663,7 +663,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'There-s-Options': {
-    text: 'There’s Options',
+    name: 'There’s Options',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -672,7 +672,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Trinity-Shield': {
-    text: 'Trinity Shield',
+    name: 'Trinity Shield',
     type: 'treasure',
     p3: true,
     edition: {
@@ -682,7 +682,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Blank-Card': {
-    text: 'Blank Card',
+    name: 'Blank Card',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -691,7 +691,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Book-Of-Sin': {
-    text: 'Book Of Sin',
+    name: 'Book Of Sin',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -700,7 +700,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Boomerang: {
-    text: 'Boomerang',
+    name: 'Boomerang',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -709,7 +709,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Box-': {
-    text: 'Box!',
+    name: 'Box!',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -718,7 +718,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Bum-Friend': {
-    text: 'Bum Friend',
+    name: 'Bum Friend',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -727,7 +727,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Chaos: {
-    text: 'Chaos',
+    name: 'Chaos',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -736,7 +736,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Chaos-Card': {
-    text: 'Chaos Card',
+    name: 'Chaos Card',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -745,7 +745,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Compost: {
-    text: 'Compost',
+    name: 'Compost',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -754,7 +754,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Crystal-Ball': {
-    text: 'Crystal Ball',
+    name: 'Crystal Ball',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -763,7 +763,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Decoy: {
-    text: 'Decoy',
+    name: 'Decoy',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -772,7 +772,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Diplopia: {
-    text: 'Diplopia',
+    name: 'Diplopia',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -781,7 +781,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Flush-': {
-    text: 'Flush!',
+    name: 'Flush!',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -790,7 +790,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Glass-Cannon': {
-    text: 'Glass Cannon',
+    name: 'Glass Cannon',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -799,7 +799,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Godhead: {
-    text: 'Godhead',
+    name: 'Godhead',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -808,7 +808,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Guppy-s-Head': {
-    text: 'Guppy’s Head',
+    name: 'Guppy’s Head',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -817,7 +817,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Guppy-s-Paw': {
-    text: 'Guppy’s Paw',
+    name: 'Guppy’s Paw',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -826,7 +826,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Host-Hat': {
-    text: 'Host Hat',
+    name: 'Host Hat',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -835,7 +835,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Jawbone: {
-    text: 'Jawbone',
+    name: 'Jawbone',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -844,7 +844,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Lucky-Foot': {
-    text: 'Lucky Foot',
+    name: 'Lucky Foot',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -853,7 +853,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Mini-Mush': {
-    text: 'Mini Mush',
+    name: 'Mini Mush',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -862,7 +862,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Modeling-Clay': {
-    text: 'Modeling Clay',
+    name: 'Modeling Clay',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -871,7 +871,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Mom-s-Bra': {
-    text: 'Mom’s Bra',
+    name: 'Mom’s Bra',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -880,7 +880,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Mom-s-Shovel': {
-    text: 'Mom’s Shovel',
+    name: 'Mom’s Shovel',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -889,7 +889,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Monster-Manual': {
-    text: 'Monster Manual',
+    name: 'Monster Manual',
     type: 'treasure',
     p3: true,
     edition: {
@@ -899,7 +899,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Mr-Boom': {
-    text: 'Mr. Boom',
+    name: 'Mr. Boom',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -908,7 +908,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Mystery-Sack': {
-    text: 'Mystery Sack',
+    name: 'Mystery Sack',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -917,7 +917,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'No-': {
-    text: 'No!',
+    name: 'No!',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -926,7 +926,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Pandora-s-Box': {
-    text: 'Pandora’s Box',
+    name: 'Pandora’s Box',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -935,7 +935,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Placebo: {
-    text: 'Placebo',
+    name: 'Placebo',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -944,7 +944,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Potato-Peeler': {
-    text: 'Potato Peeler',
+    name: 'Potato Peeler',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -953,7 +953,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Razor-Blade': {
-    text: 'Razor Blade',
+    name: 'Razor Blade',
     type: 'treasure',
     p3: true,
     edition: {
@@ -963,7 +963,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Remote-Detonator': {
-    text: 'Remote Detonator',
+    name: 'Remote Detonator',
     type: 'treasure',
     p3: true,
     edition: {
@@ -973,7 +973,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Sack-Head': {
-    text: 'Sack Head',
+    name: 'Sack Head',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -982,7 +982,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Sack-Of-Pennies': {
-    text: 'Sack Of Pennies',
+    name: 'Sack Of Pennies',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -991,7 +991,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Spoon-Bender': {
-    text: 'Spoon Bender',
+    name: 'Spoon Bender',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -1000,7 +1000,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Tech-X': {
-    text: 'Tech X',
+    name: 'Tech X',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -1009,7 +1009,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-Battery': {
-    text: 'The Battery',
+    name: 'The Battery',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -1018,7 +1018,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-D100': {
-    text: 'The D100',
+    name: 'The D100',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -1027,7 +1027,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-D20': {
-    text: 'The D20',
+    name: 'The D20',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -1036,7 +1036,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-D4': {
-    text: 'The D4',
+    name: 'The D4',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -1045,7 +1045,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-Shovel': {
-    text: 'The Shovel',
+    name: 'The Shovel',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -1054,7 +1054,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Two-Of-Clubs': {
-    text: 'Two Of Clubs',
+    name: 'Two Of Clubs',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -1063,7 +1063,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Battery-Bum': {
-    text: 'Battery Bum',
+    name: 'Battery Bum',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -1072,7 +1072,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Contract-From-Below': {
-    text: 'Contract From Below',
+    name: 'Contract From Below',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -1081,7 +1081,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Donation-Machine': {
-    text: 'Donation Machine',
+    name: 'Donation Machine',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -1090,7 +1090,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Golden-Razor-Blade': {
-    text: 'Golden Razor Blade',
+    name: 'Golden Razor Blade',
     type: 'treasure',
     p3: true,
     edition: {
@@ -1100,7 +1100,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Pay-To-Play': {
-    text: 'Pay To Play',
+    name: 'Pay To Play',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -1109,7 +1109,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Portable-Slot-Machine': {
-    text: 'Portable Slot Machine',
+    name: 'Portable Slot Machine',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -1118,7 +1118,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Smelter: {
-    text: 'Smelter',
+    name: 'Smelter',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -1127,7 +1127,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-Poop': {
-    text: 'The Poop',
+    name: 'The Poop',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -1136,7 +1136,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Baby-Haunt': {
-    text: 'Baby Haunt',
+    name: 'Baby Haunt',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -1145,7 +1145,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Daddy-Haunt': {
-    text: 'Daddy Haunt',
+    name: 'Daddy Haunt',
     type: 'treasure',
     edition: {
       'Base Game V2': 1,
@@ -1154,7 +1154,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'A-Penny-': {
-    text: 'A Penny!',
+    name: 'A Penny!',
     type: 'loot',
     edition: {
       'Base Game V2': 6,
@@ -1165,7 +1165,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   '2-Cents-': {
-    text: '2 Cents!',
+    name: '2 Cents!',
     type: 'loot',
     edition: {
       'Base Game V2': 12,
@@ -1177,7 +1177,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   '3-Cents-': {
-    text: '3 Cents!',
+    name: '3 Cents!',
     type: 'loot',
     edition: {
       'Base Game V2': 15,
@@ -1189,7 +1189,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   '4-Cents-': {
-    text: '4 Cents!',
+    name: '4 Cents!',
     type: 'loot',
     edition: {
       'Base Game V2': 9,
@@ -1201,7 +1201,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'A-Nickel-': {
-    text: 'A Nickel!',
+    name: 'A Nickel!',
     type: 'loot',
     edition: {
       'Base Game V2': 5,
@@ -1212,7 +1212,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'A-Dime-': {
-    text: 'A Dime!!',
+    name: 'A Dime!!',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1221,7 +1221,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Lil-Battery': {
-    text: 'Lil Battery',
+    name: 'Lil Battery',
     type: 'loot',
     edition: {
       'Base Game V2': 4,
@@ -1230,7 +1230,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Mega-Battery': {
-    text: 'Mega Battery',
+    name: 'Mega Battery',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1239,7 +1239,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Bomb-': {
-    text: 'Bomb!',
+    name: 'Bomb!',
     type: 'loot',
     edition: {
       'Base Game V2': 4,
@@ -1251,7 +1251,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Gold-Bomb-': {
-    text: 'Gold Bomb!!',
+    name: 'Gold Bomb!!',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1260,7 +1260,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Butter-Bean-': {
-    text: 'Butter Bean!',
+    name: 'Butter Bean!',
     type: 'loot',
     edition: {
       'Base Game V2': 3,
@@ -1271,7 +1271,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Dice-Shard': {
-    text: 'Dice Shard',
+    name: 'Dice Shard',
     type: 'loot',
     edition: {
       'Base Game V2': 3,
@@ -1282,7 +1282,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Pills-': {
-    text: 'Pills!',
+    name: 'Pills!',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1291,7 +1291,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Pills-1': {
-    text: 'Pills!',
+    name: 'Pills!',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1300,7 +1300,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Pills-2': {
-    text: 'Pills!',
+    name: 'Pills!',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1309,7 +1309,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Soul-Heart': {
-    text: 'Soul Heart',
+    name: 'Soul Heart',
     type: 'loot',
     edition: {
       'Base Game V2': 2,
@@ -1320,7 +1320,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'O-The-Fool': {
-    text: 'O. The Fool',
+    name: 'O. The Fool',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1329,7 +1329,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'I-The-Magician': {
-    text: 'I. The Magician',
+    name: 'I. The Magician',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1338,7 +1338,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'II-The-High-Priestess': {
-    text: 'II. The High Priestess',
+    name: 'II. The High Priestess',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1347,7 +1347,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'III-The-Empress': {
-    text: 'III. The Empress',
+    name: 'III. The Empress',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1356,7 +1356,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'IV-The-Emperor': {
-    text: 'IV. The Emperor',
+    name: 'IV. The Emperor',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1365,7 +1365,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'V-The-Hierophant': {
-    text: 'V. The Hierophant',
+    name: 'V. The Hierophant',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1374,7 +1374,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'VI-The-Lovers': {
-    text: 'VI. The Lovers',
+    name: 'VI. The Lovers',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1383,7 +1383,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'VII-The-Chariot': {
-    text: 'VII. The Chariot',
+    name: 'VII. The Chariot',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1392,7 +1392,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'VIII-Justice': {
-    text: 'VIII. Justice',
+    name: 'VIII. Justice',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1401,7 +1401,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'IX-The-Hermit': {
-    text: 'IX. The Hermit',
+    name: 'IX. The Hermit',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1410,7 +1410,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'X-Wheel-Of-Fortune': {
-    text: 'X. Wheel Of Fortune',
+    name: 'X. Wheel Of Fortune',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1419,7 +1419,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'XI-Strength': {
-    text: 'XI. Strength',
+    name: 'XI. Strength',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1428,7 +1428,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'XII-The-Hanged-Man': {
-    text: 'XII. The Hanged Man',
+    name: 'XII. The Hanged Man',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1437,7 +1437,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'XIII-Death': {
-    text: 'XIII. Death',
+    name: 'XIII. Death',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1446,7 +1446,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'XIV-Temperance': {
-    text: 'XIV. Temperance',
+    name: 'XIV. Temperance',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1455,7 +1455,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'XV-The-Devil': {
-    text: 'XV. The Devil',
+    name: 'XV. The Devil',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1464,7 +1464,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'XVI-The-Tower': {
-    text: 'XVI. The Tower',
+    name: 'XVI. The Tower',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1473,7 +1473,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'XVII-The-Stars': {
-    text: 'XVII. The Stars',
+    name: 'XVII. The Stars',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1482,7 +1482,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'XVIII-The-Moon': {
-    text: 'XVIII. The Moon',
+    name: 'XVIII. The Moon',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1491,7 +1491,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'XIX-The-Sun': {
-    text: 'XIX. The Sun',
+    name: 'XIX. The Sun',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1500,7 +1500,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'XX-Judgement': {
-    text: 'XX. Judgement',
+    name: 'XX. Judgement',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1509,7 +1509,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'XXI-The-World': {
-    text: 'XXI. The World',
+    name: 'XXI. The World',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1518,7 +1518,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Dagaz: {
-    text: 'Dagaz',
+    name: 'Dagaz',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1527,7 +1527,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Ehwaz: {
-    text: 'Ehwaz',
+    name: 'Ehwaz',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1536,7 +1536,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Blank-Rune': {
-    text: 'Blank Rune',
+    name: 'Blank Rune',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1545,7 +1545,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Bloody-Penny': {
-    text: 'Bloody Penny',
+    name: 'Bloody Penny',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1554,7 +1554,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Broken-Ankh': {
-    text: 'Broken Ankh',
+    name: 'Broken Ankh',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1563,7 +1563,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Cain-s-Eye': {
-    text: 'Cain’s Eye',
+    name: 'Cain’s Eye',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1572,7 +1572,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Counterfeit-Penny': {
-    text: 'Counterfeit Penny',
+    name: 'Counterfeit Penny',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1581,7 +1581,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Curved-Horn': {
-    text: 'Curved Horn',
+    name: 'Curved Horn',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1590,7 +1590,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Golden-Horseshoe': {
-    text: 'Golden Horseshoe',
+    name: 'Golden Horseshoe',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1599,7 +1599,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Guppy-s-Hairball': {
-    text: 'Guppy’s Hairball',
+    name: 'Guppy’s Hairball',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1608,7 +1608,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Purple-Heart': {
-    text: 'Purple Heart',
+    name: 'Purple Heart',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1617,7 +1617,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Swallowed-Penny': {
-    text: 'Swallowed Penny',
+    name: 'Swallowed Penny',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1626,7 +1626,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Lost-Soul': {
-    text: 'Lost Soul',
+    name: 'Lost Soul',
     type: 'loot',
     edition: {
       'Base Game V2': 1,
@@ -1635,7 +1635,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Big-Spider': {
-    text: 'Big Spider',
+    name: 'Big Spider',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1644,7 +1644,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Black-Bony': {
-    text: 'Black Bony',
+    name: 'Black Bony',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1653,7 +1653,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Boom-Fly': {
-    text: 'Boom Fly',
+    name: 'Boom Fly',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1662,7 +1662,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Clotty: {
-    text: 'Clotty',
+    name: 'Clotty',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1671,7 +1671,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Cod-Worm': {
-    text: 'Cod Worm',
+    name: 'Cod Worm',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1680,7 +1680,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Conjoined-Fatty': {
-    text: 'Conjoined Fatty',
+    name: 'Conjoined Fatty',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1689,7 +1689,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Dank-Globin': {
-    text: 'Dank Globin',
+    name: 'Dank Globin',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1698,7 +1698,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Delirium: {
-    text: 'Delirium',
+    name: 'Delirium',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1707,7 +1707,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Dinga: {
-    text: 'Dinga',
+    name: 'Dinga',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1716,7 +1716,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Dip: {
-    text: 'Dip',
+    name: 'Dip',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1725,7 +1725,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Dople: {
-    text: 'Dople',
+    name: 'Dople',
     type: 'monster',
     p3: true,
     edition: {
@@ -1735,7 +1735,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Evil-Twin': {
-    text: 'Evil Twin',
+    name: 'Evil Twin',
     type: 'monster',
     p3: true,
     edition: {
@@ -1745,7 +1745,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Fat-Bat': {
-    text: 'Fat Bat',
+    name: 'Fat Bat',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1754,7 +1754,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Fatty: {
-    text: 'Fatty',
+    name: 'Fatty',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1763,7 +1763,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Fly: {
-    text: 'Fly',
+    name: 'Fly',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1772,7 +1772,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Greedling: {
-    text: 'Greedling',
+    name: 'Greedling',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1781,7 +1781,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Hanger: {
-    text: 'Hanger',
+    name: 'Hanger',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1790,7 +1790,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Hopper: {
-    text: 'Hopper',
+    name: 'Hopper',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1799,7 +1799,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Horf: {
-    text: 'Horf',
+    name: 'Horf',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1808,7 +1808,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Keeper-Head': {
-    text: 'Keeper Head',
+    name: 'Keeper Head',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1817,7 +1817,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Leaper: {
-    text: 'Leaper',
+    name: 'Leaper',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1826,7 +1826,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Leech: {
-    text: 'Leech',
+    name: 'Leech',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1835,7 +1835,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Mom-s-Dead-Hand': {
-    text: 'Mom’s Dead Hand',
+    name: 'Mom’s Dead Hand',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1844,7 +1844,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Mom-s-Eye': {
-    text: 'Mom’s Eye',
+    name: 'Mom’s Eye',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1853,7 +1853,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Mom-s-Hand': {
-    text: 'Mom’s Hand',
+    name: 'Mom’s Hand',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1862,7 +1862,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Mulliboom: {
-    text: 'Mulliboom',
+    name: 'Mulliboom',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1871,7 +1871,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Mulligan: {
-    text: 'Mulligan',
+    name: 'Mulligan',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1880,7 +1880,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Pale-Fatty': {
-    text: 'Pale Fatty',
+    name: 'Pale Fatty',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1889,7 +1889,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Pooter: {
-    text: 'Pooter',
+    name: 'Pooter',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1898,7 +1898,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Portal: {
-    text: 'Portal',
+    name: 'Portal',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1907,7 +1907,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Psy-Horf': {
-    text: 'Psy Horf',
+    name: 'Psy Horf',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1916,7 +1916,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Rage-Creep': {
-    text: 'Rage Creep',
+    name: 'Rage Creep',
     type: 'monster',
     p3: true,
     edition: {
@@ -1926,7 +1926,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Red-Host': {
-    text: 'Red Host',
+    name: 'Red Host',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1935,7 +1935,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Ring-Of-Flies': {
-    text: 'Ring Of Flies',
+    name: 'Ring Of Flies',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1944,7 +1944,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Spider: {
-    text: 'Spider',
+    name: 'Spider',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1953,7 +1953,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Squirt: {
-    text: 'Squirt',
+    name: 'Squirt',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1962,7 +1962,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Stoney: {
-    text: 'Stoney',
+    name: 'Stoney',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1971,7 +1971,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Swarm-Of-Flies': {
-    text: 'Swarm Of Flies',
+    name: 'Swarm Of Flies',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1980,7 +1980,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Trite: {
-    text: 'Trite',
+    name: 'Trite',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1989,7 +1989,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Wizoob: {
-    text: 'Wizoob',
+    name: 'Wizoob',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -1998,7 +1998,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Cursed-Fatty': {
-    text: 'Cursed Fatty',
+    name: 'Cursed Fatty',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2007,7 +2007,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Cursed-Gaper': {
-    text: 'Cursed Gaper',
+    name: 'Cursed Gaper',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2016,7 +2016,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Cursed-Horf': {
-    text: 'Cursed Horf',
+    name: 'Cursed Horf',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2025,7 +2025,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Cursed-Keeper-Head': {
-    text: 'Cursed Keeper Head',
+    name: 'Cursed Keeper Head',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2034,7 +2034,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Cursed-Mom-s-Hand': {
-    text: 'Cursed Mom’s Hand',
+    name: 'Cursed Mom’s Hand',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2043,7 +2043,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Cursed-Psy-Horf': {
-    text: 'Cursed Psy Horf',
+    name: 'Cursed Psy Horf',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2052,7 +2052,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Holy-Dinga': {
-    text: 'Holy Dinga',
+    name: 'Holy Dinga',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2061,7 +2061,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Holy-Dip': {
-    text: 'Holy Dip',
+    name: 'Holy Dip',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2070,7 +2070,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Holy-Keeper-Head': {
-    text: 'Holy Keeper Head',
+    name: 'Holy Keeper Head',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2079,7 +2079,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Holy-Mom-s-Eye': {
-    text: 'Holy Mom’s Eye',
+    name: 'Holy Mom’s Eye',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2088,7 +2088,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Holy-Squirt': {
-    text: 'Holy Squirt',
+    name: 'Holy Squirt',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2097,7 +2097,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Carrion-Queen': {
-    text: 'Carrion Queen',
+    name: 'Carrion Queen',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2106,7 +2106,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Chub: {
-    text: 'Chub',
+    name: 'Chub',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2115,7 +2115,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Conquest: {
-    text: 'Conquest',
+    name: 'Conquest',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2124,7 +2124,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Daddy-Long-Legs': {
-    text: 'Daddy Long Legs',
+    name: 'Daddy Long Legs',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2133,7 +2133,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Dark-One': {
-    text: 'Dark One',
+    name: 'Dark One',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2142,7 +2142,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Death: {
-    text: 'Death',
+    name: 'Death',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2151,7 +2151,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Envy: {
-    text: 'Envy',
+    name: 'Envy',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2160,7 +2160,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Famine: {
-    text: 'Famine',
+    name: 'Famine',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2169,7 +2169,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Gemini: {
-    text: 'Gemini',
+    name: 'Gemini',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2178,7 +2178,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Gluttony: {
-    text: 'Gluttony',
+    name: 'Gluttony',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2187,7 +2187,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Greed: {
-    text: 'Greed',
+    name: 'Greed',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2196,7 +2196,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Gurdy: {
-    text: 'Gurdy',
+    name: 'Gurdy',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2205,7 +2205,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Gurdy-Jr-': {
-    text: 'Gurdy Jr.',
+    name: 'Gurdy Jr.',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2214,7 +2214,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Larry-Jr-': {
-    text: 'Larry Jr.',
+    name: 'Larry Jr.',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2223,7 +2223,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Little-Horn': {
-    text: 'Little Horn',
+    name: 'Little Horn',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2232,7 +2232,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Lust: {
-    text: 'Lust',
+    name: 'Lust',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2241,7 +2241,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Mask-Of-Infamy': {
-    text: 'Mask Of Infamy',
+    name: 'Mask Of Infamy',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2250,7 +2250,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Mega-Fatty': {
-    text: 'Mega Fatty',
+    name: 'Mega Fatty',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2259,7 +2259,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Monstro: {
-    text: 'Monstro',
+    name: 'Monstro',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2268,7 +2268,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Peep: {
-    text: 'Peep',
+    name: 'Peep',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2277,7 +2277,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Pestilence: {
-    text: 'Pestilence',
+    name: 'Pestilence',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2286,7 +2286,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Pin: {
-    text: 'Pin',
+    name: 'Pin',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2295,7 +2295,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Pride: {
-    text: 'Pride',
+    name: 'Pride',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2304,7 +2304,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Rag-Man': {
-    text: 'Rag Man',
+    name: 'Rag Man',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2313,7 +2313,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Scolex: {
-    text: 'Scolex',
+    name: 'Scolex',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2322,7 +2322,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Sloth: {
-    text: 'Sloth',
+    name: 'Sloth',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2331,7 +2331,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Bloat': {
-    text: 'The Bloat',
+    name: 'The Bloat',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2340,7 +2340,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Duke-Of-Flies': {
-    text: 'The Duke Of Flies',
+    name: 'The Duke Of Flies',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2349,7 +2349,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Haunt': {
-    text: 'The Haunt',
+    name: 'The Haunt',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2358,7 +2358,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Lamb': {
-    text: 'The Lamb',
+    name: 'The Lamb',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2367,7 +2367,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   War: {
-    text: 'War',
+    name: 'War',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2376,7 +2376,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Wrath: {
-    text: 'Wrath',
+    name: 'Wrath',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2385,7 +2385,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Mom-': {
-    text: 'Mom!',
+    name: 'Mom!',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2394,7 +2394,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Satan-': {
-    text: 'Satan!',
+    name: 'Satan!',
     type: 'monster',
     p3: true,
     edition: {
@@ -2404,7 +2404,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Curse-Of-Amnesia': {
-    text: 'Curse Of Amnesia',
+    name: 'Curse Of Amnesia',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2413,7 +2413,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Curse-Of-Greed': {
-    text: 'Curse Of Greed',
+    name: 'Curse Of Greed',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2422,7 +2422,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Curse-Of-Loss': {
-    text: 'Curse Of Loss',
+    name: 'Curse Of Loss',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2431,7 +2431,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Curse-Of-Pain': {
-    text: 'Curse Of Pain',
+    name: 'Curse Of Pain',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2440,7 +2440,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Curse-Of-The-Blind': {
-    text: 'Curse Of The Blind',
+    name: 'Curse Of The Blind',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2449,7 +2449,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Ambush-': {
-    text: 'Ambush!',
+    name: 'Ambush!',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2458,7 +2458,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Chest: {
-    text: 'Chest',
+    name: 'Chest',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2467,7 +2467,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Chest1: {
-    text: 'Chest',
+    name: 'Chest',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2476,7 +2476,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Cursed-Chest': {
-    text: 'Cursed Chest',
+    name: 'Cursed Chest',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2485,7 +2485,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Dark-Chest': {
-    text: 'Dark Chest',
+    name: 'Dark Chest',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2494,7 +2494,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Dark-Chest1': {
-    text: 'Dark Chest',
+    name: 'Dark Chest',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2503,7 +2503,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Devil-Deal': {
-    text: 'Devil Deal',
+    name: 'Devil Deal',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2512,7 +2512,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Gold-Chest': {
-    text: 'Gold Chest',
+    name: 'Gold Chest',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2521,7 +2521,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Gold-Chest1': {
-    text: 'Gold Chest',
+    name: 'Gold Chest',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2530,7 +2530,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Greed-': {
-    text: 'Greed!',
+    name: 'Greed!',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2539,7 +2539,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'I-Can-See-Forever-': {
-    text: 'I Can See Forever!',
+    name: 'I Can See Forever!',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2548,7 +2548,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Mega-Troll-Bomb-': {
-    text: 'Mega Troll Bomb!',
+    name: 'Mega Troll Bomb!',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2557,7 +2557,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Secret-Room-': {
-    text: 'Secret Room!',
+    name: 'Secret Room!',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2566,7 +2566,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Shop-Upgrade-': {
-    text: 'Shop Upgrade!',
+    name: 'Shop Upgrade!',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2575,7 +2575,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Troll-Bombs': {
-    text: 'Troll Bombs',
+    name: 'Troll Bombs',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2584,7 +2584,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'We-Need-To-Go-Deeper-': {
-    text: 'We Need To Go Deeper!',
+    name: 'We Need To Go Deeper!',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2593,7 +2593,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Xl-Floor-': {
-    text: 'Xl Floor!',
+    name: 'Xl Floor!',
     type: 'monster',
     edition: {
       'Base Game V2': 1,
@@ -2602,7 +2602,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Soul-Of-Gluttony': {
-    text: 'Soul Of Gluttony',
+    name: 'Soul Of Gluttony',
     type: 'bonus',
     edition: {
       'Base Game V2': 1,
@@ -2611,7 +2611,7 @@ const cards = {
     back: 'BonusSoulCardBack-308x420.png',
   },
   'Soul-Of-Greed': {
-    text: 'Soul Of Greed',
+    name: 'Soul Of Greed',
     type: 'bonus',
     edition: {
       'Base Game V2': 1,
@@ -2620,7 +2620,7 @@ const cards = {
     back: 'BonusSoulCardBack-308x420.png',
   },
   'Soul-Of-Guppy': {
-    text: 'Soul Of Guppy',
+    name: 'Soul Of Guppy',
     type: 'bonus',
     edition: {
       'Base Game V2': 1,
@@ -2629,7 +2629,7 @@ const cards = {
     back: 'BonusSoulCardBack-308x420.png',
   },
   Azazel: {
-    text: 'Azazel',
+    name: 'Azazel',
     type: 'character',
     edition: {
       'Gold Box V2': 1,
@@ -2638,7 +2638,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Lord-Of-The-Pit': {
-    text: 'Lord Of The Pit',
+    name: 'Lord Of The Pit',
     type: 'eternal',
     edition: {
       'Gold Box V2': 1,
@@ -2647,7 +2647,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Lost': {
-    text: 'The Lost',
+    name: 'The Lost',
     type: 'character',
     edition: {
       'Gold Box V2': 1,
@@ -2656,7 +2656,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Holy-Mantle': {
-    text: 'Holy Mantle',
+    name: 'Holy Mantle',
     type: 'eternal',
     edition: {
       'Gold Box V2': 1,
@@ -2665,7 +2665,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Keeper': {
-    text: 'The Keeper',
+    name: 'The Keeper',
     type: 'character',
     edition: {
       'Gold Box V2': 1,
@@ -2674,7 +2674,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Wooden-Nickel': {
-    text: 'Wooden Nickel',
+    name: 'Wooden Nickel',
     type: 'eternal',
     edition: {
       'Gold Box V2': 1,
@@ -2683,7 +2683,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   Apollyon: {
-    text: 'Apollyon',
+    name: 'Apollyon',
     type: 'character',
     edition: {
       'Gold Box V2': 1,
@@ -2692,7 +2692,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Void: {
-    text: 'Void',
+    name: 'Void',
     type: 'eternal',
     edition: {
       'Gold Box V2': 1,
@@ -2701,7 +2701,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   '9-Volt': {
-    text: '9 Volt',
+    name: '9 Volt',
     type: 'treasure',
     edition: {
       'Gold Box V2': 1,
@@ -2710,7 +2710,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Guppy-s-Tail': {
-    text: 'Guppy’s Tail',
+    name: 'Guppy’s Tail',
     type: 'treasure',
     edition: {
       'Gold Box V2': 1,
@@ -2719,7 +2719,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Infamy: {
-    text: 'Infamy',
+    name: 'Infamy',
     type: 'treasure',
     edition: {
       'Gold Box V2': 1,
@@ -2728,7 +2728,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Mom-s-Knife': {
-    text: 'Mom’s Knife',
+    name: 'Mom’s Knife',
     type: 'treasure',
     edition: {
       'Gold Box V2': 1,
@@ -2737,7 +2737,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'More-Options': {
-    text: 'More Options',
+    name: 'More Options',
     type: 'treasure',
     edition: {
       'Gold Box V2': 1,
@@ -2746,7 +2746,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Placenta: {
-    text: 'Placenta',
+    name: 'Placenta',
     type: 'treasure',
     edition: {
       'Gold Box V2': 1,
@@ -2755,7 +2755,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Skeleton-Key': {
-    text: 'Skeleton Key',
+    name: 'Skeleton Key',
     type: 'treasure',
     edition: {
       'Gold Box V2': 1,
@@ -2764,7 +2764,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Soy-Milk': {
-    text: 'Soy Milk',
+    name: 'Soy Milk',
     type: 'treasure',
     edition: {
       'Gold Box V2': 1,
@@ -2773,7 +2773,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-Missing-Page': {
-    text: 'The Missing Page',
+    name: 'The Missing Page',
     type: 'treasure',
     edition: {
       'Gold Box V2': 1,
@@ -2782,7 +2782,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Crooked-Penny': {
-    text: 'Crooked Penny',
+    name: 'Crooked Penny',
     type: 'treasure',
     edition: {
       'Gold Box V2': 1,
@@ -2791,7 +2791,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Fruitcake: {
-    text: 'Fruitcake',
+    name: 'Fruitcake',
     type: 'treasure',
     edition: {
       'Gold Box V2': 1,
@@ -2800,7 +2800,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'I-Can-t-Believe-It-s-Not-Butter-Bean': {
-    text: 'I Can’t Believe It’s Not Butter Bean',
+    name: 'I Can’t Believe It’s Not Butter Bean',
     type: 'treasure',
     edition: {
       'Gold Box V2': 1,
@@ -2809,7 +2809,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Lemon-Mishap': {
-    text: 'Lemon Mishap',
+    name: 'Lemon Mishap',
     type: 'treasure',
     edition: {
       'Gold Box V2': 1,
@@ -2818,7 +2818,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Library-Card': {
-    text: 'Library Card',
+    name: 'Library Card',
     type: 'treasure',
     edition: {
       'Gold Box V2': 1,
@@ -2827,7 +2827,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Ouija-Board': {
-    text: 'Ouija Board',
+    name: 'Ouija Board',
     type: 'treasure',
     edition: {
       'Gold Box V2': 1,
@@ -2836,7 +2836,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Plan-C': {
-    text: 'Plan C',
+    name: 'Plan C',
     type: 'treasure',
     edition: {
       'Gold Box V2': 1,
@@ -2845,7 +2845,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-Bible': {
-    text: 'The Bible',
+    name: 'The Bible',
     type: 'treasure',
     edition: {
       'Gold Box V2': 1,
@@ -2854,7 +2854,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-Butter-Bean': {
-    text: 'The Butter Bean',
+    name: 'The Butter Bean',
     type: 'treasure',
     edition: {
       'Gold Box V2': 1,
@@ -2863,7 +2863,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Dad-s-Key': {
-    text: 'Dad’s Key',
+    name: 'Dad’s Key',
     type: 'treasure',
     edition: {
       'Gold Box V2': 1,
@@ -2872,7 +2872,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Succubus: {
-    text: 'Succubus',
+    name: 'Succubus',
     type: 'treasure',
     edition: {
       'Gold Box V2': 1,
@@ -2881,7 +2881,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Charged-Penny': {
-    text: 'Charged Penny',
+    name: 'Charged Penny',
     type: 'loot',
     edition: {
       'Gold Box V2': 1,
@@ -2890,7 +2890,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Pills-3': {
-    text: 'Pills!',
+    name: 'Pills!',
     type: 'loot',
     edition: {
       'Gold Box V2': 1,
@@ -2899,7 +2899,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Credit-Card': {
-    text: 'Credit Card',
+    name: 'Credit Card',
     type: 'loot',
     edition: {
       'Gold Box V2': 1,
@@ -2908,7 +2908,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Holy-Card': {
-    text: 'Holy Card',
+    name: 'Holy Card',
     type: 'loot',
     edition: {
       'Gold Box V2': 1,
@@ -2917,7 +2917,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Two-Of-Diamonds': {
-    text: 'Two Of Diamonds',
+    name: 'Two Of Diamonds',
     type: 'loot',
     edition: {
       'Gold Box V2': 1,
@@ -2926,7 +2926,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Joker: {
-    text: 'Joker',
+    name: 'Joker',
     type: 'loot',
     edition: {
       'Gold Box V2': 1,
@@ -2935,7 +2935,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Jera: {
-    text: 'Jera',
+    name: 'Jera',
     type: 'loot',
     edition: {
       'Gold Box V2': 1,
@@ -2944,7 +2944,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Cancer: {
-    text: 'Cancer',
+    name: 'Cancer',
     type: 'loot',
     edition: {
       'Gold Box V2': 1,
@@ -2953,7 +2953,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Pink-Eye': {
-    text: 'Pink Eye',
+    name: 'Pink Eye',
     type: 'loot',
     edition: {
       'Gold Box V2': 1,
@@ -2962,7 +2962,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'A-Sack': {
-    text: 'A Sack',
+    name: 'A Sack',
     type: 'loot',
     edition: {
       'Gold Box V2': 1,
@@ -2972,7 +2972,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Begotten: {
-    text: 'Begotten',
+    name: 'Begotten',
     type: 'monster',
     edition: {
       'Gold Box V2': 1,
@@ -2981,7 +2981,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Boil: {
-    text: 'Boil',
+    name: 'Boil',
     type: 'monster',
     edition: {
       'Gold Box V2': 1,
@@ -2990,7 +2990,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Charger: {
-    text: 'Charger',
+    name: 'Charger',
     type: 'monster',
     edition: {
       'Gold Box V2': 1,
@@ -2999,7 +2999,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Death-s-Head': {
-    text: 'Death’s Head',
+    name: 'Death’s Head',
     type: 'monster',
     edition: {
       'Gold Box V2': 1,
@@ -3008,7 +3008,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Gaper: {
-    text: 'Gaper',
+    name: 'Gaper',
     type: 'monster',
     edition: {
       'Gold Box V2': 1,
@@ -3017,7 +3017,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Imp: {
-    text: 'Imp',
+    name: 'Imp',
     type: 'monster',
     edition: {
       'Gold Box V2': 1,
@@ -3026,7 +3026,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Knight: {
-    text: 'Knight',
+    name: 'Knight',
     type: 'monster',
     edition: {
       'Gold Box V2': 1,
@@ -3035,7 +3035,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Parabite: {
-    text: 'Parabite',
+    name: 'Parabite',
     type: 'monster',
     edition: {
       'Gold Box V2': 1,
@@ -3044,7 +3044,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Ragling: {
-    text: 'Ragling',
+    name: 'Ragling',
     type: 'monster',
     edition: {
       'Gold Box V2': 1,
@@ -3053,7 +3053,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Round-Worm': {
-    text: 'Round Worm',
+    name: 'Round Worm',
     type: 'monster',
     edition: {
       'Gold Box V2': 1,
@@ -3062,7 +3062,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Fistula: {
-    text: 'Fistula',
+    name: 'Fistula',
     type: 'monster',
     edition: {
       'Gold Box V2': 1,
@@ -3071,7 +3071,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Gurglings: {
-    text: 'Gurglings',
+    name: 'Gurglings',
     type: 'monster',
     edition: {
       'Gold Box V2': 1,
@@ -3080,7 +3080,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Polycephalus: {
-    text: 'Polycephalus',
+    name: 'Polycephalus',
     type: 'monster',
     edition: {
       'Gold Box V2': 1,
@@ -3089,7 +3089,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Steven: {
-    text: 'Steven',
+    name: 'Steven',
     type: 'monster',
     edition: {
       'Gold Box V2': 1,
@@ -3098,7 +3098,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Cage': {
-    text: 'The Cage',
+    name: 'The Cage',
     type: 'monster',
     edition: {
       'Gold Box V2': 1,
@@ -3107,7 +3107,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Hush: {
-    text: 'Hush',
+    name: 'Hush',
     type: 'monster',
     edition: {
       'Gold Box V2': 1,
@@ -3116,7 +3116,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Curse-Of-Fatigue': {
-    text: 'Curse Of Fatigue',
+    name: 'Curse Of Fatigue',
     type: 'monster',
     edition: {
       'Gold Box V2': 1,
@@ -3125,7 +3125,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Curse-Of-Tiny-Hands': {
-    text: 'Curse Of Tiny Hands',
+    name: 'Curse Of Tiny Hands',
     type: 'monster',
     edition: {
       'Gold Box V2': 1,
@@ -3134,7 +3134,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'I-Am-Error-': {
-    text: 'I Am Error!',
+    name: 'I Am Error!',
     type: 'monster',
     edition: {
       'Gold Box V2': 1,
@@ -3143,7 +3143,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Trap-Door-': {
-    text: 'Trap Door!',
+    name: 'Trap Door!',
     type: 'monster',
     edition: {
       'Gold Box V2': 1,
@@ -3152,7 +3152,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Bum-Bo': {
-    text: 'Bum-Bo',
+    name: 'Bum-Bo',
     type: 'character',
     edition: {
       'Four Souls+ V2': 1,
@@ -3161,7 +3161,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Bag-O-Trash': {
-    text: 'Bag-O-Trash',
+    name: 'Bag-O-Trash',
     type: 'eternal',
     edition: {
       'Four Souls+ V2': 1,
@@ -3170,7 +3170,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'Dark-Judas': {
-    text: 'Dark Judas',
+    name: 'Dark Judas',
     type: 'character',
     edition: {
       'Four Souls+ V2': 1,
@@ -3179,7 +3179,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Dark-Arts': {
-    text: 'Dark Arts',
+    name: 'Dark Arts',
     type: 'eternal',
     edition: {
       'Four Souls+ V2': 1,
@@ -3188,7 +3188,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   Guppy: {
-    text: 'Guppy',
+    name: 'Guppy',
     type: 'character',
     edition: {
       'Four Souls+ V2': 1,
@@ -3197,7 +3197,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Infestation: {
-    text: 'Infestation',
+    name: 'Infestation',
     type: 'eternal',
     edition: {
       'Four Souls+ V2': 1,
@@ -3206,7 +3206,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'Whore-Of-Babylon': {
-    text: 'Whore Of Babylon',
+    name: 'Whore Of Babylon',
     type: 'character',
     edition: {
       'Four Souls+ V2': 1,
@@ -3215,7 +3215,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Gimpy: {
-    text: 'Gimpy',
+    name: 'Gimpy',
     type: 'eternal',
     edition: {
       'Four Souls+ V2': 1,
@@ -3224,7 +3224,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   '1-Up': {
-    text: '1-Up',
+    name: '1-Up',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3233,7 +3233,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Abaddon: {
-    text: 'Abaddon',
+    name: 'Abaddon',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3242,7 +3242,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Cursed-Eye': {
-    text: 'Cursed Eye',
+    name: 'Cursed Eye',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3251,7 +3251,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Daddy-Long-Legs-treasure': {
-    text: 'Daddy Long Legs',
+    name: 'Daddy Long Legs',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3260,7 +3260,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Euthanasia: {
-    text: 'Euthanasia',
+    name: 'Euthanasia',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3269,7 +3269,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Game-Breaking-Bug-': {
-    text: 'Game Breaking Bug!',
+    name: 'Game Breaking Bug!',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3278,7 +3278,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Guppy-s-Eye': {
-    text: 'Guppy’s Eye',
+    name: 'Guppy’s Eye',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3287,7 +3287,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Head-Of-The-Keeper': {
-    text: 'Head Of The Keeper',
+    name: 'Head Of The Keeper',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3296,7 +3296,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Hourglass: {
-    text: 'Hourglass',
+    name: 'Hourglass',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3305,7 +3305,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Lard: {
-    text: 'Lard',
+    name: 'Lard',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3314,7 +3314,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Magnet: {
-    text: 'Magnet',
+    name: 'Magnet',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3323,7 +3323,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Mom-s-Eye-Shadow': {
-    text: 'Mom’s Eye Shadow',
+    name: 'Mom’s Eye Shadow',
     type: 'treasure',
     p3: true,
     edition: {
@@ -3333,7 +3333,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'P-H-D-': {
-    text: 'P.H.D.',
+    name: 'P.H.D.',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3342,7 +3342,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Polyphemus: {
-    text: 'Polyphemus',
+    name: 'Polyphemus',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3351,7 +3351,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Rubber-Cement': {
-    text: 'Rubber Cement',
+    name: 'Rubber Cement',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3360,7 +3360,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Telepathy-For-Dummies': {
-    text: 'Telepathy For Dummies',
+    name: 'Telepathy For Dummies',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3369,7 +3369,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-Wiz': {
-    text: 'The Wiz',
+    name: 'The Wiz',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3378,7 +3378,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   '20-20': {
-    text: '20/20',
+    name: '20/20',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3387,7 +3387,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Black-Candle': {
-    text: 'Black Candle',
+    name: 'Black Candle',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3396,7 +3396,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Distant-Admiration': {
-    text: 'Distant Admiration',
+    name: 'Distant Admiration',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3405,7 +3405,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Divorce-Papers': {
-    text: 'Divorce Papers',
+    name: 'Divorce Papers',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3414,7 +3414,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Forget-Me-Now': {
-    text: 'Forget Me Now',
+    name: 'Forget Me Now',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3423,7 +3423,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Head-Of-Krampus': {
-    text: 'Head Of Krampus',
+    name: 'Head Of Krampus',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3432,7 +3432,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Libra: {
-    text: 'Libra',
+    name: 'Libra',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3441,7 +3441,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Mutant-Spider': {
-    text: 'Mutant Spider',
+    name: 'Mutant Spider',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3450,7 +3450,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Rainbow-Baby': {
-    text: 'Rainbow Baby',
+    name: 'Rainbow Baby',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3459,7 +3459,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Red-Candle': {
-    text: 'Red Candle',
+    name: 'Red Candle',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3468,7 +3468,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Smart-Fly': {
-    text: 'Smart Fly',
+    name: 'Smart Fly',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3477,7 +3477,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Athame: {
-    text: 'Athame',
+    name: 'Athame',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3486,7 +3486,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Mama-Haunt': {
-    text: 'Mama Haunt',
+    name: 'Mama Haunt',
     type: 'treasure',
     edition: {
       'Four Souls+ V2': 1,
@@ -3495,7 +3495,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'lil-Battery': {
-    text: 'lil Battery',
+    name: 'lil Battery',
     type: 'loot',
     edition: {
       'Four Souls+ V2': 1,
@@ -3505,7 +3505,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Pills-4': {
-    text: 'Pills!',
+    name: 'Pills!',
     type: 'loot',
     edition: {
       'Four Souls+ V2': 1,
@@ -3514,7 +3514,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Pills-5': {
-    text: 'Pills!',
+    name: 'Pills!',
     type: 'loot',
     edition: {
       'Four Souls+ V2': 1,
@@ -3523,7 +3523,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Pills-6': {
-    text: 'Pills!',
+    name: 'Pills!',
     type: 'loot',
     edition: {
       'Four Souls+ V2': 1,
@@ -3532,7 +3532,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   '-Card': {
-    text: '? Card',
+    name: '? Card',
     type: 'loot',
     edition: {
       'Four Souls+ V2': 1,
@@ -3541,7 +3541,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Get-Out-Of-Jail-Card': {
-    text: 'Get Out Of Jail Card',
+    name: 'Get Out Of Jail Card',
     type: 'loot',
     edition: {
       'Four Souls+ V2': 1,
@@ -3550,7 +3550,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Ansuz: {
-    text: 'Ansuz',
+    name: 'Ansuz',
     type: 'loot',
     edition: {
       'Four Souls+ V2': 1,
@@ -3559,7 +3559,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Perthro: {
-    text: 'Perthro',
+    name: 'Perthro',
     type: 'loot',
     edition: {
       'Four Souls+ V2': 1,
@@ -3568,7 +3568,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Black-Rune': {
-    text: 'Black Rune',
+    name: 'Black Rune',
     type: 'loot',
     edition: {
       'Four Souls+ V2': 1,
@@ -3577,7 +3577,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'AAA-Battery': {
-    text: 'AAA Battery',
+    name: 'AAA Battery',
     type: 'loot',
     edition: {
       'Four Souls+ V2': 1,
@@ -3586,7 +3586,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Poker-Chip': {
-    text: 'Poker Chip',
+    name: 'Poker Chip',
     type: 'loot',
     edition: {
       'Four Souls+ V2': 1,
@@ -3595,7 +3595,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Tape-Worm': {
-    text: 'Tape Worm',
+    name: 'Tape Worm',
     type: 'loot',
     edition: {
       'Four Souls+ V2': 1,
@@ -3604,7 +3604,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'The-Left-Hand': {
-    text: 'The Left Hand',
+    name: 'The Left Hand',
     type: 'loot',
     edition: {
       'Four Souls+ V2': 1,
@@ -3613,7 +3613,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Gold-Key': {
-    text: 'Gold Key',
+    name: 'Gold Key',
     type: 'loot',
     edition: {
       'Four Souls+ V2': 1,
@@ -3622,7 +3622,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Bony: {
-    text: 'Bony',
+    name: 'Bony',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3631,7 +3631,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Brain: {
-    text: 'Brain',
+    name: 'Brain',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3640,7 +3640,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Flaming-Hopper': {
-    text: 'Flaming Hopper',
+    name: 'Flaming Hopper',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3649,7 +3649,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Globin: {
-    text: 'Globin',
+    name: 'Globin',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3658,7 +3658,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Nerve-Ending': {
-    text: 'Nerve Ending',
+    name: 'Nerve Ending',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3667,7 +3667,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Roundy: {
-    text: 'Roundy',
+    name: 'Roundy',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3676,7 +3676,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Sucker: {
-    text: 'Sucker',
+    name: 'Sucker',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3685,7 +3685,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Swarmer: {
-    text: 'Swarmer',
+    name: 'Swarmer',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3694,7 +3694,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Tumor: {
-    text: 'Tumor',
+    name: 'Tumor',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3703,7 +3703,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Cursed-Globin': {
-    text: 'Cursed Globin',
+    name: 'Cursed Globin',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3712,7 +3712,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Cursed-Tumor': {
-    text: 'Cursed Tumor',
+    name: 'Cursed Tumor',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3721,7 +3721,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Holy-Bony': {
-    text: 'Holy Bony',
+    name: 'Holy Bony',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3730,7 +3730,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Holy-Mulligan': {
-    text: 'Holy Mulligan',
+    name: 'Holy Mulligan',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3739,7 +3739,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Blastocyst: {
-    text: 'Blastocyst',
+    name: 'Blastocyst',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3748,7 +3748,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Dingle: {
-    text: 'Dingle',
+    name: 'Dingle',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3757,7 +3757,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Headless-Horseman': {
-    text: 'Headless Horseman',
+    name: 'Headless Horseman',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3766,7 +3766,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Krampus: {
-    text: 'Krampus',
+    name: 'Krampus',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3775,7 +3775,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Monstro-II': {
-    text: 'Monstro II',
+    name: 'Monstro II',
     type: 'monster',
     p3: true,
     edition: {
@@ -3785,7 +3785,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Fallen': {
-    text: 'The Fallen',
+    name: 'The Fallen',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3794,7 +3794,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Widow: {
-    text: 'Widow',
+    name: 'Widow',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3803,7 +3803,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Isaac-': {
-    text: 'Isaac!',
+    name: 'Isaac!',
     type: 'monster',
     p3: true,
     edition: {
@@ -3813,7 +3813,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Mom-s-Heart-': {
-    text: 'Mom’s Heart!',
+    name: 'Mom’s Heart!',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3822,7 +3822,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Curse-Of-Blood-Lust': {
-    text: 'Curse Of Blood Lust',
+    name: 'Curse Of Blood Lust',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3831,7 +3831,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Curse-Of-Impulse': {
-    text: 'Curse Of Impulse',
+    name: 'Curse Of Impulse',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3840,7 +3840,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Angel-Room': {
-    text: 'Angel Room',
+    name: 'Angel Room',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3849,7 +3849,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Boss-Rush-': {
-    text: 'Boss Rush!',
+    name: 'Boss Rush!',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3858,7 +3858,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Head-Trauma': {
-    text: 'Head Trauma',
+    name: 'Head Trauma',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3867,7 +3867,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Holy-Chest': {
-    text: 'Holy Chest',
+    name: 'Holy Chest',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3876,7 +3876,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Spiked-Chest': {
-    text: 'Spiked Chest',
+    name: 'Spiked Chest',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3885,7 +3885,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Troll-Bombs1': {
-    text: 'Troll Bombs',
+    name: 'Troll Bombs',
     type: 'monster',
     edition: {
       'Four Souls+ V2': 1,
@@ -3894,7 +3894,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Bethany: {
-    text: 'Bethany',
+    name: 'Bethany',
     type: 'character',
     edition: {
       Requiem: 1,
@@ -3903,7 +3903,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Book-Of-Virtues': {
-    text: 'Book Of Virtues',
+    name: 'Book Of Virtues',
     type: 'eternal',
     edition: {
       Requiem: 1,
@@ -3912,7 +3912,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'Jacob-Esau': {
-    text: 'Jacob & Esau',
+    name: 'Jacob & Esau',
     type: 'character',
     p3: true,
     edition: {
@@ -3922,7 +3922,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Sibling-Rivalry': {
-    text: 'Sibling Rivalry',
+    name: 'Sibling Rivalry',
     type: 'eternal',
     p3: true,
     edition: {
@@ -3932,7 +3932,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Broken': {
-    text: 'The Broken',
+    name: 'The Broken',
     type: 'character',
     p3: true,
     edition: {
@@ -3942,7 +3942,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Spindown-Dice': {
-    text: 'Spindown Dice',
+    name: 'Spindown Dice',
     type: 'eternal',
     p3: true,
     edition: {
@@ -3952,7 +3952,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Dauntless': {
-    text: 'The Dauntless',
+    name: 'The Dauntless',
     type: 'character',
     edition: {
       Requiem: 1,
@@ -3961,7 +3961,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Hypercoagulation: {
-    text: 'Hypercoagulation',
+    name: 'Hypercoagulation',
     type: 'eternal',
     edition: {
       Requiem: 1,
@@ -3970,7 +3970,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Hoarder': {
-    text: 'The Hoarder',
+    name: 'The Hoarder',
     type: 'character',
     edition: {
       Requiem: 1,
@@ -3979,7 +3979,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Bag-Of-Crafting': {
-    text: 'Bag Of Crafting',
+    name: 'Bag Of Crafting',
     type: 'eternal',
     edition: {
       Requiem: 1,
@@ -3988,7 +3988,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Deceiver': {
-    text: 'The Deceiver',
+    name: 'The Deceiver',
     type: 'character',
     edition: {
       Requiem: 1,
@@ -3997,7 +3997,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Ceremonial-Blade': {
-    text: 'Ceremonial Blade',
+    name: 'Ceremonial Blade',
     type: 'eternal',
     edition: {
       Requiem: 1,
@@ -4006,7 +4006,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Soiled': {
-    text: 'The Soiled',
+    name: 'The Soiled',
     type: 'character',
     edition: {
       Requiem: 1,
@@ -4015,7 +4015,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   IBS: {
-    text: 'IBS',
+    name: 'IBS',
     type: 'eternal',
     edition: {
       Requiem: 1,
@@ -4024,7 +4024,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Curdled': {
-    text: 'The Curdled',
+    name: 'The Curdled',
     type: 'character',
     edition: {
       Requiem: 1,
@@ -4033,7 +4033,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Sumptorium: {
-    text: 'Sumptorium',
+    name: 'Sumptorium',
     type: 'eternal',
     edition: {
       Requiem: 1,
@@ -4042,7 +4042,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Savage': {
-    text: 'The Savage',
+    name: 'The Savage',
     type: 'character',
     edition: {
       Requiem: 1,
@@ -4051,7 +4051,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Berserk: {
-    text: 'Berserk',
+    name: 'Berserk',
     type: 'eternal',
     edition: {
       Requiem: 1,
@@ -4060,7 +4060,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Benighted': {
-    text: 'The Benighted',
+    name: 'The Benighted',
     type: 'character',
     edition: {
       Requiem: 1,
@@ -4069,7 +4069,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Hemoptysis: {
-    text: 'Hemoptysis',
+    name: 'Hemoptysis',
     type: 'eternal',
     edition: {
       Requiem: 1,
@@ -4078,7 +4078,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Enigma-amginE-ehT': {
-    text: 'The Enigma/amginE ehT',
+    name: 'The Enigma/amginE ehT',
     type: 'character',
     edition: {
       Requiem: 1,
@@ -4087,7 +4087,7 @@ const cards = {
     back: 'r-the_enigma_back-308x420.png',
   },
   Flip: {
-    text: 'Flip',
+    name: 'Flip',
     type: 'eternal',
     edition: {
       Requiem: 1,
@@ -4096,7 +4096,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Capricious': {
-    text: 'The Capricious',
+    name: 'The Capricious',
     type: 'character',
     edition: {
       Requiem: 1,
@@ -4105,7 +4105,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Glitch: {
-    text: 'Glitch',
+    name: 'Glitch',
     type: 'eternal',
     edition: {
       Requiem: 1,
@@ -4114,7 +4114,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Baleful': {
-    text: 'The Baleful',
+    name: 'The Baleful',
     type: 'character',
     p3: true,
     edition: {
@@ -4124,7 +4124,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Soulbond: {
-    text: 'Soulbond',
+    name: 'Soulbond',
     type: 'eternal',
     p3: true,
     edition: {
@@ -4134,7 +4134,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Harlot': {
-    text: 'The Harlot',
+    name: 'The Harlot',
     type: 'character',
     edition: {
       Requiem: 1,
@@ -4143,7 +4143,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Gello: {
-    text: 'Gello',
+    name: 'Gello',
     type: 'eternal',
     edition: {
       Requiem: 1,
@@ -4152,7 +4152,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Miser': {
-    text: 'The Miser',
+    name: 'The Miser',
     type: 'character',
     edition: {
       Requiem: 1,
@@ -4161,7 +4161,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Keeper-s-Bargain': {
-    text: 'Keeper’s Bargain',
+    name: 'Keeper’s Bargain',
     type: 'eternal',
     edition: {
       Requiem: 1,
@@ -4170,7 +4170,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Empty': {
-    text: 'The Empty',
+    name: 'The Empty',
     type: 'character',
     edition: {
       Requiem: 1,
@@ -4179,7 +4179,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Abyss: {
-    text: 'Abyss',
+    name: 'Abyss',
     type: 'eternal',
     edition: {
       Requiem: 1,
@@ -4188,7 +4188,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Fettered': {
-    text: 'The Fettered',
+    name: 'The Fettered',
     type: 'character',
     edition: {
       Requiem: 1,
@@ -4197,7 +4197,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Dead-Weight': {
-    text: 'Dead Weight',
+    name: 'Dead Weight',
     type: 'eternal',
     edition: {
       Requiem: 1,
@@ -4206,7 +4206,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Zealot': {
-    text: 'The Zealot',
+    name: 'The Zealot',
     type: 'character',
     edition: {
       Requiem: 1,
@@ -4215,7 +4215,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Lemegeton: {
-    text: 'Lemegeton',
+    name: 'Lemegeton',
     type: 'eternal',
     edition: {
       Requiem: 1,
@@ -4224,7 +4224,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Deserter': {
-    text: 'The Deserter',
+    name: 'The Deserter',
     type: 'character',
     edition: {
       Requiem: 1,
@@ -4233,7 +4233,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Anima-Sola-The-Revenant': {
-    text: 'Anima Sola/The Revenant',
+    name: 'Anima Sola/The Revenant',
     type: 'eternal',
     edition: {
       Requiem: 1,
@@ -4242,7 +4242,7 @@ const cards = {
     back: 'r-the_revenant-308x420.png',
   },
   'Flash-Isaac': {
-    text: 'Flash Isaac',
+    name: 'Flash Isaac',
     type: 'character',
     p3: true,
     edition: {
@@ -4252,7 +4252,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Classic-Roller': {
-    text: 'Classic Roller',
+    name: 'Classic Roller',
     type: 'eternal',
     p3: true,
     edition: {
@@ -4262,7 +4262,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   Eden1: {
-    text: 'Eden',
+    name: 'Eden',
     type: 'character',
     edition: {
       Requiem: 1,
@@ -4271,7 +4271,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Eden2: {
-    text: 'Eden',
+    name: 'Eden',
     type: 'character',
     edition: {
       Requiem: 1,
@@ -4280,7 +4280,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Abel: {
-    text: 'Abel',
+    name: 'Abel',
     type: 'treasure',
     p3: true,
     edition: {
@@ -4290,7 +4290,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Alabaster-Box': {
-    text: 'Alabaster Box',
+    name: 'Alabaster Box',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4299,7 +4299,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Backstabber: {
-    text: 'Backstabber',
+    name: 'Backstabber',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4308,7 +4308,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Ball-Of-Bandages': {
-    text: 'Ball Of Bandages',
+    name: 'Ball Of Bandages',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4317,7 +4317,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Blood-Puppy': {
-    text: 'Blood Puppy',
+    name: 'Blood Puppy',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4326,7 +4326,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Bobby-Bomb': {
-    text: 'Bobby Bomb',
+    name: 'Bobby Bomb',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4335,7 +4335,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Chocolate-Milk': {
-    text: 'Chocolate Milk',
+    name: 'Chocolate Milk',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4344,7 +4344,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Consolation-Prize': {
-    text: 'Consolation Prize',
+    name: 'Consolation Prize',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4353,7 +4353,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Damocles: {
-    text: 'Damocles',
+    name: 'Damocles',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4362,7 +4362,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Fire-Mind': {
-    text: 'Fire Mind',
+    name: 'Fire Mind',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4371,7 +4371,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Gnawed-Leaf': {
-    text: 'Gnawed Leaf',
+    name: 'Gnawed Leaf',
     type: 'treasure',
     p3: true,
     edition: {
@@ -4381,7 +4381,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Halo-Of-Flies': {
-    text: 'Halo Of Flies',
+    name: 'Halo Of Flies',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4390,7 +4390,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Handicapped-Placard': {
-    text: 'Handicapped Placard',
+    name: 'Handicapped Placard',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4399,7 +4399,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Judas-Shadow': {
-    text: 'Judas’ Shadow',
+    name: 'Judas’ Shadow',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4408,7 +4408,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Keeper-s-Box': {
-    text: 'Keeper’s Box',
+    name: 'Keeper’s Box',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4417,7 +4417,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Lil-Chest': {
-    text: 'Lil Chest',
+    name: 'Lil Chest',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4426,7 +4426,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Lodestone: {
-    text: 'Lodestone',
+    name: 'Lodestone',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4435,7 +4435,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Lunch: {
-    text: 'Lunch',
+    name: 'Lunch',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4444,7 +4444,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Mom-s-Bottle-of-Pills': {
-    text: 'Mom’s Bottle of Pills',
+    name: 'Mom’s Bottle of Pills',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4453,7 +4453,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Playdough-Cookie': {
-    text: 'Playdough Cookie',
+    name: 'Playdough Cookie',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4462,7 +4462,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Punching-Bag': {
-    text: 'Punching Bag',
+    name: 'Punching Bag',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4471,7 +4471,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Rock-Bottom': {
-    text: 'Rock Bottom',
+    name: 'Rock Bottom',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4480,7 +4480,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Spelunker-Hat': {
-    text: 'Spelunker Hat',
+    name: 'Spelunker Hat',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4489,7 +4489,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Trick-Penny': {
-    text: 'Trick Penny',
+    name: 'Trick Penny',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4498,7 +4498,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Ultra-Flesh-Kid-': {
-    text: 'Ultra Flesh Kid!',
+    name: 'Ultra Flesh Kid!',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4507,7 +4507,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Auction-Gavel': {
-    text: 'Auction Gavel',
+    name: 'Auction Gavel',
     type: 'treasure',
     p3: true,
     edition: {
@@ -4517,7 +4517,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Birthright: {
-    text: 'Birthright',
+    name: 'Birthright',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4526,7 +4526,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Book-Of-The-Dead': {
-    text: 'Book Of The Dead',
+    name: 'Book Of The Dead',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4535,7 +4535,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Eternal-D6': {
-    text: 'Eternal D6',
+    name: 'Eternal D6',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4544,7 +4544,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Experimental-Treatment': {
-    text: 'Experimental Treatment',
+    name: 'Experimental Treatment',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4553,7 +4553,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Friendly-Ball': {
-    text: 'Friendly Ball',
+    name: 'Friendly Ball',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4562,7 +4562,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Friendly-Sack': {
-    text: 'Friendly Sack',
+    name: 'Friendly Sack',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4571,7 +4571,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Hand-Me-Downs': {
-    text: 'Hand Me Downs',
+    name: 'Hand Me Downs',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4580,7 +4580,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Jar-Of-Flies': {
-    text: 'Jar Of Flies',
+    name: 'Jar Of Flies',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4589,7 +4589,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Keeper-s-Penny': {
-    text: 'Keeper’s Penny',
+    name: 'Keeper’s Penny',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4598,7 +4598,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Magic-Skin': {
-    text: 'Magic Skin',
+    name: 'Magic Skin',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4607,7 +4607,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Mama-Mega': {
-    text: 'Mama Mega',
+    name: 'Mama Mega',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4616,7 +4616,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Marbles: {
-    text: 'Marbles',
+    name: 'Marbles',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4625,7 +4625,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Member-Card': {
-    text: 'Member Card',
+    name: 'Member Card',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4634,7 +4634,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'R-Key': {
-    text: 'R Key',
+    name: 'R Key',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4643,7 +4643,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Red-Key': {
-    text: 'Red Key',
+    name: 'Red Key',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4652,7 +4652,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-Clicker': {
-    text: 'The Clicker',
+    name: 'The Clicker',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4661,7 +4661,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Undefined: {
-    text: 'Undefined',
+    name: 'Undefined',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4670,7 +4670,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'X-Ray-Vision': {
-    text: 'X-Ray Vision',
+    name: 'X-Ray Vision',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4679,7 +4679,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Battery-Pack': {
-    text: 'Battery Pack',
+    name: 'Battery Pack',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4688,7 +4688,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Car-Battery': {
-    text: 'Car Battery',
+    name: 'Car Battery',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4697,7 +4697,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Hallowed-Ground': {
-    text: 'Hallowed Ground',
+    name: 'Hallowed Ground',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4706,7 +4706,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Keeper-s-Sack': {
-    text: 'Keeper’s Sack',
+    name: 'Keeper’s Sack',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4715,7 +4715,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Pageant-Boy': {
-    text: 'Pageant Boy',
+    name: 'Pageant Boy',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4724,7 +4724,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Sacrificial-Dagger': {
-    text: 'Sacrificial Dagger',
+    name: 'Sacrificial Dagger',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4733,7 +4733,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-Jar': {
-    text: 'The Jar',
+    name: 'The Jar',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4742,7 +4742,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Cursed-Soul': {
-    text: 'Cursed Soul',
+    name: 'Cursed Soul',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4751,7 +4751,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Fetal-Haunt': {
-    text: 'Fetal Haunt',
+    name: 'Fetal Haunt',
     type: 'treasure',
     edition: {
       Requiem: 1,
@@ -4760,7 +4760,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'A-Lucky-Penny-': {
-    text: 'A Lucky Penny!',
+    name: 'A Lucky Penny!',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4769,7 +4769,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Sticky-Nickel': {
-    text: 'Sticky Nickel',
+    name: 'Sticky Nickel',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4778,7 +4778,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Mega-Bomb-': {
-    text: 'Mega Bomb!',
+    name: 'Mega Bomb!',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4787,7 +4787,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Pills-7': {
-    text: 'Pills!',
+    name: 'Pills!',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4796,7 +4796,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Pills-8': {
-    text: 'Pills!',
+    name: 'Pills!',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4805,7 +4805,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Black-Heart': {
-    text: 'Black Heart',
+    name: 'Black Heart',
     type: 'loot',
     edition: {
       Requiem: 2,
@@ -4814,7 +4814,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Ace-Of-Diamonds': {
-    text: 'Ace Of Diamonds',
+    name: 'Ace Of Diamonds',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4823,7 +4823,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Emergency-Contact': {
-    text: 'Emergency Contact',
+    name: 'Emergency Contact',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4832,7 +4832,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Two-Of-Spades': {
-    text: 'Two Of Spades',
+    name: 'Two Of Spades',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4841,7 +4841,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Algiz: {
-    text: 'Algiz',
+    name: 'Algiz',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4850,7 +4850,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Berkano: {
-    text: 'Berkano',
+    name: 'Berkano',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4859,7 +4859,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Hagalaz: {
-    text: 'Hagalaz',
+    name: 'Hagalaz',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4868,7 +4868,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Bag-Lunch': {
-    text: 'Bag Lunch',
+    name: 'Bag Lunch',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4877,7 +4877,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Broken-Remote': {
-    text: 'Broken Remote',
+    name: 'Broken Remote',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4886,7 +4886,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Callus: {
-    text: 'Callus',
+    name: 'Callus',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4895,7 +4895,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Golden-Trinket': {
-    text: 'Golden Trinket',
+    name: 'Golden Trinket',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4904,7 +4904,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Lucky-Toe': {
-    text: 'Lucky Toe',
+    name: 'Lucky Toe',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4913,7 +4913,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Rib-Of-Greed': {
-    text: 'Rib Of Greed',
+    name: 'Rib Of Greed',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4922,7 +4922,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Tick: {
-    text: 'Tick',
+    name: 'Tick',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4931,7 +4931,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Wishbone: {
-    text: 'Wishbone',
+    name: 'Wishbone',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4940,7 +4940,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Dad-s-Note': {
-    text: 'Dad’s Note',
+    name: 'Dad’s Note',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4949,7 +4949,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Key: {
-    text: 'Key',
+    name: 'Key',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4958,7 +4958,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Magic-Marker': {
-    text: 'Magic Marker',
+    name: 'Magic Marker',
     type: 'loot',
     edition: {
       Requiem: 1,
@@ -4967,7 +4967,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Corny: {
-    text: 'Corny',
+    name: 'Corny',
     type: 'monster',
     p3: true,
     edition: {
@@ -4977,7 +4977,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Dogma: {
-    text: 'Dogma',
+    name: 'Dogma',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -4986,7 +4986,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Gutted-Fatty': {
-    text: 'Gutted Fatty',
+    name: 'Gutted Fatty',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -4995,7 +4995,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Mushroom: {
-    text: 'Mushroom',
+    name: 'Mushroom',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5004,7 +5004,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Null: {
-    text: 'Null',
+    name: 'Null',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5013,7 +5013,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Peeping-Fatty': {
-    text: 'Peeping Fatty',
+    name: 'Peeping Fatty',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5022,7 +5022,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Red-Ghost': {
-    text: 'Red Ghost',
+    name: 'Red Ghost',
     type: 'monster',
     p3: true,
     edition: {
@@ -5032,7 +5032,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Whipper: {
-    text: 'Whipper',
+    name: 'Whipper',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5041,7 +5041,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Cursed-Mulliboom': {
-    text: 'Cursed Mulliboom',
+    name: 'Cursed Mulliboom',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5050,7 +5050,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Cursed-Dople': {
-    text: 'Cursed Dople',
+    name: 'Cursed Dople',
     type: 'monster',
     p3: true,
     edition: {
@@ -5060,7 +5060,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Cursed-Lil-Haunt': {
-    text: 'Cursed Lil Haunt',
+    name: 'Cursed Lil Haunt',
     type: 'monster',
     p3: true,
     edition: {
@@ -5070,7 +5070,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Cursed-Mulligan': {
-    text: 'Cursed Mulligan',
+    name: 'Cursed Mulligan',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5079,7 +5079,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Holy-Brain': {
-    text: 'Holy Brain',
+    name: 'Holy Brain',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5088,7 +5088,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Holy-Greedling': {
-    text: 'Holy Greedling',
+    name: 'Holy Greedling',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5097,7 +5097,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Holy-Portal': {
-    text: 'Holy Portal',
+    name: 'Holy Portal',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5106,7 +5106,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Holy-Psy-Horf': {
-    text: 'Holy Psy Horf',
+    name: 'Holy Psy Horf',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5115,7 +5115,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Charmed-Bony': {
-    text: 'Charmed Bony',
+    name: 'Charmed Bony',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5124,7 +5124,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Charmed-Clotty': {
-    text: 'Charmed Clotty',
+    name: 'Charmed Clotty',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5133,7 +5133,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Charmed-Dip': {
-    text: 'Charmed Dip',
+    name: 'Charmed Dip',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5142,7 +5142,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Charmed-Fat-Bat': {
-    text: 'Charmed Fat Bat',
+    name: 'Charmed Fat Bat',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5151,7 +5151,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Charmed-Fatty': {
-    text: 'Charmed Fatty',
+    name: 'Charmed Fatty',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5160,7 +5160,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Charmed-Globin': {
-    text: 'Charmed Globin',
+    name: 'Charmed Globin',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5169,7 +5169,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Charmed-Greedling': {
-    text: 'Charmed Greedling',
+    name: 'Charmed Greedling',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5178,7 +5178,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Charmed-Keeper': {
-    text: 'Charmed Keeper',
+    name: 'Charmed Keeper',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5187,7 +5187,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Baby-Plum': {
-    text: 'Baby Plum',
+    name: 'Baby Plum',
     type: 'monster',
     p3: true,
     edition: {
@@ -5197,7 +5197,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Brownie: {
-    text: 'Brownie',
+    name: 'Brownie',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5206,7 +5206,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Charmed-Monstro': {
-    text: 'Charmed Monstro',
+    name: 'Charmed Monstro',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5215,7 +5215,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Clog: {
-    text: 'Clog',
+    name: 'Clog',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5224,7 +5224,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Hornfel: {
-    text: 'Hornfel',
+    name: 'Hornfel',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5233,7 +5233,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Mama-Gurdy': {
-    text: 'Mama Gurdy',
+    name: 'Mama Gurdy',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5242,7 +5242,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Rag-Mega': {
-    text: 'Rag Mega',
+    name: 'Rag Mega',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5251,7 +5251,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Sisters-Vis': {
-    text: 'Sisters Vis',
+    name: 'Sisters Vis',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5260,7 +5260,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Rainmaker': {
-    text: 'The Rainmaker',
+    name: 'The Rainmaker',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5269,7 +5269,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Scourge': {
-    text: 'The Scourge',
+    name: 'The Scourge',
     type: 'monster',
     p3: true,
     edition: {
@@ -5279,7 +5279,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Siren': {
-    text: 'The Siren',
+    name: 'The Siren',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5288,7 +5288,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Turdlings: {
-    text: 'Turdlings',
+    name: 'Turdlings',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5297,7 +5297,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Ultra-Greed-': {
-    text: 'Ultra Greed!',
+    name: 'Ultra Greed!',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5306,7 +5306,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Mega-Satan-': {
-    text: 'Mega Satan!',
+    name: 'Mega Satan!',
     type: 'monster',
     p3: true,
     edition: {
@@ -5316,7 +5316,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'MOTHER-': {
-    text: 'MOTHER!',
+    name: 'MOTHER!',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5325,7 +5325,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Curse-Of-Empathy': {
-    text: 'Curse Of Empathy',
+    name: 'Curse Of Empathy',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5334,7 +5334,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Curse-Of-The-Hollow': {
-    text: 'Curse Of The Hollow',
+    name: 'Curse Of The Hollow',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5343,7 +5343,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Curse-Of-The-Hunted': {
-    text: 'Curse Of The Hunted',
+    name: 'Curse Of The Hunted',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5352,7 +5352,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Curse-Of-The-Soulless': {
-    text: 'Curse Of The Soulless',
+    name: 'Curse Of The Soulless',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5361,7 +5361,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Betrayal-': {
-    text: 'Betrayal!',
+    name: 'Betrayal!',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5370,7 +5370,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Double-Treasure-': {
-    text: 'Double Treasure!',
+    name: 'Double Treasure!',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5379,7 +5379,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Dressing-Table': {
-    text: 'Dressing Table',
+    name: 'Dressing Table',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5388,7 +5388,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Golden-Troll-Bomb-': {
-    text: 'Golden Troll Bomb!',
+    name: 'Golden Troll Bomb!',
     type: 'monster',
     p3: true,
     edition: {
@@ -5398,7 +5398,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Lust-For-Blood-': {
-    text: 'Lust For Blood!',
+    name: 'Lust For Blood!',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5407,7 +5407,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Mother-s-Shadow-': {
-    text: 'Mother’s Shadow!',
+    name: 'Mother’s Shadow!',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5416,7 +5416,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Overflow-': {
-    text: 'Overflow!',
+    name: 'Overflow!',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5425,7 +5425,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Pitfall-': {
-    text: 'Pitfall!',
+    name: 'Pitfall!',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5434,7 +5434,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Tnt-Barrel': {
-    text: 'Tnt Barrel',
+    name: 'Tnt Barrel',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5443,7 +5443,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Troll-Bombs2': {
-    text: 'Troll Bombs',
+    name: 'Troll Bombs',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -5452,7 +5452,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'All-Hallows-Eve': {
-    text: 'All Hallows’ Eve',
+    name: 'All Hallows’ Eve',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5461,7 +5461,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Angelic-Intervention': {
-    text: 'Angelic Intervention',
+    name: 'Angelic Intervention',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5470,7 +5470,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Battle-Royale-': {
-    text: 'Battle Royale!!!',
+    name: 'Battle Royale!!!',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5479,7 +5479,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Battle-Royale-1': {
-    text: 'Battle Royale!!!!',
+    name: 'Battle Royale!!!!',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5488,7 +5488,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Battle-Royale-2': {
-    text: 'Battle Royale!!!!!',
+    name: 'Battle Royale!!!!!',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5497,7 +5497,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   Beggar: {
-    text: 'Beggar',
+    name: 'Beggar',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5506,7 +5506,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Black-Champions': {
-    text: 'Black Champions',
+    name: 'Black Champions',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5515,7 +5515,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Blessing-Of-Gluttony': {
-    text: 'Blessing Of Gluttony',
+    name: 'Blessing Of Gluttony',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5524,7 +5524,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Blessing-Of-Greed': {
-    text: 'Blessing Of Greed',
+    name: 'Blessing Of Greed',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5533,7 +5533,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Blessing-Of-Steam': {
-    text: 'Blessing Of Steam',
+    name: 'Blessing Of Steam',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5542,7 +5542,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Blessing-Of-The-Inner-Eye': {
-    text: 'Blessing Of The Inner Eye',
+    name: 'Blessing Of The Inner Eye',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5551,7 +5551,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Blessing-Of-The-Sack': {
-    text: 'Blessing Of The Sack',
+    name: 'Blessing Of The Sack',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5560,7 +5560,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Blind-Rage': {
-    text: 'Blind Rage',
+    name: 'Blind Rage',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5569,7 +5569,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Blood-Donation': {
-    text: 'Blood Donation',
+    name: 'Blood Donation',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5578,7 +5578,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Blood-Lust-room': {
-    text: 'Blood Lust',
+    name: 'Blood Lust',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5587,7 +5587,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Blood-Money': {
-    text: 'Blood Money',
+    name: 'Blood Money',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5596,7 +5596,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Bomb-Bum': {
-    text: 'Bomb Bum',
+    name: 'Bomb Bum',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5605,7 +5605,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Bum-Bo-Is-Loose-': {
-    text: 'Bum-Bo Is Loose!',
+    name: 'Bum-Bo Is Loose!',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5614,7 +5614,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Butter-Fingers': {
-    text: 'Butter Fingers',
+    name: 'Butter Fingers',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5623,7 +5623,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Challenge-Room': {
-    text: 'Challenge Room',
+    name: 'Challenge Room',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5632,7 +5632,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Conjoined-Twin': {
-    text: 'Conjoined Twin',
+    name: 'Conjoined Twin',
     type: 'room',
     p3: true,
     edition: {
@@ -5642,7 +5642,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Devil-Beggar': {
-    text: 'Devil Beggar',
+    name: 'Devil Beggar',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5651,7 +5651,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Dice-Room-': {
-    text: 'Dice Room!',
+    name: 'Dice Room!',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5660,7 +5660,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Dice-Room-1': {
-    text: 'Dice Room!!',
+    name: 'Dice Room!!',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5669,7 +5669,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Dice-Room-2': {
-    text: 'Dice Room!!!',
+    name: 'Dice Room!!!',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5678,7 +5678,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Dice-Room-3': {
-    text: 'Dice Room!!!!',
+    name: 'Dice Room!!!!',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5687,7 +5687,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Dice-Room-4': {
-    text: 'Dice Room!!!!!',
+    name: 'Dice Room!!!!!',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5696,7 +5696,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Dice-Room-5': {
-    text: 'Dice Room!!!!!!',
+    name: 'Dice Room!!!!!!',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5705,7 +5705,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Eden-s-Blessing-room': {
-    text: 'Eden’s Blessing',
+    name: 'Eden’s Blessing',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5714,7 +5714,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   Equality: {
-    text: 'Equality',
+    name: 'Equality',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5723,7 +5723,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Eternal-Chest': {
-    text: 'Eternal Chest',
+    name: 'Eternal Chest',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5732,7 +5732,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Floor-Spikes': {
-    text: 'Floor Spikes',
+    name: 'Floor Spikes',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5741,7 +5741,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Fortune-Teller': {
-    text: 'Fortune Teller',
+    name: 'Fortune Teller',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5750,7 +5750,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Greed-Looms': {
-    text: 'Greed Looms',
+    name: 'Greed Looms',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5759,7 +5759,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   Gus: {
-    text: 'Gus',
+    name: 'Gus',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5768,7 +5768,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Haunted-': {
-    text: 'Haunted!',
+    name: 'Haunted!',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5777,7 +5777,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Heavy-Is-The-Head': {
-    text: 'Heavy Is The Head',
+    name: 'Heavy Is The Head',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5786,7 +5786,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'I-Am-Error': {
-    text: 'I Am Error',
+    name: 'I Am Error',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5795,7 +5795,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Isaac-s-Blessing': {
-    text: 'Isaac’s Blessing',
+    name: 'Isaac’s Blessing',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5804,7 +5804,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Key-Master': {
-    text: 'Key Master',
+    name: 'Key Master',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5813,7 +5813,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Laser-Eye-': {
-    text: 'Laser Eye!',
+    name: 'Laser Eye!',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5822,7 +5822,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Maggy-s-Blessing': {
-    text: 'Maggy’s Blessing',
+    name: 'Maggy’s Blessing',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5831,7 +5831,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Might-For-The-Meek': {
-    text: 'Might For The Meek',
+    name: 'Might For The Meek',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5840,7 +5840,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Pity-For-The-Poor': {
-    text: 'Pity For The Poor',
+    name: 'Pity For The Poor',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5849,7 +5849,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   Planetarium: {
-    text: 'Planetarium',
+    name: 'Planetarium',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5858,7 +5858,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Red-Champions': {
-    text: 'Red Champions',
+    name: 'Red Champions',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5867,7 +5867,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Red-Vise': {
-    text: 'Red Vise',
+    name: 'Red Vise',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5876,7 +5876,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Restock-Machine': {
-    text: 'Restock Machine',
+    name: 'Restock Machine',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5885,7 +5885,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Samson-s-Blessing': {
-    text: 'Samson’s Blessing',
+    name: 'Samson’s Blessing',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5894,7 +5894,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Shadow-Of-Famine': {
-    text: 'Shadow Of Famine',
+    name: 'Shadow Of Famine',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5903,7 +5903,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Shadow-Of-War': {
-    text: 'Shadow Of War',
+    name: 'Shadow Of War',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5912,7 +5912,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Shell-Game': {
-    text: 'Shell Game',
+    name: 'Shell Game',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5921,7 +5921,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Slot-Machine': {
-    text: 'Slot Machine',
+    name: 'Slot Machine',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5930,7 +5930,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Social-Goals-': {
-    text: 'Social Goals!',
+    name: 'Social Goals!',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5939,7 +5939,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Spider-Webs': {
-    text: 'Spider Webs',
+    name: 'Spider Webs',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5948,7 +5948,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Splash-Damage': {
-    text: 'Splash Damage',
+    name: 'Splash Damage',
     type: 'room',
     p3: true,
     edition: {
@@ -5958,7 +5958,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Spoils-Of-War': {
-    text: 'Spoils Of War',
+    name: 'Spoils Of War',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5967,7 +5967,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Static-Shock': {
-    text: 'Static Shock',
+    name: 'Static Shock',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5976,7 +5976,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Tax-For-The-Mighty': {
-    text: 'Tax For The Mighty',
+    name: 'Tax For The Mighty',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5985,7 +5985,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'The-Mirror': {
-    text: 'The Mirror',
+    name: 'The Mirror',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -5994,7 +5994,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'White-Champions': {
-    text: 'White Champions',
+    name: 'White Champions',
     type: 'room',
     edition: {
       Requiem: 1,
@@ -6003,7 +6003,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   'Soul-Of-Envy': {
-    text: 'Soul Of Envy',
+    name: 'Soul Of Envy',
     type: 'bonus',
     edition: {
       Requiem: 1,
@@ -6012,7 +6012,7 @@ const cards = {
     back: 'BonusSoulCardBack-308x420.png',
   },
   'Soul-Of-Lust': {
-    text: 'Soul Of Lust',
+    name: 'Soul Of Lust',
     type: 'bonus',
     edition: {
       Requiem: 1,
@@ -6021,7 +6021,7 @@ const cards = {
     back: 'BonusSoulCardBack-308x420.png',
   },
   'Soul-Of-Pride': {
-    text: 'Soul Of Pride',
+    name: 'Soul Of Pride',
     type: 'bonus',
     edition: {
       Requiem: 1,
@@ -6030,7 +6030,7 @@ const cards = {
     back: 'BonusSoulCardBack-308x420.png',
   },
   'Soul-Of-Sloth': {
-    text: 'Soul Of Sloth',
+    name: 'Soul Of Sloth',
     type: 'bonus',
     edition: {
       Requiem: 1,
@@ -6039,7 +6039,7 @@ const cards = {
     back: 'BonusSoulCardBack-308x420.png',
   },
   'Soul-Of-Wrath': {
-    text: 'Soul Of Wrath',
+    name: 'Soul Of Wrath',
     type: 'bonus',
     edition: {
       Requiem: 1,
@@ -6048,7 +6048,7 @@ const cards = {
     back: 'BonusSoulCardBack-308x420.png',
   },
   'The-Harbingers-The-Beast-': {
-    text: 'The Harbingers/The Beast!',
+    name: 'The Harbingers/The Beast!',
     type: 'monster',
     edition: {
       Requiem: 1,
@@ -6057,7 +6057,7 @@ const cards = {
     back: 'r-the_beast-308x420.png',
   },
   Ash: {
-    text: 'Ash',
+    name: 'Ash',
     type: 'character',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6066,7 +6066,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Ball-Of-Tumors': {
-    text: 'Ball Of Tumors',
+    name: 'Ball Of Tumors',
     type: 'eternal',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6075,7 +6075,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'Steven-character': {
-    text: 'Steven',
+    name: 'Steven',
     type: 'character',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6084,7 +6084,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Lil-Steven': {
-    text: 'Lil Steven',
+    name: 'Lil Steven',
     type: 'eternal',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6093,7 +6093,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'Bum-Bo-The-Weird': {
-    text: 'Bum-Bo The Weird',
+    name: 'Bum-Bo The Weird',
     type: 'character',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6102,7 +6102,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Strange-Marble': {
-    text: 'Strange Marble',
+    name: 'Strange Marble',
     type: 'eternal',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6111,7 +6111,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   Edmund: {
-    text: 'Edmund',
+    name: 'Edmund',
     type: 'character',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6120,7 +6120,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'The-Real-Left-Hand': {
-    text: 'The Real Left Hand',
+    name: 'The Real Left Hand',
     type: 'eternal',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6129,7 +6129,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   Abe: {
-    text: 'Abe',
+    name: 'Abe',
     type: 'character',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6138,7 +6138,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Possession: {
-    text: 'Possession',
+    name: 'Possession',
     type: 'eternal',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6147,7 +6147,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   Baba: {
-    text: 'Baba',
+    name: 'Baba',
     type: 'character',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6156,7 +6156,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Is-You': {
-    text: 'Is You',
+    name: 'Is You',
     type: 'eternal',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6165,7 +6165,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'Blind-Johnny': {
-    text: 'Blind Johnny',
+    name: 'Blind Johnny',
     type: 'character',
     p3: true,
     edition: {
@@ -6175,7 +6175,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Johnny-s-Knives': {
-    text: 'Johnny’s Knives',
+    name: 'Johnny’s Knives',
     type: 'eternal',
     p3: true,
     edition: {
@@ -6185,7 +6185,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'Blue-Archer': {
-    text: 'Blue Archer',
+    name: 'Blue Archer',
     type: 'character',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6194,7 +6194,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Bow-And-Arrow': {
-    text: 'Bow And Arrow',
+    name: 'Bow And Arrow',
     type: 'eternal',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6203,7 +6203,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   Boyfriend: {
-    text: 'Boyfriend',
+    name: 'Boyfriend',
     type: 'character',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6212,7 +6212,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Girlfriend: {
-    text: 'Girlfriend',
+    name: 'Girlfriend',
     type: 'eternal',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6221,7 +6221,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'Captain-Viridian': {
-    text: 'Captain Viridian',
+    name: 'Captain Viridian',
     type: 'character',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6230,7 +6230,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Gravity: {
-    text: 'Gravity',
+    name: 'Gravity',
     type: 'eternal',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6239,7 +6239,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   Crewmate: {
-    text: 'Crewmate',
+    name: 'Crewmate',
     type: 'character',
     p3: true,
     edition: {
@@ -6249,7 +6249,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Emergency-Meeting-': {
-    text: 'Emergency Meeting!',
+    name: 'Emergency Meeting!',
     type: 'eternal',
     p3: true,
     edition: {
@@ -6259,7 +6259,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'Guy-Spelunky': {
-    text: 'Guy Spelunky',
+    name: 'Guy Spelunky',
     type: 'character',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6268,7 +6268,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Spelunking-Pack': {
-    text: 'Spelunking Pack',
+    name: 'Spelunking Pack',
     type: 'eternal',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6277,7 +6277,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   Johnny: {
-    text: 'Johnny',
+    name: 'Johnny',
     type: 'character',
     p3: true,
     edition: {
@@ -6287,7 +6287,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Football: {
-    text: 'Football',
+    name: 'Football',
     type: 'eternal',
     p3: true,
     edition: {
@@ -6297,7 +6297,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'Pink-Knight': {
-    text: 'Pink Knight',
+    name: 'Pink Knight',
     type: 'character',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6306,7 +6306,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Lollypop: {
-    text: 'Lollypop',
+    name: 'Lollypop',
     type: 'eternal',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6315,7 +6315,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'Psycho-Goreman': {
-    text: 'Psycho Goreman',
+    name: 'Psycho Goreman',
     type: 'character',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6324,7 +6324,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Hunky-Boys': {
-    text: 'Hunky Boys',
+    name: 'Hunky Boys',
     type: 'eternal',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6333,7 +6333,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   Quote: {
-    text: 'Quote',
+    name: 'Quote',
     type: 'character',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6342,7 +6342,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Polar-Star-Booster-V2-0': {
-    text: 'Polar Star/Booster V2.0',
+    name: 'Polar Star/Booster V2.0',
     type: 'eternal',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6351,7 +6351,7 @@ const cards = {
     back: 'rwz-booster_v20-308x420.png',
   },
   'Salad-Fingers': {
-    text: 'Salad Fingers',
+    name: 'Salad Fingers',
     type: 'character',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6360,7 +6360,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Rusty-Spoons': {
-    text: 'Rusty Spoons',
+    name: 'Rusty Spoons',
     type: 'eternal',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6369,7 +6369,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Knight': {
-    text: 'The Knight',
+    name: 'The Knight',
     type: 'character',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6378,7 +6378,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Focus: {
-    text: 'Focus',
+    name: 'Focus',
     type: 'eternal',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6387,7 +6387,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'The-Silent': {
-    text: 'The Silent',
+    name: 'The Silent',
     type: 'character',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6396,7 +6396,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Ring-Of-The-Snake': {
-    text: 'Ring Of The Snake',
+    name: 'Ring Of The Snake',
     type: 'eternal',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6405,7 +6405,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'Yung-Venuz': {
-    text: 'Yung Venuz',
+    name: 'Yung Venuz',
     type: 'character',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6414,7 +6414,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Pop-Pop-': {
-    text: 'Pop Pop!',
+    name: 'Pop Pop!',
     type: 'eternal',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6423,7 +6423,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   Aubrey: {
-    text: 'Aubrey',
+    name: 'Aubrey',
     type: 'treasure',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6432,7 +6432,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Birthday-Cake': {
-    text: 'Birthday Cake',
+    name: 'Birthday Cake',
     type: 'treasure',
     p3: true,
     edition: {
@@ -6442,7 +6442,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Diogenes-Pot': {
-    text: 'Diogenes’ Pot',
+    name: 'Diogenes’ Pot',
     type: 'treasure',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6451,7 +6451,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   George: {
-    text: 'George',
+    name: 'George',
     type: 'treasure',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6460,7 +6460,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Hitops: {
-    text: 'Hitops',
+    name: 'Hitops',
     type: 'treasure',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6469,7 +6469,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Newgrounds-Tank': {
-    text: 'Newgrounds Tank',
+    name: 'Newgrounds Tank',
     type: 'treasure',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6478,7 +6478,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Tony: {
-    text: 'Tony',
+    name: 'Tony',
     type: 'treasure',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6487,7 +6487,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Boxing-Glove': {
-    text: 'Boxing Glove',
+    name: 'Boxing Glove',
     type: 'treasure',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6496,7 +6496,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Doorway: {
-    text: 'Doorway',
+    name: 'Doorway',
     type: 'treasure',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6505,7 +6505,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Gun-That-Can-Kill-The-Past': {
-    text: 'Gun That Can Kill The Past',
+    name: 'Gun That Can Kill The Past',
     type: 'treasure',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6514,7 +6514,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Water-Bottle': {
-    text: 'Water Bottle',
+    name: 'Water Bottle',
     type: 'treasure',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6523,7 +6523,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Ser-Junkan': {
-    text: 'Ser Junkan',
+    name: 'Ser Junkan',
     type: 'treasure',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6532,7 +6532,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Spewer: {
-    text: 'Spewer',
+    name: 'Spewer',
     type: 'treasure',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6541,7 +6541,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'The-Crowdfunder': {
-    text: 'The Crowdfunder',
+    name: 'The Crowdfunder',
     type: 'treasure',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6550,7 +6550,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Demon-Form': {
-    text: 'Demon Form',
+    name: 'Demon Form',
     type: 'loot',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6559,7 +6559,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Fiend-Fire': {
-    text: 'Fiend Fire',
+    name: 'Fiend Fire',
     type: 'loot',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6568,7 +6568,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Loot-Card': {
-    text: 'Loot Card',
+    name: 'Loot Card',
     type: 'loot',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6577,7 +6577,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Bible-Thump-': {
-    text: 'Bible Thump!',
+    name: 'Bible Thump!',
     type: 'loot',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6586,7 +6586,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Blanks: {
-    text: 'Blanks',
+    name: 'Blanks',
     type: 'loot',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6595,7 +6595,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Cheep-Cheep-Cheep-': {
-    text: 'Cheep Cheep Cheep!',
+    name: 'Cheep Cheep Cheep!',
     type: 'loot',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6604,7 +6604,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Chunk-Of-Amber': {
-    text: 'Chunk Of Amber',
+    name: 'Chunk Of Amber',
     type: 'loot',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6613,7 +6613,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Cow-On-A-Trash-Farm': {
-    text: 'Cow On A Trash Farm',
+    name: 'Cow On A Trash Farm',
     type: 'loot',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6622,7 +6622,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Greed-Butt-': {
-    text: 'Greed Butt!',
+    name: 'Greed Butt!',
     type: 'loot',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6631,7 +6631,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Jester: {
-    text: 'Jester',
+    name: 'Jester',
     type: 'loot',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6640,7 +6640,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Murder-': {
-    text: 'Murder!',
+    name: 'Murder!',
     type: 'loot',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6649,7 +6649,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Witch: {
-    text: 'Witch',
+    name: 'Witch',
     type: 'loot',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6658,7 +6658,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'A-Dead-Horse': {
-    text: 'A Dead Horse',
+    name: 'A Dead Horse',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6667,7 +6667,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Balrog: {
-    text: 'Balrog',
+    name: 'Balrog',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6676,7 +6676,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Hubert-Cumberdale': {
-    text: 'Hubert Cumberdale',
+    name: 'Hubert Cumberdale',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6685,7 +6685,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Javon-': {
-    text: 'Javon!',
+    name: 'Javon!',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6694,7 +6694,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Keke-Is-You': {
-    text: 'Keke Is You',
+    name: 'Keke Is You',
     type: 'monster',
     p3: true,
     edition: {
@@ -6704,7 +6704,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Leatherneck: {
-    text: 'Leatherneck',
+    name: 'Leatherneck',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6713,7 +6713,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Peeper: {
-    text: 'Peeper',
+    name: 'Peeper',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6722,7 +6722,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Shopkeeper-': {
-    text: 'Shopkeeper!',
+    name: 'Shopkeeper!',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6731,7 +6731,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Impostor-': {
-    text: 'The Impostor!',
+    name: 'The Impostor!',
     type: 'monster',
     p3: true,
     edition: {
@@ -6741,7 +6741,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Purple-Shirted-Eye-Stabber': {
-    text: 'The Purple-Shirted Eye Stabber',
+    name: 'The Purple-Shirted Eye Stabber',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6750,7 +6750,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Zombie-Jesus': {
-    text: 'Zombie Jesus',
+    name: 'Zombie Jesus',
     type: 'monster',
     p3: true,
     edition: {
@@ -6760,7 +6760,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Death-Trapper': {
-    text: 'Death Trapper',
+    name: 'Death Trapper',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6769,7 +6769,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Exp-sito': {
-    text: 'Expósito',
+    name: 'Expósito',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6778,7 +6778,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Grandparent: {
-    text: 'Grandparent',
+    name: 'Grandparent',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6787,7 +6787,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Lil-Hunter': {
-    text: 'Lil Hunter',
+    name: 'Lil Hunter',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6796,7 +6796,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Melqu-ades': {
-    text: 'Melquíades',
+    name: 'Melquíades',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6805,7 +6805,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Butcher': {
-    text: 'The Butcher',
+    name: 'The Butcher',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6814,7 +6814,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Collector': {
-    text: 'The Collector',
+    name: 'The Collector',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6823,7 +6823,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Gorm': {
-    text: 'The Gorm',
+    name: 'The Gorm',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6832,7 +6832,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Radiance': {
-    text: 'The Radiance',
+    name: 'The Radiance',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6841,7 +6841,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Time-Eater': {
-    text: 'Time Eater',
+    name: 'Time Eater',
     type: 'monster',
     p3: true,
     edition: {
@@ -6851,7 +6851,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Ballos-': {
-    text: 'Ballos!',
+    name: 'Ballos!',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6860,7 +6860,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Curse-Of-The-Suspicious': {
-    text: 'Curse Of The Suspicious',
+    name: 'Curse Of The Suspicious',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6869,7 +6869,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Brea-In-Distress': {
-    text: 'Brea In Distress',
+    name: 'Brea In Distress',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6878,7 +6878,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Don-t-Starve-': {
-    text: 'Don’t Starve!',
+    name: 'Don’t Starve!',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6887,7 +6887,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Fuck-Bloat': {
-    text: 'Fuck Bloat',
+    name: 'Fuck Bloat',
     type: 'monster',
     p3: true,
     edition: {
@@ -6897,7 +6897,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Golden-Idol': {
-    text: 'Golden Idol',
+    name: 'Golden Idol',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6906,7 +6906,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Grubfather: {
-    text: 'Grubfather',
+    name: 'Grubfather',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6915,7 +6915,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Nightmare-Tick': {
-    text: 'Nightmare Tick',
+    name: 'Nightmare Tick',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6924,7 +6924,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'QWOP-': {
-    text: 'QWOP!',
+    name: 'QWOP!',
     type: 'monster',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6933,7 +6933,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Trial-By-Trolley-': {
-    text: 'Trial By Trolley!',
+    name: 'Trial By Trolley!',
     type: 'monster',
     p3: true,
     edition: {
@@ -6943,7 +6943,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Isaac-Of-Isaac-Re-Isaac': {
-    text: 'The Isaac Of Isaac: Re-Isaac',
+    name: 'The Isaac Of Isaac: Re-Isaac',
     type: 'room',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6952,7 +6952,7 @@ const cards = {
     back: 'RoomCardBack-420x308.png',
   },
   Strawberry: {
-    text: 'Strawberry',
+    name: 'Strawberry',
     type: 'bonus',
     edition: {
       'Requiem Warp Zone': 1,
@@ -6961,7 +6961,7 @@ const cards = {
     back: 'BonusSoulCardBack-308x420.png',
   },
   Isaac1: {
-    text: 'Isaac',
+    name: 'Isaac',
     type: 'character',
     edition: {
       'Alt Art': 1,
@@ -6970,7 +6970,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Judas1: {
-    text: 'Judas',
+    name: 'Judas',
     type: 'character',
     edition: {
       'Alt Art': 1,
@@ -6979,7 +6979,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Blue-Baby1': {
-    text: 'Blue Baby',
+    name: 'Blue Baby',
     type: 'character',
     edition: {
       'Alt Art': 1,
@@ -6988,7 +6988,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Azazel1: {
-    text: 'Azazel',
+    name: 'Azazel',
     type: 'character',
     edition: {
       'Alt Art': 1,
@@ -6997,7 +6997,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'The-Lost1': {
-    text: 'The Lost',
+    name: 'The Lost',
     type: 'character',
     edition: {
       'Alt Art': 1,
@@ -7006,7 +7006,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Lilith1: {
-    text: 'Lilith',
+    name: 'Lilith',
     type: 'character',
     edition: {
       'Alt Art': 1,
@@ -7015,7 +7015,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'The-Keeper1': {
-    text: 'The Keeper',
+    name: 'The Keeper',
     type: 'character',
     edition: {
       'Alt Art': 1,
@@ -7024,7 +7024,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'The-Forgotten1': {
-    text: 'The Forgotten',
+    name: 'The Forgotten',
     type: 'character',
     edition: {
       'Alt Art': 1,
@@ -7033,7 +7033,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Guppy1: {
-    text: 'Guppy',
+    name: 'Guppy',
     type: 'character',
     edition: {
       'Alt Art': 1,
@@ -7042,7 +7042,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'The-Capricious1': {
-    text: 'The Capricious',
+    name: 'The Capricious',
     type: 'character',
     edition: {
       'Alt Art': 1,
@@ -7051,7 +7051,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'The-Savage1': {
-    text: 'The Savage',
+    name: 'The Savage',
     type: 'character',
     edition: {
       'Alt Art': 1,
@@ -7060,7 +7060,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'The-Harlot1': {
-    text: 'The Harlot',
+    name: 'The Harlot',
     type: 'character',
     edition: {
       'Alt Art': 1,
@@ -7069,7 +7069,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Eden3: {
-    text: 'Eden',
+    name: 'Eden',
     type: 'character',
     edition: {
       'Alt Art': 1,
@@ -7078,7 +7078,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Eden4: {
-    text: 'Eden',
+    name: 'Eden',
     type: 'character',
     edition: {
       'Alt Art': 1,
@@ -7087,7 +7087,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Brimstone1: {
-    text: 'Brimstone',
+    name: 'Brimstone',
     type: 'treasure',
     edition: {
       'Alt Art': 1,
@@ -7096,7 +7096,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Epic-Fetus-': {
-    text: 'Epic Fetus!',
+    name: 'Epic Fetus!',
     type: 'treasure',
     edition: {
       'Alt Art': 1,
@@ -7105,7 +7105,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Godhead1: {
-    text: 'Godhead',
+    name: 'Godhead',
     type: 'treasure',
     edition: {
       'Alt Art': 1,
@@ -7114,7 +7114,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Guppy-s-Paw1': {
-    text: 'Guppy’s Paw',
+    name: 'Guppy’s Paw',
     type: 'treasure',
     edition: {
       'Alt Art': 1,
@@ -7123,7 +7123,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'XIII-Death1': {
-    text: 'XIII. Death',
+    name: 'XIII. Death',
     type: 'loot',
     edition: {
       'Alt Art': 1,
@@ -7132,7 +7132,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'XVII-The-Stars1': {
-    text: 'XVII. The Stars',
+    name: 'XVII. The Stars',
     type: 'loot',
     edition: {
       'Alt Art': 1,
@@ -7141,7 +7141,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Lost-Soul1': {
-    text: 'Lost Soul',
+    name: 'Lost Soul',
     type: 'loot',
     edition: {
       'Alt Art': 1,
@@ -7150,7 +7150,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   Begotten1: {
-    text: 'Begotten',
+    name: 'Begotten',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7159,7 +7159,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Big-Bony': {
-    text: 'Big Bony',
+    name: 'Big Bony',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7168,7 +7168,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Clotty1: {
-    text: 'Clotty',
+    name: 'Clotty',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7177,7 +7177,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Delirium1: {
-    text: 'Delirium',
+    name: 'Delirium',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7186,7 +7186,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Gaper1: {
-    text: 'Gaper',
+    name: 'Gaper',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7195,7 +7195,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Mom-s-Hand1': {
-    text: 'Mom’s Hand',
+    name: 'Mom’s Hand',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7204,7 +7204,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Mulliboom1: {
-    text: 'Mulliboom',
+    name: 'Mulliboom',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7213,7 +7213,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Mulligan1: {
-    text: 'Mulligan',
+    name: 'Mulligan',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7222,7 +7222,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Twitchy: {
-    text: 'Twitchy',
+    name: 'Twitchy',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7231,7 +7231,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Brownie1: {
-    text: 'Brownie',
+    name: 'Brownie',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7240,7 +7240,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Daddy-Long-Legs1': {
-    text: 'Daddy Long Legs',
+    name: 'Daddy Long Legs',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7249,7 +7249,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Dark-One1': {
-    text: 'Dark One',
+    name: 'Dark One',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7258,7 +7258,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Dingle1: {
-    text: 'Dingle',
+    name: 'Dingle',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7267,7 +7267,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Famine1: {
-    text: 'Famine',
+    name: 'Famine',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7276,7 +7276,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Fistula1: {
-    text: 'Fistula',
+    name: 'Fistula',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7285,7 +7285,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Gurdy1: {
-    text: 'Gurdy',
+    name: 'Gurdy',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7294,7 +7294,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Hornfel1: {
-    text: 'Hornfel',
+    name: 'Hornfel',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7303,7 +7303,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Larry-Jr-1': {
-    text: 'Larry Jr.',
+    name: 'Larry Jr.',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7312,7 +7312,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Little-Horn1': {
-    text: 'Little Horn',
+    name: 'Little Horn',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7321,7 +7321,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Mega-Fatty1': {
-    text: 'Mega Fatty',
+    name: 'Mega Fatty',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7330,7 +7330,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Mega-Satan-1': {
-    text: 'Mega Satan!',
+    name: 'Mega Satan!',
     type: 'monster',
     p3: true,
     edition: {
@@ -7340,7 +7340,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Min-Min': {
-    text: 'Min Min',
+    name: 'Min Min',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7349,7 +7349,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Monstro1: {
-    text: 'Monstro',
+    name: 'Monstro',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7358,7 +7358,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Monstro-II1': {
-    text: 'Monstro II',
+    name: 'Monstro II',
     type: 'monster',
     p3: true,
     edition: {
@@ -7368,7 +7368,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Pestilence1: {
-    text: 'Pestilence',
+    name: 'Pestilence',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7377,7 +7377,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Pin1: {
-    text: 'Pin',
+    name: 'Pin',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7386,7 +7386,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Polycephalus1: {
-    text: 'Polycephalus',
+    name: 'Polycephalus',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7395,7 +7395,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Rag-Man1': {
-    text: 'Rag Man',
+    name: 'Rag Man',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7404,7 +7404,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Rag-Mega1': {
-    text: 'Rag Mega',
+    name: 'Rag Mega',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7413,7 +7413,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Beast': {
-    text: 'The Beast',
+    name: 'The Beast',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7422,7 +7422,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Bloat1': {
-    text: 'The Bloat',
+    name: 'The Bloat',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7431,7 +7431,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Duke-Of-Flies1': {
-    text: 'The Duke Of Flies',
+    name: 'The Duke Of Flies',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7440,7 +7440,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Lamb1': {
-    text: 'The Lamb',
+    name: 'The Lamb',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7449,7 +7449,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Ultra-Greed-1': {
-    text: 'Ultra Greed!',
+    name: 'Ultra Greed!',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7458,7 +7458,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'It-Lives-': {
-    text: 'It Lives!',
+    name: 'It Lives!',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7467,7 +7467,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Mega-Satan-2': {
-    text: 'Mega Satan!',
+    name: 'Mega Satan!',
     type: 'monster',
     p3: true,
     edition: {
@@ -7477,7 +7477,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Mom-1': {
-    text: 'Mom!',
+    name: 'Mom!',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7486,7 +7486,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Satan-1': {
-    text: 'Satan!',
+    name: 'Satan!',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7495,7 +7495,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Ambush-1': {
-    text: 'Ambush!',
+    name: 'Ambush!',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7504,7 +7504,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Devil-Deal1': {
-    text: 'Devil Deal',
+    name: 'Devil Deal',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7513,7 +7513,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Secret-Room-1': {
-    text: 'Secret Room!',
+    name: 'Secret Room!',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7522,7 +7522,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Shop-Upgrade-1': {
-    text: 'Shop Upgrade!',
+    name: 'Shop Upgrade!',
     type: 'monster',
     edition: {
       'Alt Art': 1,
@@ -7531,7 +7531,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Dead-Eye': {
-    text: 'Dead Eye',
+    name: 'Dead Eye',
     type: 'treasure',
     edition: {
       Target: 1,
@@ -7540,7 +7540,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Marked: {
-    text: 'Marked',
+    name: 'Marked',
     type: 'treasure',
     edition: {
       Target: 1,
@@ -7549,7 +7549,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Epic-Fetus-1': {
-    text: 'Epic Fetus!',
+    name: 'Epic Fetus!',
     type: 'treasure',
     edition: {
       Target: 1,
@@ -7558,7 +7558,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Lil-Gish': {
-    text: 'Lil’ Gish',
+    name: 'Lil’ Gish',
     type: 'treasure',
     edition: {
       Gish: 1,
@@ -7567,7 +7567,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   Gish: {
-    text: 'Gish',
+    name: 'Gish',
     type: 'monster',
     edition: {
       Gish: 1,
@@ -7576,7 +7576,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Tapeworm: {
-    text: 'Tapeworm',
+    name: 'Tapeworm',
     type: 'character',
     edition: {
       Tapeworm: 1,
@@ -7585,7 +7585,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'Pink-Proglottid': {
-    text: 'Pink Proglottid',
+    name: 'Pink Proglottid',
     type: 'eternal',
     edition: {
       Tapeworm: 1,
@@ -7594,7 +7594,7 @@ const cards = {
     back: 'EternalCardBack-308x420.png',
   },
   'Rainbow-Tapeworm': {
-    text: 'Rainbow Tapeworm',
+    name: 'Rainbow Tapeworm',
     type: 'loot',
     edition: {
       Tapeworm: 1,
@@ -7603,7 +7603,7 @@ const cards = {
     back: 'LootCardBack-308x420.png',
   },
   'Black-Proglottid': {
-    text: 'Black Proglottid',
+    name: 'Black Proglottid',
     type: 'treasure',
     edition: {
       Tapeworm: 1,
@@ -7612,7 +7612,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'White-Proglottid': {
-    text: 'White Proglottid',
+    name: 'White Proglottid',
     type: 'treasure',
     edition: {
       Tapeworm: 1,
@@ -7621,7 +7621,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Red-Proglottid': {
-    text: 'Red Proglottid',
+    name: 'Red Proglottid',
     type: 'treasure',
     edition: {
       Tapeworm: 1,
@@ -7630,7 +7630,7 @@ const cards = {
     back: 'TreasureCardBack-308x420.png',
   },
   'Tapeworm-monster': {
-    text: 'Tapeworm',
+    name: 'Tapeworm',
     type: 'monster',
     edition: {
       Tapeworm: 1,
@@ -7639,7 +7639,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Dick-Knot-': {
-    text: 'Dick Knot!',
+    name: 'Dick Knot!',
     type: 'monster',
     edition: {
       'Dick Knots': 1,
@@ -7648,7 +7648,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   '-Christian-Broadcasts-': {
-    text: '“Christian Broadcasts”',
+    name: '“Christian Broadcasts”',
     type: 'monster',
     edition: {
       'The Unboxing of Isaac': 1,
@@ -7657,7 +7657,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Dogma1: {
-    text: 'Dogma',
+    name: 'Dogma',
     type: 'monster',
     edition: {
       'The Unboxing of Isaac': 1,
@@ -7666,7 +7666,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'TV-Static': {
-    text: 'TV Static',
+    name: 'TV Static',
     type: 'monster',
     edition: {
       'The Unboxing of Isaac': 1,
@@ -7675,7 +7675,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'The-Bloat2': {
-    text: 'The Bloat',
+    name: 'The Bloat',
     type: 'monster',
     edition: {
       Promo: 1,
@@ -7684,7 +7684,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Eden5: {
-    text: 'Eden',
+    name: 'Eden',
     type: 'character',
     edition: {
       Promo: 1,
@@ -7693,7 +7693,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   Eden6: {
-    text: 'Eden',
+    name: 'Eden',
     type: 'character',
     edition: {
       Promo: 1,
@@ -7702,7 +7702,7 @@ const cards = {
     back: 'CharacterCardBack-308x420.png',
   },
   'The-Bloat3': {
-    text: 'The Bloat',
+    name: 'The Bloat',
     type: 'monster',
     edition: {
       Promo: 1,
@@ -7711,7 +7711,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'It-Lives-1': {
-    text: 'It Lives!',
+    name: 'It Lives!',
     type: 'monster',
     edition: {
       Promo: 1,
@@ -7720,7 +7720,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Ultra-Pride': {
-    text: 'Ultra Pride',
+    name: 'Ultra Pride',
     type: 'monster',
     edition: {
       Promo: 1,
@@ -7729,7 +7729,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Corrupted-Data': {
-    text: 'Corrupted Data',
+    name: 'Corrupted Data',
     type: 'monster',
     edition: {
       Promo: 1,
@@ -7738,7 +7738,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   Henry: {
-    text: 'Henry',
+    name: 'Henry',
     type: 'monster',
     edition: {
       Promo: 1,
@@ -7747,7 +7747,7 @@ const cards = {
     back: 'MonsterCardBack-308x420.png',
   },
   'Mom-s-Ring': {
-    text: 'Mom’s Ring',
+    name: 'Mom’s Ring',
     type: 'treasure',
     edition: {
       Promo: 1,

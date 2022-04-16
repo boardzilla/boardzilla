@@ -55,11 +55,11 @@ async function build(sessionId) {
     let resolved = false;
     webpack(serverConfig, async () => {
       if (resolved) {
-        await db.SessionAction.destroy({
-          where: {
-            sessionId,
-          },
-        });
+        /* await db.SessionAction.destroy({
+         *   where: {
+         *     sessionId,
+         *   },
+         * }); */
         return emitter.emit('update');
       }
       resolved = true;

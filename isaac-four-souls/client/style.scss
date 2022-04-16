@@ -109,7 +109,7 @@
     }
   }
 
-  #player-mat {
+  .player-mat {
     position: absolute;
     left: 0;
     top: 0;
@@ -197,6 +197,7 @@
       transform: rotate(90deg);
     }
     img {
+      display: block;
       height: 100px;
       border-radius: 7px;
     }

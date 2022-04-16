@@ -15,12 +15,10 @@ class GameRunner {
     this.redisClient = new Redis(redisUrl);
   }
 
-  sessionEventKey(sessionId) {
-    return `session-events-${sessionId}`;
-  }
-
   createSessionRunner(sessionId) {
     const serverLocator = simple()(this.zkConnectionString);
+    const sessionEventKey = `session-events-${sessionId}`;
+
     const lock = new zkLock.ZookeeperLock({
       serverLocator,
       pathPrefix: 'game-runner-',
@@ -84,17 +82,19 @@ class GameRunner {
               await publish({ type, userId, payload });
             });
 
-            gameInstance.registerAction = async (player, sequence, action) => {
+            gameInstance.on('log', (timestamp, sequence, message) => publish({ type: 'log', payload: { timestamp, sequence, message } }));
+
+            gameInstance.registerAction = async (player, action) => {
               try {
-                await session.createAction({ player, sequence, action });
+                await session.createAction({ player, sequence: gameInstance.sequence, action });
               } catch (e) {
-                console.error(e);
+                console.error(gameInstance.sequence, e);
               }
             };
 
             const publish = async (message) => {
               await this.redisClient.publish(
-                this.sessionEventKey(sessionId),
+                sessionEventKey,
                 JSON.stringify(message),
               );
             };
@@ -141,7 +141,7 @@ class GameRunner {
                   gameInstance.updatePlayers();
                   return false;
                 case 'reset':
-                  await queueClient.del(this.sessionEventKey(sessionId));
+                  await queueClient.del(sessionEventKey);
                   await db.SessionAction.destroy({
                     where: {
                       sessionId,
@@ -151,7 +151,7 @@ class GameRunner {
                   await session.update({ seed: String(Math.random()) });
                   return true;
                 case 'undo':
-                  await queueClient.del(this.sessionEventKey(sessionId));
+                  await queueClient.del(sessionEventKey);
                   lastAction = await session.getActions({ order: [['sequence', 'DESC']], limit: 1 });
                   await db.SessionAction.destroy({
                     where: {
@@ -166,7 +166,7 @@ class GameRunner {
 
             let restarting = false;
             while (running && !restarting) {
-              const data = await queueClient.blpop(this.sessionEventKey(sessionId), 0);
+              const data = await queueClient.blpop(sessionEventKey, 0);
               if (data[1]) {
                 restarting = await processGameEvent(JSON.parse(data[1]));
               } else {

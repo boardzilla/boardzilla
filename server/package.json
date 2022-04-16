@@ -15,6 +15,7 @@
   "dependencies": {
     "aws-sdk": "^2.1109.0",
     "bcrypt": "^3.0.6",
+    "body-parser": "^1.20.0",
     "cookie-parser": "^1.4.5",
     "ejs": "^2.6.2",
     "express": "^4.17.1",

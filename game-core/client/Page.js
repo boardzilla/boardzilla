@@ -11,7 +11,6 @@ import {
   keyFromChoice,
   choiceFromKey,
   keyAtPoint,
-  elAtPoint,
   zoneForPoint,
   xmlToNode,
   branch,
@@ -46,9 +45,11 @@ export default class Page extends Component {
       positions: {}, // xy positions from server (i.e. other players)
       actions: null, // currently possible actions in menu {action: {choice, prompt},...}
       dragging: null, // data on the current drag {key, x/y start point, zone starting zone}
+      dragOver: null, // key being dragged over
       zoomPiece: null, // the zoomed piece
       help: false, // show help content
       playerStatus: {[props.userId]: new Date()}, // timestamps of last ping from each player
+      logs: {},
     };
     this.components = {
       counter: Counter,
@@ -118,6 +119,8 @@ export default class Page extends Component {
         case 'reload':
           location.reload();
           break;
+        case 'log':
+          this.setState(state => ({logs: Object.assign({}, state.logs, {[res.payload.sequence]: res.payload.message})}));
       }
     };
     document.addEventListener('touchmove', e => {
@@ -129,9 +132,6 @@ export default class Page extends Component {
     });
     document.addEventListener('mousemove', e => {
       mouse = {x: e.clientX, y: e.clientY};
-      if (this.state.dragging) {
-        this.setState({dragOver: keyAtPoint(e.clientX, e.clientY, el => el.classList.contains('space'))});
-      }
     });
     document.addEventListener('keydown', e => {
       if (e.key == "z") {
@@ -230,7 +230,7 @@ export default class Page extends Component {
   dragging(key, x, y, event) {
     if (!this.state.dragging) {
       this.send('requestLock', {key});
-      this.setState({dragging: {key, x, y, zone: zoneKey(key)}});
+      this.setState({dragging: {key, x, y, zone: zoneKey(key)}, dragOver: parentKey(key)});
       // set piece to uncontrolled
       this.updatePosition(key);
     }
@@ -258,7 +258,7 @@ export default class Page extends Component {
 
   stopDrag(key, x, y, event) {
     const {dragging, dragOver} = this.state;
-    this.setState({dragging: null, dragOver: false});
+    this.setState({dragging: null, dragOver: null});
     if (dragging && dragging.key === key && Math.abs(dragging.x - x) + Math.abs(dragging.y - y) > DRAG_TOLERANCE) {
       const dragAction = this.allowedDragSpaces(key)[dragOver];
       if (dragAction) {
@@ -375,13 +375,13 @@ export default class Page extends Component {
       <div id="game">
         <div id="game-container">
           {[...new Set([
-            ...board.querySelectorAll('#player-mat.mine ~ #player-mat'),
-            ...board.querySelectorAll('#player-mat:not(.mine)')
+            ...board.querySelectorAll('.player-mat.mine ~ #player-mat'),
+            ...board.querySelectorAll('.player-mat:not(.mine)')
           ])].map(
             mat => this.renderGameElement(mat, otherPlayers++<2)
           )}
           {this.renderGameElement(board.querySelector('#board'))}
-          {this.renderGameElement(board.querySelector(`#player-mat.mine`))}
+          {this.renderGameElement(board.querySelector(`.player-mat.mine`))}
         </div>
       </div>
     );
@@ -423,6 +423,10 @@ export default class Page extends Component {
           (this.state.choices instanceof Array && this.state.choices.includes(choiceFromKey(key)))
         )
       });
+      if (node.classList.contains('space')) {
+        props.onMouseEnter = () => this.setState({dragOver: key});
+        props.onMouseLeave = () => this.setState({dragOver: keyAtPoint(mouse.x, mouse.y, el => el.classList.contains('space'))});
+      }
       if (externallyControlled && this.state.positions[key]) {
         position = this.state.positions[key];
       } else if (node.parentNode.nodeName == 'deck' && !attributes.moved) {
@@ -460,7 +464,7 @@ export default class Page extends Component {
     } else {
       contents = Array.from(node.childNodes).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
     }
-    if (node.id == 'player-mat') {
+    if (node.classList.contains('player-mat')) {
       const player = attributes.player && this.state.data.players[attributes.player - 1];
       if (player) contents.push(
         <div key="nametag"
@@ -486,7 +490,7 @@ export default class Page extends Component {
       wrappedStyle.pointerEvents = "none";
     }
 
-    const draggable = !frozen && (this.isAllowedMove(node) || this.isAllowedDrag(key)) && (this.state.zoomPiece || !IS_MOBILE_PORTRAIT);
+    const draggable = !frozen && (this.isAllowedMove(node) || this.isAllowedDrag(key)) && (this.state.zoomPiece == key || !IS_MOBILE_PORTRAIT);
 
     if (position && (position.x != undefined && position.x != 0 || position.y == undefined && position.y != 0) && !frozen && !draggable) {
       wrappedStyle.transform = `translate(${position.x}px, ${position.y}px)`;
@@ -530,27 +534,29 @@ export default class Page extends Component {
     const nonBoardActions = this.nonBoardActions();
     const boardXml = this.state.data.doc && xmlToNode(this.state.data.doc);
 
-    let messagesPane = null, zoomScale, zoomEl, actions = this.state.actions;
-    if (this.state.zoomPiece) {
-      zoomEl = pieceAt(boardXml, this.state.zoomPiece);
-      if (!zoomEl) { // piece went away, remove actions that may no longer apply
-        actions = this.actionsFor(choiceFromKey(this.state.zoomKey));
+    let messagesPane = 'hidden', zoomScale, zoomEl, actions = this.state.actions;
+    if (!this.state.dragging) {
+      if (this.state.zoomPiece) {
+        zoomEl = pieceAt(boardXml, this.state.zoomPiece);
+        if (!zoomEl) { // piece went away, remove actions that may no longer apply
+          actions = this.actionsFor(choiceFromKey(this.state.zoomKey));
+        }
       }
-    }
-    if (this.state.help) {
-      messagesPane = 'help';
-    } else if (this.state.choices) {
-      messagesPane = 'choices';
-    } else if (actions && actions.length || zoomEl) {
-      messagesPane = 'actions';
-      if (zoomEl) {
-        zoomScale = SIDEBAR_WIDTH / this.state.zoomOriginalSize.width;
-      }
-    } else if (this.state.data) {
-      if (this.state.data.phase == 'setup') {
-        messagesPane = 'setup';
-      } else {
-        messagesPane = 'standard';
+      if (this.state.help) {
+        messagesPane = 'help';
+      } else if (this.state.choices) {
+        messagesPane = 'choices';
+      } else if (actions && actions.length || zoomEl) {
+        messagesPane = 'actions';
+        if (zoomEl) {
+          zoomScale = SIDEBAR_WIDTH / this.state.zoomOriginalSize.width * (this.state.bigZoom ? 2 : 1);
+        }
+      } else if (this.state.data) {
+        if (this.state.data.phase == 'setup') {
+          messagesPane = 'setup';
+        } else {
+          messagesPane = 'standard';
+        }
       }
     }
 
@@ -565,12 +571,16 @@ export default class Page extends Component {
 
     return (
       <div id="layout">
-        <div id="messages" className={messagesPane} style={{width: IS_MOBILE_PORTRAIT ? 2 * SIDEBAR_WIDTH: 20 + SIDEBAR_WIDTH}}> {/* why is this 2 and not devicePixelRatio ?? */}
+        <div
+          id="messages"
+          className={classNames(messagesPane, {"big-zoom": this.state.bigZoom})}
+          style={{width: IS_MOBILE_PORTRAIT ? 2 * SIDEBAR_WIDTH: 20 + SIDEBAR_WIDTH}}
+        > {/* why is this 2 and not devicePixelRatio ?? */}
           <div>{this.selfActivePlayer() ? "🟢 connected": "🔴 not connected"}</div>
           <div className="prompt">{this.state.prompt || this.state.data.prompt}</div>
           {messagesPane == 'choices' &&
            <div>
-             {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
+             {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus={!IS_MOBILE_PORTRAIT} onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
              {textChoices && (
                <div>
                  {Array.from(new Set(textChoices.filter(choice => choice.toLowerCase().includes(this.state.filter.toLowerCase())))).sort().map(choice => (
@@ -584,17 +594,23 @@ export default class Page extends Component {
           {messagesPane == 'actions' &&
            <div id="actionContainer">
              {zoomEl &&
-              <div id="zoomPiece" style={{width: SIDEBAR_WIDTH, height: zoomScale * this.state.zoomOriginalSize.height}}>
+              <div
+                id="zoomPiece"
+                onClick={() => this.setState({ bigZoom: IS_MOBILE_PORTRAIT && !this.state.bigZoom })}
+                style={{width: SIDEBAR_WIDTH, height: zoomScale * this.state.zoomOriginalSize.height}}
+              >
                 <div className="scaler" style={{width: this.state.zoomOriginalSize.width, height: this.state.zoomOriginalSize.height, transform: `scale(${zoomScale})`}}>
                   {this.renderGameElement(zoomEl, false, false, true)}
                 </div>
               </div>
              }
-             <div id="actions" style={IS_MOBILE_PORTRAIT ? {width: SIDEBAR_WIDTH - 30} : {}}>
-               {actions && Object.entries(actions).map(([a, {choice, prompt}]) => (
-                 <button key={a} onClick={e => {this.gameAction(a, ...this.state.args, choice); e.stopPropagation()}}>{showKeybind(prompt)}</button>
-               ))}
-             </div>
+             {!this.state.bigZoom &&
+              <div id="actions" style={IS_MOBILE_PORTRAIT ? {width: SIDEBAR_WIDTH - 30} : {}}>
+                {actions && Object.entries(actions).map(([a, {choice, prompt}]) => (
+                  <button key={a} onClick={e => {this.gameAction(a, ...this.state.args, choice); e.stopPropagation()}}>{showKeybind(prompt)}</button>
+                ))}
+              </div>
+             }
            </div>
           }
 
@@ -631,6 +647,12 @@ export default class Page extends Component {
            </span>
           }
           {messagesPane == 'standard' || messagesPane == 'setup' || <button className="fab cancel" onClick={() => this.cancel()}>✕</button>}
+          {!this.state.bigZoom &&
+           <div id="log">
+             <a className="expander" onClick={() => this.setState({expandLogs: !this.state.expandLogs})}>{this.state.expandLogs ? '▼' : '▲'}</a>
+             <ul>{Object.entries(this.state.logs).slice(this.state.expandLogs ? -100 : -2).map(([k, l]) => <li key={k}>{l}</li>)}</ul>
+           </div>
+          }
         </div>
 
         {this.props.background}
@@ -641,10 +663,10 @@ export default class Page extends Component {
   }
 
   activePlayer(userId) {
-    return this.state.connected && (new Date() - this.state.playerStatus[userId] < IDLE_WAIT)
+    return this.state.connected && (new Date() - this.state.playerStatus[userId] < IDLE_WAIT);
   }
 
   selfActivePlayer() {
-    return this.activePlayer(this.props.userId)
+    return this.activePlayer(this.props.userId);
   }
 }

@@ -42,6 +42,9 @@ button {
     overflow-y: scroll;
     color: black;
     box-sizing: border-box;
+    &.hidden {
+      display: none;
+    }
     .prompt {
       padding-right: 20px;
       margin-bottom: 10px;
@@ -92,6 +95,7 @@ button {
       width: 24px;
       height: 24px;
       font-size: 15px;
+      line-height: 100%;
       display: block;
       text-align: center;
       color: white;
@@ -115,6 +119,34 @@ button {
         list-style: none;
         margin-top: 15px;
         padding: 0 15px;
+      }
+    }
+    #log {
+      background: black;
+      color: #efc;
+      border-radius: 2px;
+      position: relative;
+      .expander {
+        text-decoration: none;
+        color: white;
+        cursor: pointer;
+        position: absolute;
+        right: 14px;
+        top: 2px;
+      }
+      ul {
+        padding: 2px;
+        margin: 4px 0 0 3px;
+        max-height: 400px;
+        overflow-y: scroll;
+        li {
+          margin: 0;
+          padding: 0 6px 0 25px;
+          text-indent: -25px;
+        }
+        &:empty {
+          display: none;
+        }
       }
     }
   }
@@ -181,6 +213,9 @@ button {
       font-size: 5vw;
       max-height: 900px;
       overflow-y: scroll;
+      &.big-zoom {
+        max-height: 100%;
+      }
       &.actions {
         overflow-y: hidden;
         #actions {
@@ -204,7 +239,7 @@ button {
           width: 8vw;
           height: 8vw;
           border-radius: 4vh;
-          font-size: 3vw;
+          font-size: 4.5vw;
         }
       }
       #choiceFilter {
@@ -216,7 +251,6 @@ button {
 
 #zoomPiece {
   position: relative;
-  pointer-events: none;
   .scaler {
     transform-origin: top left;
   }
