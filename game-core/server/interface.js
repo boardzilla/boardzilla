@@ -579,7 +579,7 @@ class GameInterface extends EventEmitter {
           return this.currentPlayerName();
         });
       } else {
-        entry[userId] = `${this.currentPlayerName()} : ${action.prompt} ${args.map(a => (a && a[player] ? a[player].shown || a[player].hidden : a)).join(' ')}`.trim();
+        entry[userId] = `${this.currentPlayerName()} : ${action.prompt} ${args.map(a => (a instanceof Array && a[player] ? a[player].shown || a[player].hidden : a)).join(' ')}`.trim();
       }
       return entry;
     }, {});
