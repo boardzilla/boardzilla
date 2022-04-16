@@ -9,16 +9,16 @@ const db = require('./models');
 
 const allPlayerInfo = [
   {
-    name: 'alpha', password: bcrypt.hashSync('alpha', 10), email: 'alpha@alpha.com', lowerName: 'alpha',
+    name: 'alpha', password: bcrypt.hashSync('alpha', 10), email: 'alpha@alpha.com',
   },
   {
-    name: 'beta', password: bcrypt.hashSync('beta', 10), email: 'beta@alpha.com', lowerName: 'beta',
+    name: 'beta', password: bcrypt.hashSync('beta', 10), email: 'beta@alpha.com',
   },
   {
-    name: 'gamma', password: bcrypt.hashSync('gamma', 10), email: 'gamma@alpha.com', lowerName: 'gamma',
+    name: 'gamma', password: bcrypt.hashSync('gamma', 10), email: 'gamma@alpha.com',
   },
   {
-    name: 'delta', password: bcrypt.hashSync('delta', 10), email: 'delta@alpha.com', lowerName: 'delta',
+    name: 'delta', password: bcrypt.hashSync('delta', 10), email: 'delta@alpha.com',
   },
 ];
 
