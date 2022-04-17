@@ -274,6 +274,9 @@ module.exports = ({
     if (!session) {
       return res.status(404).end('No such game');
     }
+    if (session.state === 'error') {
+      return res.render('play-error');
+    }
     if (!req.params[0]) {
       const sessionUser = await db.SessionUser.findOne({ where: { userId: req.user.id, sessionId: session.id } });
       if (!sessionUser) {
@@ -461,6 +464,10 @@ module.exports = ({
       sendWS('log', { timestamp, sequence, message: typeof message === 'object' ? message[String(sessionUser.userId)] : message })
     );
 
+    const sendError = () => {
+      sendWS('error', {});
+    };
+
     const sessionRunner = gameRunner.createSessionRunner(session.id);
     sessionRunner.once('error', (error) => {
       console.error('error starting session!', error);
@@ -500,6 +507,7 @@ module.exports = ({
         case 'locks': return sendPlayerLocks();
         case 'drag': return updateElement(message.payload);
         case 'log': return sendLog(message.payload);
+        case 'error': return sendError();
         default: return sendWS(message.type, message.payload);
       }
     });

@@ -5,8 +5,8 @@ const EventEmitter = require('events');
 const Redis = require('ioredis');
 const path = require('path');
 const { Sequelize } = require('sequelize');
-const db = require('./models');
 const Sentry = require('@sentry/node');
+const db = require('./models');
 
 class GameRunner {
   constructor(redisUrl, s3Provider, zkConnectionString) {
@@ -48,6 +48,13 @@ class GameRunner {
       }
     };
 
+    const publish = async (message) => {
+      await this.redisClient.publish(
+        sessionEventKey,
+        JSON.stringify(message),
+      );
+    };
+
     lock.on('lost', cleanup);
 
     const handle = new EventEmitter();
@@ -59,13 +66,18 @@ class GameRunner {
     (async () => {
       try {
         await lock.lock(`${sessionId}`);
+        const session = await db.Session.findByPk(sessionId);
+        if (session.state === 'error') {
+          console.log('attempted to run session in error state');
+          await publish({ type: 'error' });
+          return;
+        }
 
         queueClient = this.redisClient.duplicate();
         console.log(process.pid, 'HAS LOCK');
         const vm = new NodeVM({
           console: 'inherit',
         });
-        const session = await db.Session.findByPk(sessionId);
         const gameVersion = await session.getGameVersion();
         const game = await gameVersion.getGame();
         const serverBuffer = await this.s3Provider.getObject({ Key: path.join(game.name, 'server', gameVersion.serverDigest, 'index.js') }).promise();
@@ -91,13 +103,6 @@ class GameRunner {
               } catch (e) {
                 console.error(gameInstance.sequence, e);
               }
-            };
-
-            const publish = async (message) => {
-              await this.redisClient.publish(
-                sessionEventKey,
-                JSON.stringify(message),
-              );
             };
 
             const sessionUsers = await session.getSessionUsers({ include: 'User' });
@@ -176,6 +181,7 @@ class GameRunner {
             }
           } catch (e) {
             console.error(`${process.pid} ERROR IN GAME RUNNER LOOP`, e);
+            throw e;
           }
           console.log('R ending game loop');
         }
@@ -186,7 +192,14 @@ class GameRunner {
         }
       } catch (e) {
         console.log('error in game runner loop', e);
-        Sentry.captureException(e, {extra: {sessionId}});
+        Sentry.withScope(scope => {
+          scope.setTag('source', 'game-runner');
+          scope.setExtra('session_id', sessionId);
+          Sentry.captureException(e);
+        });
+        const session = await db.Session.findByPk(sessionId);
+        await session.update({ state: 'error' });
+        throw e;
       } finally {
         await cleanup();
       }
