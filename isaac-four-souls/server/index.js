@@ -14,9 +14,9 @@ class FourSouls extends GameInterface {
     this.setupPlayerMat = (mat) => {
       const tableau = mat.addSpace('#tableau', 'area', { spreadX: 80 });
       mat.addSpace('#hand', 'area', { spreadX: 80 });
-      tableau.addComponent('counter', { display: 'hp', initialValue: 2, max: 5, bottom: 10 });
-      tableau.addComponent('counter', { display: 'attack', initialValue: 1, max: 8, left: 120, bottom: 10 });
-      tableau.addComponent('counter', { display: 'coin', initialValue: 3, max: 50, right: 10, bottom: 10 });
+      tableau.addComponent('counter', { name: 'health', display: 'hp', initialValue: 2, max: 5, bottom: 10 });
+      tableau.addComponent('counter', { name: 'attack', display: 'attack', initialValue: 1, max: 8, left: 120, bottom: 10 });
+      tableau.addComponent('counter', { name: 'coins', display: 'coin', initialValue: 3, max: 50, right: 10, bottom: 10 });
       tableau.addComponent('die', { faces: 6, right: 40, top: 10 });
     };
 
@@ -257,7 +257,7 @@ class FourSouls extends GameInterface {
         prompt: 'Add counter',
         key: 'c',
         select: '.mine card:empty, #board card:empty',
-        action: (card) => card.addComponent('counter', { max: 99 }),
+        action: (card) => card.addComponent('counter', { name: `counter on ${card.get('name')}`, max: 99 }),
       },
       removeCounter: {
         prompt: 'Remove counter',

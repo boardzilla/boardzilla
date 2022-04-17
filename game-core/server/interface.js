@@ -44,7 +44,7 @@ class GameInterface extends EventEmitter {
           if (counter.get('max')) newValue = Math.min(newValue, counter.get('max'));
           counter.set('value', newValue);
           counter.set('moves', counter.get('moves') + 1);
-          this.log(`${this.currentPlayerName()} set ${counter.get('display')} to ${newValue}`);
+          this.log(`${this.currentPlayerName()} set ${counter.get('name') || 'counter'} to ${newValue}`);
         }
       },
       rollDie: key => {
