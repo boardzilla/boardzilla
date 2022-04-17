@@ -15,11 +15,31 @@ class IncompleteActionError extends Error {
 }
 
 class GameInterface extends EventEmitter {
-  constructor(seed) {
+  #minPlayers = 1;
+
+  #maxPlayers;
+
+  // phase state machine: setup -> replay -> ready
+  #phase = 'setup';
+
+  // list of functions for player-mat setup
+  #setupPlayerMat = [];
+
+  // list of functions for board setup
+  #setupBoard = [];
+
+  // list of afterMove callbacks
+  #afterMoves = [];
+
+  // list of available actions
+  #actions = {};
+
+  #play = async () => { throw Error('play() must be called'); }; // eslint-disable-line class-methods-use-this
+
+  constructor() {
     super();
-    this.random = random.create(seed);
+    this.random = random.create();
     this.players = [];
-    this.phase = 'setup'; // setup -> replay -> ready
     this.hiddenKeys = [];
     this.hiddenElements = [];
     this.variables = {};
@@ -30,12 +50,10 @@ class GameInterface extends EventEmitter {
     this.pile = this.doc.pile();
     this.logs = {}; // log entries in form {seq: [player: string, player: string,...] or string (same for all),...}
     this.drags = {};
-    this.actions = {};
     this.currentPlayer = undefined; // 1-indexed from list of players, or undefined if any player can play
     this.currentActions = [];
-    this.afterMoves = [];
     this.promptMessage = null;
-    this.builtinActions = {
+    this.builtinActions = { // TODO this interface still needs work. Needs to look more like #actions? e.g. How set permissions?
       setCounter: (key, value) => {
         const counter = this.doc.find(`counter#${key}`);
         let newValue = value;
@@ -61,6 +79,10 @@ class GameInterface extends EventEmitter {
     this.lastReplaySequence = -1;
   }
 
+  seed(seed) {
+    this.random = random.create(seed);
+  }
+
   // start game from scratch and run history. resolves when game is done
   async start(history) {
     if (!history.length) { // waiting for start
@@ -69,7 +91,7 @@ class GameInterface extends EventEmitter {
       await new Promise(resolve => {
         this.on('action', (realtime, player, sequence, action) => {
           if (action === 'start') {
-            if (this.players.length < this.minPlayers) {
+            if (this.players.length < this.#minPlayers) {
               console.error('not enough players');
             } else {
               this.registerAction(player, ['start']);
@@ -83,24 +105,53 @@ class GameInterface extends EventEmitter {
     this.sequence = 1;
     this.lastReplaySequence = 0;
 
-    this.phase = 'replay';
+    this.#phase = 'replay';
     this.variables = this.initialVariables || {};
     this.idSequence = 0;
     times(this.players.length, player => {
       const playerMat = this.doc.addSpace(`#player-mat-${player}`, 'area', { player, class: 'player-mat' });
-      if (this.setupPlayerMat) this.setupPlayerMat(playerMat);
+      this.#setupPlayerMat.forEach(f => f(playerMat));
     });
-    if (this.setupBoard) this.setupBoard(this.board);
+    this.#setupBoard.forEach(f => f(this.board));
     this.currentPlayer = 1;
     console.log('I: start()', history.length);
     this.lastReplaySequence = history.length > 1 ? history[history.length - 1][1] : -1;
     this.replay(history.slice(1)); // ignore 'start'
 
-    this.phase = 'ready';
+    this.#phase = 'ready';
     console.log('I: ready');
     this.emit('ready');
-    await this.play();
+    await this.#play();
     this.updatePlayers(); // final game state with no actions allowed
+  }
+
+  defineAction(name, action) {
+    if (typeof name !== 'string' || typeof action !== 'object') throw Error('usage: defineAction(someAction, { ...action properties... })');
+    const unknownAttrs = Object.keys(action).filter(a => !['select', 'prompt', 'promptOnto', 'log', 'if', 'key', 'action', 'next', 'drag', 'onto', 'min', 'max'].includes(a));
+    if (unknownAttrs.length) throw Error(`${name} has unknown properties: '${unknownAttrs.join('\', \'')}'`);
+    if (!action.prompt) throw Error(`${name} is missing 'prompt'`);
+    if (action.next && action.action) throw Error(`${name} may not have both 'next' and 'action'. Use 'next' for a follow-up action, and 'action' only at the end.`);
+    if (action.drag && !action.onto) {
+      throw Error(`${name} has a 'drag' but no 'onto'`);
+    }
+    if (action.max === undefined ? action.min !== undefined : action.min === undefined) {
+      throw Error(`${name} has 'min' or 'max' but needs both`);
+    }
+    this.#actions[name] = action;
+  }
+
+  defineActions(actions) {
+    if (typeof actions !== 'object') throw Error('usage: defineActions({ someAction: { ...action properties... },... })');
+    Object.entries(actions).forEach(action => this.defineAction(...action))
+  }
+
+  getAllActions() {
+    return Object.keys(this.#actions);
+  }
+
+  setupBoard(fn) {
+    if (typeof fn !== 'function') throw Error('usage: setupBoard(board => { ... add things to `board` ... });');
+    this.#setupBoard.push(fn);
   }
 
   playerMat(player = this.currentPlayer) {
@@ -108,11 +159,27 @@ class GameInterface extends EventEmitter {
     return this.doc.find(`#player-mat[player="${player}"]`);
   }
 
+  setupPlayerMat(fn) {
+    if (typeof fn !== 'function') throw Error('usage: setupPlayerMat(mat => { ... add things to `mat` ... });');
+    this.#setupPlayerMat.push(fn);
+  }
+
+  setPlayers({ min, max }) {
+    this.#minPlayers = min;
+    this.#maxPlayers = max;
+  }
+
+  play(fn) {
+    if (typeof fn !== 'function') throw Error('usage: play(async () => { ... play actions ... });');
+    this.#play = fn;
+  }
+
   // add player to game
   addPlayer(userId, username) {
     if (this.players.find(p => p[0] === userId)) return;
-    if (this.phase !== 'setup') throw Error('not able to add players while playing');
-    if (this.players.length === this.maxPlayers) throw Error('game already full');
+    if (this.#maxPlayers && this.players.length >= this.#maxPlayers) throw Error('game is full')
+    if (this.#phase !== 'setup') throw Error('not able to add players while playing');
+    if (this.players.length === this.#maxPlayers) throw Error('game already full');
     this.players.push([userId, username]);
   }
 
@@ -170,6 +237,7 @@ class GameInterface extends EventEmitter {
   }
 
   hideBoard(selector, attrs) {
+    if (typeof selector !== 'string' || !(attrs instanceof Array)) throw Error('usage: hideBoard(selector, attributes) e.g. hideBoard(\'card.flipped\', [\'name\'])');
     this.hiddenElements.push([selector, attrs]);
   }
 
@@ -186,7 +254,7 @@ class GameInterface extends EventEmitter {
       variables: { ...this.variables },
       players: [...this.players],
       currentPlayer: this.currentPlayer,
-      phase: this.phase,
+      phase: this.#phase,
       doc: this.doc.node.innerHTML,
     };
   }
@@ -196,7 +264,7 @@ class GameInterface extends EventEmitter {
       this.variables = state.variables;
       this.players = state.players;
       this.currentPlayer = state.currentPlayer;
-      this.phase = state.phase;
+      this.#phase = state.phase;
       this.doc.node.innerHTML = state.doc;
       this.board = this.doc.board();
       this.pile = this.doc.pile();
@@ -248,10 +316,10 @@ class GameInterface extends EventEmitter {
     playerView.findNodes('.mine').forEach(n => n.classList.add('mine'));
 
     const allowedDrags = this.currentActions.reduce((drags, action) => {
-      if (this.actions[action].drag) {
+      if (this.#actions[action].drag) {
         drags[action] = {
-          pieces: this.serialize(this.doc.findAll(this.actions[action].drag)),
-          spaces: this.serialize(this.doc.findAll(this.actions[action].onto)),
+          pieces: this.serialize(this.doc.findAll(this.#actions[action].drag)),
+          spaces: this.serialize(this.doc.findAll(this.#actions[action].onto)),
         };
       }
       return drags;
@@ -260,7 +328,7 @@ class GameInterface extends EventEmitter {
 
     return {
       variables: this.shownVariables(),
-      phase: this.phase,
+      phase: this.#phase,
       players: this.players,
       currentPlayer: this.currentPlayer,
       sequence: this.sequence,
@@ -274,7 +342,8 @@ class GameInterface extends EventEmitter {
 
   // provide a fn that should be run after any board moves
   afterMove(pieceSelector, fn) {
-    this.afterMoves.push([pieceSelector, fn]);
+    if (typeof pieceSelector !== 'string' || typeof fn !== 'function') throw Error('usage: afterMove(selector, piece => { ... do things to `piece` ... });');
+    this.#afterMoves.push([pieceSelector, fn]);
   }
 
   // wait for an action from list of actions from current player
@@ -318,7 +387,7 @@ class GameInterface extends EventEmitter {
   choicesFromActions(player) {
     if (this.currentPlayer !== undefined && player !== this.currentPlayer) return {};
     return this.currentActions.reduce((choices, action) => {
-      const { key } = this.builtinActions[action] || this.actions[action];
+      const { key } = this.builtinActions[action] || this.#actions[action];
       try {
         const prompt = this.testAction(action, player);
         choices[action] = { prompt, key };
@@ -356,16 +425,13 @@ class GameInterface extends EventEmitter {
     let actionName;
     let action = actionIdentifier;
 
-    if (typeof actionIdentifier === 'string' && this.actions[actionIdentifier]) {
+    if (typeof actionIdentifier === 'string' && this.#actions[actionIdentifier]) {
       actionName = actionIdentifier;
-      action = this.actions[actionIdentifier];
+      action = this.#actions[actionIdentifier];
     } else {
       actionName = action.prompt;
     }
 
-    if (!action.prompt) {
-      throw Error(`${actionName} is missing 'prompt'`);
-    }
     const prompt = action.prompt + (action.key ? ` (${action.key.toUpperCase()})` : '');
 
     if (!action) {
@@ -381,9 +447,6 @@ class GameInterface extends EventEmitter {
     if (test) {
       nextAction = () => {};
     } else if (action.next) {
-      if (action.action) {
-        throw Error(`${actionName} may not have both 'next' and 'action'`);
-      }
       nextAction = () => this.runAction(action.next, args, argIndex + 1);
     }
 
@@ -391,9 +454,6 @@ class GameInterface extends EventEmitter {
     if (!test) namedArgs = this.namedElements(args, []);
     let nextPrompt;
     if (action.drag) {
-      if (!action.onto) {
-        throw Error(`${actionName} has a 'drag' but no 'onto'`);
-      }
       nextPrompt = this.dragAction(action.drag, action.onto, prompt, action.promptOnto, nextAction)(...args);
     } if (action.select) {
       if (action.select instanceof Array) {
@@ -406,9 +466,6 @@ class GameInterface extends EventEmitter {
         throw Error(`'select' for ${actionName} must be a list or a finder`);
       }
     } else if (action.max !== undefined || action.min !== undefined) { // simple numerical
-      if (action.max === undefined || action.min === undefined) {
-        throw Error(`${actionName} needs both 'min' and 'max'`);
-      }
       nextPrompt = this.chooseAction(range(action.min, action.max), prompt, nextAction, argIndex)(...args);
     } else if (nextAction) {
       nextAction(...args);
@@ -470,7 +527,7 @@ class GameInterface extends EventEmitter {
   }
 
   receiveAction(userId, sequence, action, ...args) {
-    if (this.phase === 'replay') return;
+    if (this.#phase === 'replay') return;
     console.log(`received action (${userId}, ${sequence}, ${action}, ${args})`);
     if (this.listenerCount('action') === 0) {
       console.error(`${this.userId}: no listener`);
@@ -521,7 +578,7 @@ class GameInterface extends EventEmitter {
           if (this.currentPlayer !== undefined && player !== this.currentPlayer) {
             return console.error(`Waiting for ${this.currentPlayer} and rejected action from ${player}.`);
           }
-          if (!this.actions[action] && !this.builtinActions[action]) {
+          if (!this.#actions[action] && !this.builtinActions[action]) {
             return console.error(`No such action ${action}`);
           }
           if (!this.alwaysAllowedPlays.concat(this.currentActions).includes(action)) {

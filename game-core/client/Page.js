@@ -122,6 +122,11 @@ export default class Page extends Component {
           break;
         case 'log':
           this.setState(state => ({logs: Object.assign({}, state.logs, {[res.payload.sequence]: res.payload.message})}));
+          {
+            const logUI = document.querySelector('#log ul');
+            if (logUI) logUI.scrollTop = logUI.scrollHeight;
+          }
+          break;
       }
     };
     document.addEventListener('touchmove', e => {

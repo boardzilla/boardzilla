@@ -18,6 +18,3 @@ render({
     }{n}</span>
   },
 });
-
-// polar-star -> booster
-// anima sola -> the revenant

@@ -14,7 +14,7 @@ X ..mobile layout
 - bonus souls at start and replaceable
 - rooms
 - addPlayers multiple
-- counter
+- counter name
 - log???
   - each action creates a log{seq: [0: 'action', 1: 'action'...]...}
   - state broadcast with new log entry and merged into state
