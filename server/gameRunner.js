@@ -67,6 +67,7 @@ class GameRunner {
         const game = await gameVersion.getGame();
         const serverBuffer = await this.s3Provider.getObject({ Key: path.join(game.name, 'server', gameVersion.serverDigest, 'index.js') }).promise();
         const gameInstance = vm.run(serverBuffer.Body.toString());
+        gameInstance.seed(session.seed);
 
         while (running) {
           try {

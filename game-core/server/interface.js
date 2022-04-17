@@ -38,7 +38,6 @@ class GameInterface extends EventEmitter {
 
   constructor() {
     super();
-    this.random = random.create();
     this.players = [];
     this.hiddenKeys = [];
     this.hiddenElements = [];
@@ -85,6 +84,7 @@ class GameInterface extends EventEmitter {
 
   // start game from scratch and run history. resolves when game is done
   async start(history) {
+    if (!this.random) throw Error('Can\'t call start() before seed()');
     if (!history.length) { // waiting for start
       this.sequence = 0;
       this.updatePlayers(); // initial game state with only start allowed
