@@ -1,3 +1,5 @@
 isaac-four-souls/client/build
 isaac-four-souls/server/build
 isaac-four-souls/dist
+server/test/fixtures/numberGuesser/server/0/index.js
+server/test/fixtures/numberGuesser/client/0/index.js

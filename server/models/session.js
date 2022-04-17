@@ -3,6 +3,7 @@ module.exports = (sequelize, DataTypes) => {
     gameVersionId: DataTypes.INTEGER,
     creatorId: DataTypes.INTEGER,
     seed: DataTypes.STRING,
+    state: DataTypes.STRING,
   }, {});
   Session.associate = function (models) {
     models.Session.hasMany(models.SessionUser, { foreignKey: 'sessionId' });
