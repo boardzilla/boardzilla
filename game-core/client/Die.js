@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 
-export default ({id, number, rolls, faces, gameAction}) => {
+export default function Die({id, number, rolls, faces, gameAction}) {
   const [override, setOverride] = useState();
   const [rolls2, setRolls2] = useState(rolls);
   const [shake, setShake] = useState({x:0, y:0});
@@ -49,4 +49,4 @@ export default ({id, number, rolls, faces, gameAction}) => {
   }
 
   return <button onClick={roll} onTouchEnd={roll} style={override && {transform: `rotate(${Math.random() * 360}deg)`}} >{override || number}</button>
-};
+}

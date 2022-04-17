@@ -172,7 +172,7 @@ describe('Server', () => {
           ws.on('message', (data) => {
             const message = JSON.parse(data);
             console.log(message);
-            if (message.type == 'state' && message.payload.allowedActions.guess) {
+            if (message.type === 'state' && message.payload.allowedActions.guess) {
               done();
             }
           });
@@ -206,9 +206,9 @@ describe('Server', () => {
 
       it('should allow locking a game piece', async () => {
         const key = '1-1';
-        await responseMatching(this.ws, (res) => res.type == 'state');
+        await responseMatching(this.ws, (res) => res.type === 'state');
         this.ws.send(JSON.stringify({ type: 'requestLock', payload: { key } }));
-        const message = await responseMatching(this.ws, (res) => res.type == 'updateLocks');
+        const message = await responseMatching(this.ws, (res) => res.type === 'updateLocks');
         console.log('message.payload', message.payload);
         assert.equal(message.payload[key], this.user.id, 'lock not created');
       });
@@ -227,14 +227,14 @@ describe('Server', () => {
         it('should disallow breaking locks on a game piece', async () => {
           const key = '1-1';
 
-          await responseMatching(this.ws, (res) => res.type == 'state', 1);
+          await responseMatching(this.ws, (res) => res.type === 'state', 1);
           this.ws.send(JSON.stringify({ type: 'requestLock', payload: { key } }));
-          await responseMatching(this.ws, (res) => res.type == 'updateLocks', 1);
+          await responseMatching(this.ws, (res) => res.type === 'updateLocks', 1);
 
           await new Promise((r) => setTimeout(r, 250));
 
           this.ws2.send(JSON.stringify({ type: 'requestLock', payload: { key } }));
-          const message = await responseMatching(this.ws2, (res) => res.type == 'updateLocks', 2);
+          const message = await responseMatching(this.ws2, (res) => res.type === 'updateLocks', 2);
 
           assert.equal(message.payload[key], this.user.id, 'lock not created');
         });
@@ -242,16 +242,16 @@ describe('Server', () => {
         it('should release locks on a game piece', async () => {
           const key = '1-1';
 
-          await responseMatching(this.ws, (res) => res.type == 'state');
+          await responseMatching(this.ws, (res) => res.type === 'state');
           this.ws.send(JSON.stringify({ type: 'requestLock', payload: { key } }));
-          await responseMatching(this.ws, (res) => res.type == 'updateLocks');
+          await responseMatching(this.ws, (res) => res.type === 'updateLocks');
           this.ws.send(JSON.stringify({ type: 'releaseLock', payload: { key } }));
-          await responseMatching(this.ws, (res) => res.type == 'updateLocks');
+          await responseMatching(this.ws, (res) => res.type === 'updateLocks');
 
           await new Promise((r) => setTimeout(r, 250));
 
           this.ws2.send(JSON.stringify({ type: 'requestLock', payload: { key } }));
-          const message = await responseMatching(this.ws, (res) => res.type == 'updateLocks');
+          const message = await responseMatching(this.ws, (res) => res.type === 'updateLocks');
 
           assert.equal(message.payload[key], this.user2.id, 'lock not available');
         });

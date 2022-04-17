@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -e
+yarn install --production=false
+yarn --cwd server install --production=false
+yarn --cwd game-core/client install --production=false
+yarn --cwd game-core/server install --production=false
+
+for game in $(cat GAMES); do
+	yarn --cwd $game/client install --production=false
+	yarn --cwd $game/server install --production=false
+done
+
+set +e
+yarn --cwd server run sequelize db:create
+NODE_ENV=test yarn --cwd server run sequelize db:create
+
+set -e
+yarn --cwd server run sequelize db:migrate
+NODE_ENV=test yarn --cwd server run sequelize db:migrate

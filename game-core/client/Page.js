@@ -618,7 +618,7 @@ export default class Page extends Component {
           {messagesPane == 'setup' &&
            <>
              <div className="prompt">
-               Send the URL to other players. Click 'Start' when all players are present.<br/><br/>
+               Send the URL to other players. Click &aposStart&apos when all players are present.<br/><br/>
                Players: {this.state.data.players.map(p => p[1]).join(', ')}
              </div>
              <button onClick={() => this.gameAction('start')}>Start</button>
