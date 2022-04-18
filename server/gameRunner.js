@@ -1,5 +1,3 @@
-const zkLock = require('zk-lock');
-const { simple } = require('locators');
 const { NodeVM } = require('vm2');
 const EventEmitter = require('events');
 const Redis = require('ioredis');
@@ -9,34 +7,19 @@ const Sentry = require('@sentry/node');
 const db = require('./models');
 
 class GameRunner {
-  constructor(redisUrl, s3Provider, zkConnectionString) {
+  constructor(redisUrl, s3Provider) {
     this.redisUrl = redisUrl;
     this.s3Provider = s3Provider;
-    this.zkConnectionString = zkConnectionString;
     this.redisClient = new Redis(redisUrl);
   }
 
   createSessionRunner(sessionId) {
-    const serverLocator = simple()(this.zkConnectionString);
+    console.log('CREATING RUNNER FOR SESSION ID', sessionId);
     const sessionEventKey = `session-events-${sessionId}`;
-
-    const lock = new zkLock.ZookeeperLock({
-      serverLocator,
-      pathPrefix: 'game-runner-',
-      sessionTimeout: 10000,
-    });
-
     let queueClient;
     let running = true;
 
     const cleanup = async () => {
-      try {
-        console.log('ending zk lock conn');
-        await lock.unlock();
-        console.log('done ending zk lock conn');
-      } catch (e) {
-        console.error('error ending lock client', e);
-      }
       if (queueClient) {
         try {
           console.log('disconnecting queue client');
@@ -55,8 +38,6 @@ class GameRunner {
       );
     };
 
-    lock.on('lost', cleanup);
-
     const handle = new EventEmitter();
     handle.stop = async () => {
       console.log('stopping session runner');
@@ -64,9 +45,13 @@ class GameRunner {
       await cleanup();
     };
     (async () => {
+      const t = await db.sequelize.transaction();
+      const session = await db.Session.findOne({
+        where: { id: sessionId },
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
       try {
-        await lock.lock(`${sessionId}`);
-        const session = await db.Session.findByPk(sessionId);
         if (session.state === 'error') {
           console.log('attempted to run session in error state');
           await publish({ type: 'error' });
@@ -99,7 +84,7 @@ class GameRunner {
 
             gameInstance.registerAction = async (player, action) => {
               try {
-                await session.createAction({ player, sequence: gameInstance.sequence, action });
+                await session.createAction({ player, sequence: gameInstance.sequence, action }, {transaction: t});
               } catch (e) {
                 console.error(gameInstance.sequence, e);
               }
@@ -153,6 +138,7 @@ class GameRunner {
                       sessionId,
                       sequence: { [Sequelize.Op.ne]: 0 },
                     },
+                    transaction: t
                   });
                   await session.update({ seed: String(Math.random()) });
                   return true;
@@ -163,6 +149,7 @@ class GameRunner {
                     where: {
                       id: lastAction[0].id,
                     },
+                    transaction: t
                   });
                   return true;
                 default:
@@ -187,11 +174,6 @@ class GameRunner {
           }
           console.log('R ending game loop');
         }
-        try {
-          await queueClient.quit();
-        } catch (e) {
-          console.debug('error while quitting', e);
-        }
       } catch (e) {
         console.log('error in game runner loop', e);
         Sentry.withScope(scope => {
@@ -199,10 +181,10 @@ class GameRunner {
           scope.setExtra('session_id', sessionId);
           Sentry.captureException(e);
         });
-        const session = await db.Session.findByPk(sessionId);
         await session.update({ state: 'error' });
         throw e;
       } finally {
+        await t.commit();
         await cleanup();
       }
     })().catch((e) => handle.emit('error', e));

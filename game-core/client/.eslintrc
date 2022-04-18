@@ -4,7 +4,10 @@
     "browser": true,
     "es6": true
   },
-  "extends": "eslint:recommended",
+  "extends": [
+    "eslint:recommended",
+    'plugin:react/recommended'
+  ],
   "globals": {
     "window": "readonly",
     "document": "readonly",
@@ -20,6 +23,7 @@
     "react"
   ],
   "rules": {
+    "react/prop-types": 0,
     "react/jsx-uses-vars": 2,
     "no-unused-vars": [
       "error",

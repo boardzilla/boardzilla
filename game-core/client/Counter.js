@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 
-export default ({id, display, value, min, max, moves, gameAction}) => {
+export default function Counter({id, display, value, min, max, moves, gameAction}) {
   const [override, setOverride] = useState();
   const [moves2, setMoves2] = useState(moves);
 

@@ -169,17 +169,23 @@ module.exports = ({
   });
 
   app.post('/login', async (req, res) => {
-    const name = req.body.name || '';
-    const password = req.body.password || '';
+    const name = (req.body.name || '').trim();
+    const password = (req.body.password || '').trim();
     const user = await db.User.findOne({
       where: Sequelize.where(
         Sequelize.fn('lower', Sequelize.col('name')),
         Sequelize.fn('lower', name),
       ),
     });
-    if (!user) return unauthorized(req, res, 'incorrect login');
-    const correctPassword = await bcrypt.compare(password, user.password);
-    if (!correctPassword) return unauthorized(req, res, 'incorrect login');
+
+    if (!user) {
+      return unauthorized(req, res, 'incorrect login');
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return unauthorized(req, res, 'incorrect login');
+    }
     loginUser(user, res);
     res.cookie('info', 'Logged in successfully!');
     res.redirect('/');
