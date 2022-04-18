@@ -19,10 +19,7 @@ module.exports = {
         caughtErrorsIgnorePattern: '^_',
       },
     ],
-    'no-underscore-dangle': [
-      'error',
-      { enforceInMethodNames: false },
-    ],
+    'no-underscore-dangle': 0,
     'new-cap': [
       'off',
     ],

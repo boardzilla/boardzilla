@@ -4,11 +4,10 @@ const fs = require('fs');
 const path = require('path');
 const WebSocket = require('ws');
 const jwt = require('jsonwebtoken');
-const assert = require('assert');
-const request = require('request');
-const rp = require('request-promise');
+const needle = require('needle');
 const bcrypt = require('bcrypt');
 const AWSMock = require('mock-aws-s3');
+const { assert } = require('chai');
 const createServer = require('../server');
 const db = require('../models');
 
@@ -19,7 +18,7 @@ process.env.PUBLISH_TOKEN = 'token';
 
 AWSMock.config.basePath = path.resolve(path.join(__dirname));
 
-async function responseMatching(ws, matcher, p) {
+async function responseMatching(ws, matcher, _) {
   return new Promise((resolve) => {
     ws.addEventListener('message', (message) => {
       message = JSON.parse(message.data);
@@ -33,15 +32,10 @@ async function responseMatching(ws, matcher, p) {
 
 describe('Server', () => {
   beforeEach(async () => {
-    for (const k in db.sequelize.models) {
-      await db.sequelize.query(`TRUNCATE TABLE "${db.sequelize.models[k].tableName}" CASCADE`);
-    }
+    await db.sequelize.truncate({ cascade: true });
   });
 
   beforeEach((done) => {
-    console.log('s3 bucket base path is ', AWSMock.config.basePath);
-    // const bucketName = path.basename(path.resolve(__dirname, '..'))
-    console.log('s3 bucket name is ', AWSMock.config.basePath, 'fixtures');
     const s3Provider = AWSMock.S3({
       params: { Bucket: 'fixtures' },
     });
@@ -70,34 +64,38 @@ describe('Server', () => {
     });
   });
 
-  describe('with a valid server', () => {
+  describe('with a valid user', () => {
     beforeEach(async () => {
       await db.User.create({ name: 'joshbuddy', password: await bcrypt.hash('hello', 10) });
     });
-  });
 
-  it('should allow login', (done) => {
-    request.post('http://localhost:3000/login', { json: { name: 'joshbuddy', password: 'hello' } }, (error, response, body) => {
-      assert(!error);
-      assert(response.statusCode === 302);
-      done();
+    it('should allow login', async () => {
+      const response = await needle('post', 'http://localhost:3000/login', { name: 'joshbuddy', password: 'hello' });
+      assert.equal(response.statusCode, 302);
+    });
+
+    it('should not allow login with the wrong password', async () => {
+      const response = await needle('post', 'http://localhost:3000/login', { name: 'joshbuddy', password: 'not-hello' });
+      assert.equal(response.statusCode, 302);
+      assert.equal(response.cookies.error, 'incorrect login');
     });
   });
 
-  it('should create a user', (done) => {
-    request.post('http://localhost:3000/users', { json: { name: 'joshbuddy', password: 'hello', email: 'someone@gmail.com' } }, (error, response, body) => {
-      assert(!error);
-      assert(response.statusCode === 302);
-      done();
-    });
+  it('should create a user', async () => {
+    const response = await needle('post', 'http://localhost:3000/users', { name: 'joshbuddy', password: 'hello', email: 'someone@gmail.com' });
+    assert.equal(response.statusCode, 302);
+    assert.equal(response.headers.location, '/');
+    assert.isUndefined(response.cookies.error);
   });
 
-  it('should ignore creating a game version without a publish token', (done) => {
-    const headers = { 'x-publish-token': 'some-other-token' };
-    request.put('http://localhost:3000/publish', { json: { name: 'hey', serverDigest: 'server-digest', clientDigest: 'client-digest' }, headers }, (error, response, body) => {
-      assert(response.statusCode === 401);
-      done();
-    });
+  it('should ignore creating a game version without a publish token', async () => {
+    const response = await needle(
+      'put',
+      'http://localhost:3000/publish',
+      { name: 'hey', serverDigest: 'server-digest', clientDigest: 'client-digest' },
+      { json: true, headers: { 'x-publish-token': 'some-other-token' } },
+    );
+    assert.equal(response.statusCode, 401);
   });
 
   context('authorized', () => {
@@ -113,39 +111,55 @@ describe('Server', () => {
       });
     });
 
-    it('should allow creating a new game version', (done) => {
-      const headers = { 'x-publish-token': 'token' };
-      request.put('http://localhost:3000/publish', { json: { name: 'hey', serverDigest: 'server-digest', clientDigest: 'client-digest' }, headers }, (error, response, body) => {
-        assert(!error, 'no error');
-        assert(body.version === 1);
-        done();
-      });
+    it('should allow creating a new game version', async () => {
+      const response = await needle(
+        'put',
+        'http://localhost:3000/publish',
+        { name: 'hey', serverDigest: 'server-digest', clientDigest: 'client-digest' },
+        { json: true, headers: { 'x-publish-token': 'token' } },
+      );
+      assert.equal(response.statusCode, 200);
+      assert.equal(response.body.version, 1);
     });
 
-    it('should allow creating a subsequent game version', (done) => {
-      const headers = { 'x-publish-token': 'token' };
-      request.put('http://localhost:3000/publish', { json: { name: 'hey', serverDigest: 'server-digest', clientDigest: 'client-digest' }, headers }, (error, response, body) => {
-        assert(!error, 'no error');
-        assert(body.version === 1);
-        request.put('http://localhost:3000/publish', { json: { name: 'hey', serverDigest: 'server-digest2', clientDigest: 'client-digest2' }, headers }, (error, response, body) => {
-          assert(!error, 'no error');
-          assert(body.version === 2);
-          done();
-        });
-      });
+    it('should allow creating a subsequent game version', async () => {
+      const response1 = await needle(
+        'put',
+        'http://localhost:3000/publish',
+        { name: 'hey', serverDigest: 'server-digest', clientDigest: 'client-digest' },
+        { json: true, headers: { 'x-publish-token': 'token' } },
+      );
+      assert.equal(response1.statusCode, 200);
+      assert.equal(response1.body.version, 1);
+
+      const response2 = await needle(
+        'put',
+        'http://localhost:3000/publish',
+        { name: 'hey', serverDigest: 'server-digest2', clientDigest: 'client-digest2' },
+        { json: true, headers: { 'x-publish-token': 'token' } },
+      );
+      assert.equal(response2.statusCode, 200);
+      assert.equal(response2.body.version, 2);
     });
 
-    it('should skip creating an identical version', (done) => {
-      const headers = { 'x-publish-token': 'token' };
-      request.put('http://localhost:3000/publish', { json: { name: 'hey', serverDigest: 'server-digest', clientDigest: 'client-digest' }, headers }, (error, response, body) => {
-        assert(!error, 'no error');
-        assert(body.version === 1);
-        request.put('http://localhost:3000/publish', { json: { name: 'hey', serverDigest: 'server-digest', clientDigest: 'client-digest' }, headers }, (error, response, body) => {
-          assert(!error, 'no error');
-          assert(body.version === 1);
-          done();
-        });
-      });
+    it('should skip creating an identical version', async () => {
+      const response1 = await needle(
+        'put',
+        'http://localhost:3000/publish',
+        { name: 'hey', serverDigest: 'server-digest', clientDigest: 'client-digest' },
+        { json: true, headers: { 'x-publish-token': 'token' } },
+      );
+      assert.equal(response1.statusCode, 200);
+      assert.equal(response1.body.version, 1);
+
+      const response2 = await needle(
+        'put',
+        'http://localhost:3000/publish',
+        { name: 'hey', serverDigest: 'server-digest', clientDigest: 'client-digest' },
+        { json: true, headers: { 'x-publish-token': 'token' } },
+      );
+      assert.equal(response2.statusCode, 200);
+      assert.equal(response2.body.version, 1);
     });
 
     context('with a game', () => {
@@ -156,25 +170,34 @@ describe('Server', () => {
         });
       });
 
-      it('should allow creating a session', (done) => {
-        request.post('http://localhost:3000/sessions', { json: { gameId: this.game.id }, headers: this.headers }, (error, response, body) => {
-          assert(!error, 'no error');
-          assert(body.id, 'has no id');
-          done();
-        });
+      it('should allow creating a session', async () => {
+        const response = await needle(
+          'post',
+          'http://localhost:3000/sessions',
+          { gameId: this.game.id },
+          { json: true, headers: this.headers },
+        );
+        assert.equal(response.statusCode, 200);
+        assert.isNumber(response.body.id);
       });
 
-      it('should allow joining a game', (done) => {
-        request.post('http://localhost:3000/sessions', { json: { gameId: this.game.id }, headers: this.headers }, (error, response, body) => {
-          assert(!error, 'no error');
-          assert(body.id, 'has no id');
-          const ws = new WebSocket(`ws://localhost:3000/sessions/${body.id}`, { headers: this.headers });
+      it('should allow joining a game', async () => {
+        const response = await needle(
+          'post',
+          'http://localhost:3000/sessions',
+          { gameId: this.game.id },
+          { json: true, headers: this.headers },
+        );
+        assert.equal(response.statusCode, 200);
+        assert.isNumber(response.body.id);
+        await new Promise((resolve) => {
+          const ws = new WebSocket(`ws://localhost:3000/sessions/${response.body.id}`, { headers: this.headers });
           ws.on('message', (data) => {
             const message = JSON.parse(data);
-            console.log(message);
-            if (message.type === 'state' && message.payload.allowedActions.guess) {
-              done();
-            }
+            // if (message.type === 'state' && message.payload.allowedActions.guess) {
+            ws.close();
+            resolve();
+            // }
           });
         });
       });
@@ -189,19 +212,32 @@ describe('Server', () => {
         this.session = await db.Session.create({ gameVersionId: this.gameVersion.id, creatorId: this.user.id });
       });
 
-      beforeEach((done) => {
-        request.post('http://localhost:3000/sessions', { json: { gameId: this.game.id }, headers: this.headers }, (error, response, body) => {
-          this.sessionId = body.id;
-          this.ws = new WebSocket(`ws://localhost:3000/sessions/${body.id}`, { headers: this.headers });
-          this.ws.on('open', done);
+      beforeEach(async () => {
+        const response = await needle(
+          'post',
+          'http://localhost:3000/sessions',
+          { gameId: this.game.id },
+          { json: true, headers: this.headers },
+        );
+        assert.equal(response.statusCode, 200);
+        this.sessionId = response.body.id;
+        this.ws = new WebSocket(`ws://localhost:3000/sessions/${this.sessionId}`, { headers: this.headers });
+        await new Promise(resolve => {
+          this.ws.on('open', resolve);
         });
       });
 
-      it('should allow getting a specific asset', (done) => {
-        request.get(`http://localhost:3000/play/${this.session.id}/index.js`, { headers: this.headers }, (error, response, body) => {
-          assert.equal(body, fs.readFileSync(`${__dirname}/fixtures/numberGuesser/client/0/index.js`));
-          done();
-        });
+      afterEach(async () => {
+        this.ws.close();
+      });
+
+      it('should allow getting a specific asset', async () => {
+        const response = await needle(
+          'get',
+          `http://localhost:3000/play/${this.session.id}/index.js`,
+          { json: true, headers: this.headers },
+        );
+        assert.equal(response.body.toString(), fs.readFileSync(`${__dirname}/fixtures/numberGuesser/client/0/index.js`).toString());
       });
 
       it('should allow locking a game piece', async () => {
@@ -209,19 +245,28 @@ describe('Server', () => {
         await responseMatching(this.ws, (res) => res.type === 'state');
         this.ws.send(JSON.stringify({ type: 'requestLock', payload: { key } }));
         const message = await responseMatching(this.ws, (res) => res.type === 'updateLocks');
-        console.log('message.payload', message.payload);
         assert.equal(message.payload[key], this.user.id, 'lock not created');
       });
 
       context('with 2 players', () => {
-        beforeEach(() => {
-          db.User.create({ email: 'hello2@asdf.com', password: 'some-pass', name: 'asd2' }).then((user) => {
-            this.user2 = user;
-            const headers = { authorization: `JWT ${jwt.sign({ id: user.id }, SECRET_KEY)}` };
-            request.post(`http://localhost:3000/user-sessions/${this.sessionId}`, { json: { gameId: this.game.id }, headers }, () => {
-              this.ws2 = new WebSocket(`ws://localhost:3000/sessions/${this.sessionId}`, { headers });
-            });
+        beforeEach(async () => {
+          this.user2 = await db.User.create({ email: 'hello2@asdf.com', password: 'some-pass', name: 'asd2' });
+          const headers = { authorization: `JWT ${jwt.sign({ id: this.user2.id }, SECRET_KEY)}` };
+          const response = await needle(
+            'post',
+            `http://localhost:3000/user-sessions/${this.sessionId}`,
+            { gameId: this.game.id },
+            { json: true, headers },
+          );
+          assert.equal(response.statusCode, 200);
+          this.ws2 = new WebSocket(`ws://localhost:3000/sessions/${this.sessionId}`, { headers });
+          await new Promise(resolve => {
+            this.ws2.on('open', resolve);
           });
+        });
+
+        afterEach(async () => {
+          this.ws2.close();
         });
 
         it('should disallow breaking locks on a game piece', async () => {
