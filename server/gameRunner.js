@@ -180,8 +180,10 @@ class GameRunner {
               }
             }
           } catch (e) {
-            console.error(`${process.pid} ERROR IN GAME RUNNER LOOP`, e);
-            throw e;
+            if (e.message !== 'Connection is closed.') {
+              console.error(`${process.pid} ERROR IN GAME RUNNER LOOP`, e);
+              throw e;
+            }
           }
           console.log('R ending game loop');
         }
