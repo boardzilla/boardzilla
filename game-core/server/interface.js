@@ -44,10 +44,6 @@ class GameInterface extends EventEmitter {
     this.variables = {};
     this.allowedMoveElements = ''; // piece selector that is always valid for moving
     this.alwaysAllowedPlays = []; // actions that anyone can take at any time
-    this.doc = new GameDocument(null, { game: this });
-    this.board = this.doc.board();
-    this.pile = this.doc.pile();
-    this.logs = {}; // log entries in form {seq: [player: string, player: string,...] or string (same for all),...}
     this.drags = {};
     this.currentPlayer = undefined; // 1-indexed from list of players, or undefined if any player can play
     this.currentActions = [];
@@ -78,13 +74,29 @@ class GameInterface extends EventEmitter {
     this.lastReplaySequence = -1;
   }
 
-  seed(seed) {
-    this.random = random.create(seed);
+  /**
+   * after constructor and all game functions registered
+   */
+  initialize() {
+    this.doc = new GameDocument(null, { game: this });
+    this.board = this.doc.board();
+    this.pile = this.doc.pile();
+    this.logs = {}; // log entries in form {seq: [player: string, player: string,...] or string (same for all),...}
+    this.variables = this.initialVariables || {};
+    this.idSequence = 0;
+  }
+
+  seed(rseed) {
+    this.rseed = rseed;
   }
 
   // start game from scratch and run history. resolves when game is done
   async start(history) {
-    if (!this.random) throw Error('Can\'t call start() before seed()');
+    if (!this.seed) throw Error('Can\'t call start() before seed()');
+    this.random = random.create(this.rseed);
+    this.removeAllListeners('action');
+    this.initialize();
+
     if (!history.length) { // waiting for start
       this.sequence = 0;
       this.updatePlayers(); // initial game state with only start allowed
@@ -106,15 +118,12 @@ class GameInterface extends EventEmitter {
     this.lastReplaySequence = 0;
 
     this.#phase = 'replay';
-    this.variables = this.initialVariables || {};
-    this.idSequence = 0;
     times(this.players.length, player => {
       const playerMat = this.doc.addSpace(`#player-mat-${player}`, 'area', { player, class: 'player-mat' });
       this.#setupPlayerMat.forEach(f => f(playerMat));
     });
     this.#setupBoard.forEach(f => f(this.board));
     this.currentPlayer = 1;
-    console.log('I: start()', history.length);
     this.lastReplaySequence = history.length > 1 ? history[history.length - 1][1] : -1;
     this.replay(history.slice(1)); // ignore 'start'
 
@@ -379,6 +388,14 @@ class GameInterface extends EventEmitter {
     this.alwaysAllowedPlays = actions;
   }
 
+  processAfterMoves(elements) {
+    this.#afterMoves.forEach(([pieceSelector, fn]) => {
+      elements.forEach(el => {
+        if (el.matches(pieceSelector)) fn(el);
+      });
+    });
+  }
+
   prompt(promptMessage) {
     this.promptMessage = promptMessage;
   }
@@ -546,11 +563,11 @@ class GameInterface extends EventEmitter {
   async waitForAction() {
     this.updatePlayers();
     return new Promise((resolve, reject) => {
-      if (this.listenerCount('action') > 1) {
+      if (this.listenerCount('action') > 0) {
         reject(new Error('Game play has gotten ahead of itself. You are probably missing an `await` in the play function'));
       }
       this.on('action', (realtime, player, sequence, action, ...args) => {
-        console.log(`I: got action (${player}, ${action}, ${args})`);
+        console.log(`I: got action (${player}, ${sequence}, ${action}, ${args}) ${this.listenerCount('action')} listeners`);
         const deserializedArgs = this.deserialize(args);
         if (action === 'moveElement') {
           // moveElement is a special case that doesn't count as a full action but we need to register it and just keep listening

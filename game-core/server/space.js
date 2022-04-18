@@ -50,11 +50,7 @@ class Space extends GameElement {
       }
       space.node.insertBefore(piece.node, space.node.children[position]);
     });
-    this.game.afterMoves.forEach(([pieceSelector, fn]) => {
-      movables.forEach(piece => {
-        if (piece.matches(pieceSelector)) fn(piece);
-      });
-    });
+    this.game.processAfterMoves(movables);
     return movables;
   }
 

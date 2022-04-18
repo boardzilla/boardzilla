@@ -379,16 +379,14 @@ export default class Page extends Component {
     let otherPlayers = 0;
     return (
       <div id="game">
-        <div id="game-container">
-          {[...new Set([
-            ...board.querySelectorAll('.player-mat.mine ~ #player-mat'),
-            ...board.querySelectorAll('.player-mat:not(.mine)')
-          ])].map(
-            mat => this.renderGameElement(mat, otherPlayers++<2)
-          )}
-          {this.renderGameElement(board.querySelector('#board'))}
-          {this.renderGameElement(board.querySelector(`.player-mat.mine`))}
-        </div>
+        {[...new Set([
+          ...board.querySelectorAll('.player-mat.mine ~ #player-mat'),
+          ...board.querySelectorAll('.player-mat:not(.mine)')
+        ])].map(
+          mat => this.renderGameElement(mat, otherPlayers++<2)
+        )}
+        {this.renderGameElement(board.querySelector('#board'))}
+        {this.renderGameElement(board.querySelector(`.player-mat.mine`))}
       </div>
     );
   }

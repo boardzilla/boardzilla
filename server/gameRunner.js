@@ -67,7 +67,6 @@ class GameRunner {
         const game = await gameVersion.getGame();
         const serverBuffer = await this.s3Provider.getObject({ Key: path.join(game.name, 'server', gameVersion.serverDigest, 'index.js') }).promise();
         const gameInstance = vm.run(serverBuffer.Body.toString());
-        gameInstance.seed(session.seed);
 
         while (running) {
           try {
@@ -99,6 +98,7 @@ class GameRunner {
             ));
             console.log('R restarting runner loop');
 
+            gameInstance.seed(session.seed);
             gameInstance.start(history).then(() => {
               // TODO handle this promise resolution (end of game)
             }).catch((e) => {
@@ -181,7 +181,9 @@ class GameRunner {
           scope.setExtra('session_id', sessionId);
           Sentry.captureException(e);
         });
-        await session.update({ state: 'error' });
+        if (process.env.NODE_ENV !== 'development') {
+          await session.update({ state: 'error' });
+        }
         throw e;
       } finally {
         await t.commit();
