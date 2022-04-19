@@ -1,4 +1,3 @@
-
 container
  zone - fixed size
   space - area, deck, spread?
@@ -6,16 +5,20 @@ container
  zone
  zone
 
-- clean up interface
+X clean up interface
+  X put startup into state?
+  - scope as current player
 - email taken flash error
 - spread space
 X mobile events
 X ..mobile layout
 - bonus souls at start and replaceable
 - rooms
-- log???
-  - each action creates a log{seq: [0: 'action', 1: 'action'...]...}
-  - state broadcast with new log entry and merged into state
+X addPlayers multiple
+X counter
+X log???
+  X each action creates a log{seq: [0: 'action', 1: 'action'...]...}
+  X state broadcast with new log entry and merged into state
   - need a full refresh?
 - mouse tracking
 - movement echo???

@@ -122,6 +122,11 @@ export default class Page extends Component {
           break;
         case 'log':
           this.setState(state => ({logs: Object.assign({}, state.logs, {[res.payload.sequence]: res.payload.message})}));
+          {
+            const logUI = document.querySelector('#log ul');
+            if (logUI) logUI.scrollTop = logUI.scrollHeight;
+          }
+          break;
       }
     };
     document.addEventListener('touchmove', e => {
@@ -374,16 +379,14 @@ export default class Page extends Component {
     let otherPlayers = 0;
     return (
       <div id="game">
-        <div id="game-container">
-          {[...new Set([
-            ...board.querySelectorAll('.player-mat.mine ~ #player-mat'),
-            ...board.querySelectorAll('.player-mat:not(.mine)')
-          ])].map(
-            mat => this.renderGameElement(mat, otherPlayers++<2)
-          )}
-          {this.renderGameElement(board.querySelector('#board'))}
-          {this.renderGameElement(board.querySelector(`.player-mat.mine`))}
-        </div>
+        {[...new Set([
+          ...board.querySelectorAll('.player-mat.mine ~ #player-mat'),
+          ...board.querySelectorAll('.player-mat:not(.mine)')
+        ])].map(
+          mat => this.renderGameElement(mat, otherPlayers++<2)
+        )}
+        {this.renderGameElement(board.querySelector('#board'))}
+        {this.renderGameElement(board.querySelector(`.player-mat.mine`))}
       </div>
     );
   }
@@ -618,10 +621,10 @@ export default class Page extends Component {
           {messagesPane == 'setup' &&
            <>
              <div className="prompt">
-               Send the URL to other players. Click &aposStart&apos when all players are present.<br/><br/>
+               Send the URL to other players. Click &apos;Start&apos; when all players are present.<br/><br/>
                Players: {this.state.data.players.map(p => p[1]).join(', ')}
              </div>
-             <button onClick={() => this.gameAction('start')}>Start</button>
+             <button onClick={() => this.send('start')}>Start</button>
            </>
           }
 

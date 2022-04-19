@@ -3,9 +3,12 @@ module.exports = (sequelize, DataTypes) => {
     gameVersionId: DataTypes.INTEGER,
     creatorId: DataTypes.INTEGER,
     seed: DataTypes.STRING,
-    state: DataTypes.STRING,
+    state: {
+      type: DataTypes.STRING,
+      defaultValue: 'initial',
+    },
   }, {});
-  Session.associate = function (models) {
+  Session.associate = models => {
     models.Session.hasMany(models.SessionUser, { foreignKey: 'sessionId' });
     models.Session.hasMany(models.ElementLock, { foreignKey: 'sessionId' });
     models.Session.hasMany(models.SessionAction, { foreignKey: 'sessionId', as: 'actions' });

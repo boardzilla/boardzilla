@@ -34,6 +34,9 @@ class GameElement {
       .reduce((attrs, attr) => Object.assign(attrs, { [attr.name]: unescape(!attr.value || Number.isNaN(Number(attr.value)) ? attr.value : Number(attr.value)) }), {});
   }
 
+  /**
+   * get attribute on this element
+   */
   get(name) {
     try {
       return JSON.parse(this.attributes()[name]);
@@ -42,9 +45,18 @@ class GameElement {
     }
   }
 
+  /**
+   * set attributes on this element
+   * set({ attr1: newValue, attr2: newValue,... })
+   * set(attr1, newValue)
+   */
   set(name, value) {
     if (value === false || value === '' || value === undefined) {
-      this.node.removeAttribute(name);
+      if (typeof name === 'object') {
+        Object.entries(name).forEach(([n, v]) => this.set(n, v));
+      } else {
+        this.node.removeAttribute(name);
+      }
     } else {
       this.node.setAttribute(name, escape(value));
     }
