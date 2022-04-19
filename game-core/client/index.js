@@ -10,13 +10,15 @@ Sentry.init({
   tracesSampleRate: 1.0,
 });
 
-export const render = ({pieces, counters, background}) => ReactDOM.render(
-  <Page
-    userId={window.userId}
-    session={document.location.href.match(/play\/(\d+)\//)[1]}
-    pieces={pieces}
-    counterDisplays={counters}
-    background={background}
-  />,
-  document.getElementById('container')
-)
+export const render = ({pieces, counters, background}) => {
+  ReactDOM.render(
+    <Page
+      userId={window.userId}
+      session={document.location.href.match(/play\/(\d+)\//)[1]}
+      pieces={pieces}
+      counterDisplays={counters}
+      background={background}
+    />,
+    document.getElementById('container')
+  )
+};

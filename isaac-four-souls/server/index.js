@@ -325,6 +325,7 @@ game.play(async () => {
   game.prompt('Select starting characters and eternals, then hit Begin game');
   do {
     [action] = await game.anyPlayerPlay([...startingActions, 'draw', 'drawOne', 'drawMultiple', 'shuffle', 'play', 'remove']);
+    console.log('G', action);
   } while (action !== 'start');
   game.board.find('#characters').destroy();
   game.board.find('#eternals').destroy();
