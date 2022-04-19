@@ -1,3 +1,5 @@
+const zkLock = require('zk-lock');
+const { simple } = require('locators');
 const { NodeVM } = require('vm2');
 const EventEmitter = require('events');
 const Redis = require('ioredis');
@@ -6,19 +8,34 @@ const Sentry = require('@sentry/node');
 const db = require('./models');
 
 class GameRunner {
-  constructor(redisUrl, s3Provider) {
+  constructor(redisUrl, s3Provider, zkConnectionString) {
     this.redisUrl = redisUrl;
     this.s3Provider = s3Provider;
     this.redisClient = new Redis(redisUrl);
+    this.zkConnectionString = zkConnectionString;
   }
 
   createSessionRunner(sessionId) {
     console.log('CREATING RUNNER FOR SESSION ID', sessionId);
     const sessionEventKey = `session-events-${sessionId}`;
+    const serverLocator = simple()(this.zkConnectionString);
+    const lock = new zkLock.ZookeeperLock({
+      serverLocator,
+      pathPrefix: 'game-runner-',
+      sessionTimeout: 10000,
+    });
+
     let queueClient;
     let running = true;
 
     const cleanup = async () => {
+      try {
+        console.log('ending zk lock conn');
+        await lock.unlock();
+        console.log('done ending zk lock conn');
+      } catch (e) {
+        console.error('error ending lock client', e);
+      }
       if (queueClient) {
         try {
           console.log('disconnecting queue client');
@@ -45,19 +62,14 @@ class GameRunner {
     };
     console.log('R waiting for lock...');
     (async () => {
-      const t = await db.sequelize.transaction();
-      const session = await db.Session.findOne({
-        where: { id: sessionId },
-        transaction: t,
-        lock: t.LOCK.UPDATE,
-      });
+      const session = await db.Session.findByPk(sessionId);
       try {
+        await lock.lock(`${sessionId}`);
         if (session.state === 'error') {
           console.log('attempted to run session in error state');
           await publish({ type: 'error' });
           return;
         }
-
         queueClient = this.redisClient.duplicate();
         console.log(process.pid, 'HAS LOCK', session.state);
         const vm = new NodeVM({
@@ -80,14 +92,14 @@ class GameRunner {
 
             gameInstance.onceReady(() => {
               console.log('R ready and running');
-              session.update({ state: 'running' }, { transaction: t });
+              session.update({ state: 'running' });
 
               gameInstance.onLogMessage((timestamp, sequence, message) => publish({ type: 'log', payload: { timestamp, sequence, message } }));
 
               gameInstance.onCompleteAction((player, sequence, action) => {
                 console.log('R completed-action', player, sequence, action);
                 try {
-                  session.createAction({ player, sequence, action }, { transaction: t });
+                  session.createAction({ player, sequence, action });
                   console.log('R session update');
                 } catch (e) {
                   console.error(sequence, e);
@@ -95,13 +107,13 @@ class GameRunner {
               });
             });
 
-            const sessionUsers = await session.getSessionUsers({ include: 'User' }, { transaction: t });
+            const sessionUsers = await session.getSessionUsers({ include: 'User' });
             const users = sessionUsers.map((su) => su.User);
             users.forEach((user) => gameInstance.addPlayer(user.id, user.name));
 
             let history;
             if (session.state === 'running') {
-              history = (await session.getActions({ order: ['sequence'], transaction: t })).map((action) => (
+              history = (await session.getActions({ order: ['sequence'] })).map((action) => (
                 [action.player, action.sequence, ...action.action]
               ));
               console.log('R restarting runner loop', history.length);
@@ -140,16 +152,16 @@ class GameRunner {
                   return false;
                 case 'reset':
                   await queueClient.del(sessionEventKey);
-                  await db.SessionAction.destroy({ where: { sessionId }, transaction: t });
-                  await session.update({ seed: String(Math.random()) }, { transaction: t });
+                  await db.SessionAction.destroy({ where: { sessionId } });
+                  await session.update({ seed: String(Math.random()) });
                   return true;
                 case 'undo':
                   await queueClient.del(sessionEventKey);
                   {
-                    const lastAction = await session.getActions({ order: [['sequence', 'DESC']], limit: 1, transaction: t });
+                    const lastAction = await session.getActions({ order: [['sequence', 'DESC']], limit: 1 });
                     console.log('lastAction', lastAction[0] && lastAction[0].id);
                     if (lastAction[0]) {
-                      await db.SessionAction.destroy({ where: { id: lastAction[0].id }, transaction: t });
+                      await db.SessionAction.destroy({ where: { id: lastAction[0].id } });
                     }
                   }
                   return true;
@@ -185,11 +197,10 @@ class GameRunner {
           Sentry.captureException(e);
         });
         if (process.env.NODE_ENV !== 'development') {
-          await session.update({ state: 'error' }, { transaction: t });
+          await session.update({ state: 'error' });
         }
         throw e;
       } finally {
-        await t.commit();
         await cleanup();
         console.log('exiting...');
       }
