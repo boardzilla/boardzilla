@@ -131,10 +131,14 @@ export default class Page extends Component {
     };
     document.addEventListener('touchmove', e => {
       let el = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+      if (!this.state.touchMoving) this.setState({ touchMoving: true });
       if (el && this.state.dragging) {
         while (el.classList && !el.classList.contains("space") && el.parentNode) el = el.parentNode;
         this.setState({dragOver: keyFromEl(el)});
       }
+    });
+    document.addEventListener('touchend', () => {
+      this.setState({ touchMoving: false });
     });
     document.addEventListener('mousemove', e => {
       mouse = {x: e.clientX, y: e.clientY};
@@ -539,7 +543,7 @@ export default class Page extends Component {
     const boardXml = this.state.data.doc && xmlToNode(this.state.data.doc);
 
     let messagesPane = 'hidden', zoomScale, zoomEl, actions = this.state.actions;
-    if (!this.state.dragging) {
+    if (!this.state.dragging && !this.state.touchMoving) {
       if (this.state.zoomPiece) {
         zoomEl = pieceAt(boardXml, this.state.zoomPiece);
         if (!zoomEl) { // piece went away, remove actions that may no longer apply

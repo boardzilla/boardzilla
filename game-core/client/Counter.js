@@ -14,9 +14,9 @@ export default function Counter({id, display, value, min, max, moves, gameAction
 
   return (
     <div>
-      <button onClick={e => {set(-1); e.stopPropagation()}} onTouchEnd={() => set(-1)}>-</button>
+      <button onClick={e => {set(-1); e.stopPropagation()}}>-</button>
       {display(moves2 > moves ? override : value)}
-      <button onClick={e => {set(1); e.stopPropagation()}} onTouchEnd={() => set(1)}>+</button>
+      <button onClick={e => {set(1); e.stopPropagation()}}>+</button>
     </div>
   );
 }
