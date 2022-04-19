@@ -19,6 +19,9 @@ class GameInterface extends EventEmitter {
 
   #maxPlayers;
 
+  // player list [[id, name],...]
+  #players = [];
+
   // phase state machine: setup (can addPlayer) -> ready (can receive player actions)
   #phase = 'setup';
 
@@ -34,11 +37,11 @@ class GameInterface extends EventEmitter {
   // list of available actions
   #actions = {};
 
-  #play = async () => { throw Error('play() must be called'); }; // eslint-disable-line class-methods-use-this
+  // main game loop function
+  #play;
 
   constructor() {
     super();
-    this.players = [];
     this.hiddenKeys = [];
     this.hiddenElements = [];
     this.variables = {};
@@ -78,7 +81,7 @@ class GameInterface extends EventEmitter {
   /**
    * after constructor and all game functions registered
    */
-  initialize() {
+  #initialize() {
     console.log('I: initialize');
     this.removeAllListeners('action');
     this.doc = new GameDocument(null, { game: this });
@@ -100,14 +103,14 @@ class GameInterface extends EventEmitter {
   async start(history) {
     if (!this.seed) throw Error('Can\'t call start() before seed()');
 
-    this.initialize();
+    this.#initialize();
 
     if (!history) { // waiting for 'start'
       this.updatePlayers(); // initial game state with only 'start' action allowed
       await this.waitForPlayerStart();
     }
 
-    times(this.players.length, player => {
+    times(this.#players.length, player => {
       const playerMat = this.doc.addSpace(`#player-mat-${player}`, 'area', { player, class: 'player-mat' });
       this.#setupPlayerMat.forEach(f => f(playerMat));
     });
@@ -141,7 +144,7 @@ class GameInterface extends EventEmitter {
 
   defineActions(actions) {
     if (typeof actions !== 'object') throw Error('usage: defineActions({ someAction: { ...action properties... },... })');
-    Object.entries(actions).forEach(action => this.defineAction(...action))
+    Object.entries(actions).forEach(action => this.defineAction(...action));
   }
 
   getAllActions() {
@@ -173,7 +176,7 @@ class GameInterface extends EventEmitter {
     this.removeAllListeners('start');
     return new Promise(resolve => {
       this.on('start', () => {
-        if (this.players.length < this.#minPlayers) {
+        if (this.#players.length < this.#minPlayers) {
           console.error('not enough players');
         } else {
           resolve();
@@ -188,6 +191,7 @@ class GameInterface extends EventEmitter {
 
   play(fn) {
     if (typeof fn !== 'function') throw Error('usage: play(async () => { ... play actions ... });');
+    if (this.#play) throw Error('play() must not be called more than once');
     this.#play = fn;
   }
 
@@ -195,30 +199,31 @@ class GameInterface extends EventEmitter {
     console.log('I: ready');
     this.#phase = 'ready';
     this.emit('ready');
+    if (!this.#play) throw Error('play() must be called');
     return this.#play();
+  }
+
+  onceReady(handler) {
+    this.once('ready', handler);
   }
 
   // add player to game
   addPlayer(userId, username) {
-    if (this.players.find(p => p[0] === userId)) return;
-    if (this.#maxPlayers && this.players.length >= this.#maxPlayers) throw Error('game is full')
+    if (this.#players.find(p => p[0] === userId)) return;
+    if (this.#maxPlayers && this.#players.length >= this.#maxPlayers) throw Error('game is full')
     if (this.#phase !== 'setup') throw Error('not able to add players while playing');
-    if (this.players.length === this.#maxPlayers) throw Error('game already full');
-    this.players.push([userId, username]);
-  }
-
-  getPlayers() {
-    return this.players;
+    if (this.#players.length === this.#maxPlayers) throw Error('game already full');
+    this.#players.push([userId, username]);
   }
 
   // send all players state along with allowed actions
   updatePlayers() {
     if (this.sequence <= this.lastReplaySequence) return; // dont need to update unless at latest
-    console.log('I: updatePlayers', this.players);
-    times(this.players.length, player => {
+    console.log('I: updatePlayers', this.#players);
+    times(this.#players.length, player => {
       this.emit('update', {
         type: 'state',
-        userId: this.players[player - 1][0],
+        userId: this.#players[player - 1][0],
         payload: this.getPlayerView(player),
       });
     });
@@ -235,9 +240,13 @@ class GameInterface extends EventEmitter {
     }
     this.emit('update', {
       type: 'state',
-      userId: this.players[player - 1][0],
+      userId: this.#players[player - 1][0],
       payload,
     });
+  }
+
+  onUpdate(handler) {
+    this.on('update', handler);
   }
 
   get(key) {
@@ -276,7 +285,7 @@ class GameInterface extends EventEmitter {
   getState() {
     return {
       variables: { ...this.variables },
-      players: [...this.players],
+      players: [...this.#players],
       currentPlayer: this.currentPlayer,
       phase: this.#phase,
       doc: this.doc.node.innerHTML,
@@ -286,7 +295,7 @@ class GameInterface extends EventEmitter {
   setState(state) {
     if (state) {
       this.variables = state.variables;
-      this.players = state.players;
+      this.#players = state.players;
       this.currentPlayer = state.currentPlayer;
       this.#phase = state.phase;
       this.doc.node.innerHTML = state.doc;
@@ -353,7 +362,7 @@ class GameInterface extends EventEmitter {
     return {
       variables: this.shownVariables(),
       phase: this.#phase,
-      players: this.players,
+      players: this.#players,
       currentPlayer: this.currentPlayer,
       sequence: this.sequence,
       doc: playerView.node.outerHTML,
@@ -388,7 +397,7 @@ class GameInterface extends EventEmitter {
 
   // runs provided async block for each player, starting with the current
   async playersInTurn(fn) {
-    await asyncTimes(this.players.length, async turn => {
+    await asyncTimes(this.#players.length, async turn => {
       await fn(turn);
       this.endTurn();
     });
@@ -566,7 +575,7 @@ class GameInterface extends EventEmitter {
       console.error(`${this.userId}: no listener`);
       throw Error('No listener');
     }
-    this.emit('action', this.players.findIndex(p => p[0] === userId) + 1, sequence, action, ...args);
+    this.emit('action', this.#players.findIndex(p => p[0] === userId) + 1, sequence, action, ...args);
   }
 
   completeAction(player, action, ...args) {
@@ -576,8 +585,18 @@ class GameInterface extends EventEmitter {
     this.sequence++;
   }
 
+  onCompleteAction(handler) {
+    this.on('completed-action', handler);
+  }
+
   updateUser(userId) {
-    this.updatePlayer(this.players.findIndex(p => p[0] === userId) + 1);
+    this.updatePlayer(this.#players.findIndex(p => p[0] === userId) + 1);
+  }
+
+  stopListening() {
+    this.removeAllListeners('log');
+    this.removeAllListeners('completed-action');
+    this.removeAllListeners('update');
   }
 
   // core function to listen for actions
@@ -661,9 +680,13 @@ class GameInterface extends EventEmitter {
     this.emit('log', new Date(), this.sequence, message);
   }
 
+  onLogMessage(handler) {
+    this.on('log', handler);
+  }
+
   logEntry(action, ...args) {
     if (action.drag) args = args.slice(0, 2);
-    return Object.entries(this.players).reduce((entry, [player, [userId]]) => {
+    return Object.entries(this.#players).reduce((entry, [player, [userId]]) => {
       if (action.log) {
         entry[userId] = action.log.replace(/\$(\d+)/g, sub => {
           if (sub[1] !== '0') {
@@ -685,7 +708,7 @@ class GameInterface extends EventEmitter {
   namedElements(elements, previousNames) {
     return Object.entries(elements).map(([i, el]) => {
       if (!(el instanceof GameElement)) return el;
-      return times(this.players.length, fromPlayer => {
+      return times(this.#players.length, fromPlayer => {
         if (previousNames[i] && previousNames[i][fromPlayer - 1].shown) return previousNames[i][fromPlayer - 1];
         const { currentPlayer } = this;
         this.currentPlayer = fromPlayer;
@@ -698,18 +721,18 @@ class GameInterface extends EventEmitter {
   }
 
   setCurrentPlayer(player) {
-    if (player > this.players.length || player < 1) {
+    if (player > this.#players.length || player < 1) {
       throw new Error(`No such player ${player}`);
     }
     this.currentPlayer = player;
   }
 
   currentPlayerName() {
-    return this.players[this.currentPlayer - 1][1];
+    return this.#players[this.currentPlayer - 1][1];
   }
 
   endTurn() {
-    this.currentPlayer = (this.currentPlayer % this.players.length) + 1;
+    this.currentPlayer = (this.currentPlayer % this.#players.length) + 1;
   }
 
   moveElement(el, x, y) {

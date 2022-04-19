@@ -2,7 +2,6 @@ const { NodeVM } = require('vm2');
 const EventEmitter = require('events');
 const Redis = require('ioredis');
 const path = require('path');
-const { Transaction } = require('sequelize');
 const Sentry = require('@sentry/node');
 const db = require('./models');
 
@@ -46,20 +45,12 @@ class GameRunner {
     };
     console.log('R waiting for lock...');
     (async () => {
-      const t = await db.sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.REPEATABLE_READ });
-      let session;
-      do {
-        try {
-          session = await db.Session.findOne({
-            where: { id: sessionId },
-            transaction: t,
-            lock: t.LOCK.UPDATE,
-          });
-        } catch (e) {
-          console.log('Could not acquire lock');
-          await new Promise(resolve => { setTimeout(resolve, 1000); });
-        }
-      } while (!session);
+      const t = await db.sequelize.transaction();
+      const session = await db.Session.findOne({
+        where: { id: sessionId },
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
       try {
         if (session.state === 'error') {
           console.log('attempted to run session in error state');
@@ -79,7 +70,7 @@ class GameRunner {
         while (running) {
           try {
             const playerViews = {};
-            gameInstance.on('update', ({ type, userId, payload }) => {
+            gameInstance.onUpdate(({ type, userId, payload }) => {
               console.log(`R ${process.pid} ${userId}: update ${type}`);
               if (type === 'state') {
                 playerViews[userId] = payload;
@@ -87,13 +78,13 @@ class GameRunner {
               publish({ type, userId, payload });
             });
 
-            gameInstance.once('ready', () => {
+            gameInstance.onceReady(() => {
               console.log('R ready and running');
               session.update({ state: 'running' }, { transaction: t });
 
-              gameInstance.on('log', (timestamp, sequence, message) => publish({ type: 'log', payload: { timestamp, sequence, message } }));
+              gameInstance.onLogMessage((timestamp, sequence, message) => publish({ type: 'log', payload: { timestamp, sequence, message } }));
 
-              gameInstance.on('completed-action', (player, sequence, action) => {
+              gameInstance.onCompleteAction((player, sequence, action) => {
                 console.log('R completed-action', player, sequence, action);
                 try {
                   session.createAction({ player, sequence, action }, { transaction: t });
@@ -182,10 +173,7 @@ class GameRunner {
               throw e;
             }
           } finally {
-            gameInstance.removeAllListeners('action');
-            gameInstance.removeAllListeners('log');
-            gameInstance.removeAllListeners('completed-action');
-            gameInstance.removeAllListeners('update');
+            gameInstance.stopListening();
           }
         }
         console.log('R ending game loop');
@@ -201,7 +189,6 @@ class GameRunner {
         }
         throw e;
       } finally {
-        console.log('committing');
         await t.commit();
         await cleanup();
         console.log('exiting...');
