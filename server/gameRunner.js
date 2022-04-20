@@ -23,6 +23,26 @@ class GameRunner {
         gameInstance.stopListening();
       }
     });
+
+    const handleError = async (e) => {
+      if (e.message === 'No listener') {
+        console.log('no listener, aborting');
+        return handle.emit('error', e);
+      }
+      console.log('error in game runner loop', e);
+      Sentry.withScope(scope => {
+        scope.setTag('source', 'game-runner');
+        scope.setExtra('session_id', sessionId);
+        Sentry.captureException(e);
+      });
+      if (process.env.NODE_ENV !== 'development') {
+        const session = await db.Session.findByPk(sessionId);
+        session.update({ state: 'error' }).then(() => {
+          handle.emit('error', e);
+        });
+      }
+    };
+
     const consumerTag = `actions-consume-${sessionId}-${userId}`;
     const sessionIdKey = String(sessionId);
     console.log(`CREATING RUNNER FOR SESSION ID ${sessionId} USER ID ${userId}`);
@@ -83,114 +103,108 @@ class GameRunner {
     const runner = async () => {
       let stopConsuming = false;
       const actionConsumer = await actionsChannel.consume(actionQueueName, async (message) => {
-        if (!gameInstance) {
-          console.log(process.pid, 'IS LOADING GAME', session.state);
-          gameInstance = vm.run(serverBuffer.Body.toString());
-          gameInstance.onUpdate(async ({ type, userId, payload }) => {
-            console.log(`R ${process.pid} ${userId}: update ${type}`);
-            if (type === 'state') {
-              playerViews[userId] = payload;
-            }
-            await handle.publishEvent({ type, userId, payload });
-          });
-
-          gameInstance.onceReady(() => {
-            console.log('R ready and running');
-            session.update({ state: 'running' });
-
-            gameInstance.onLogMessage(async (timestamp, sequence, message) => await handle.publishEvent({ type: 'log', payload: { timestamp, sequence, message } }));
-
-            gameInstance.onCompleteAction((player, sequence, action) => {
-              console.log('R completed-action', player, sequence, action);
-              try {
-                session.createAction({ player, sequence, action });
-                console.log('R session update');
-              } catch (e) {
-                console.error(sequence, e);
+        try {
+          if (!gameInstance) {
+            console.log(process.pid, 'IS LOADING GAME', session.state);
+            gameInstance = vm.run(serverBuffer.Body.toString());
+            gameInstance.onUpdate(async ({ type, userId, payload }) => {
+              console.log(`R ${process.pid} ${userId}: update ${type}`);
+              if (type === 'state') {
+                playerViews[userId] = payload;
               }
+              await handle.publishEvent({ type, userId, payload });
             });
-          });
 
-          const sessionUsers = await session.getSessionUsers({ include: 'User' });
-          const users = sessionUsers.map((su) => su.User);
-          users.forEach((user) => gameInstance.addPlayer(user.id, user.name));
+            gameInstance.onceReady(() => {
+              console.log('R ready and running');
+              session.update({ state: 'running' });
 
-          let history;
-          if (session.state === 'running') {
-            history = (await session.getActions({ order: ['sequence'] })).map((action) => (
-              [action.player, action.sequence, ...action.action]
-            ));
-            console.log('R restarting runner loop', history.length);
+              gameInstance.onLogMessage(async (timestamp, sequence, message) => await handle.publishEvent({ type: 'log', payload: { timestamp, sequence, message } }));
+
+              gameInstance.onCompleteAction((player, sequence, action) => {
+                console.log('R completed-action', player, sequence, action);
+                try {
+                  session.createAction({ player, sequence, action });
+                  console.log('R session update');
+                } catch (e) {
+                  console.error(sequence, e);
+                }
+              });
+            });
+
+            const sessionUsers = await session.getSessionUsers({ include: 'User' });
+            const users = sessionUsers.map((su) => su.User);
+            users.forEach((user) => gameInstance.addPlayer(user.id, user.name));
+
+            let history;
+            if (session.state === 'running') {
+              history = (await session.getActions({ order: ['sequence'] })).map((action) => (
+                [action.player, action.sequence, ...action.action]
+              ));
+              console.log('R restarting runner loop', history.length);
+            }
+
+            gameInstance.seed(session.seed);
+            await gameInstance.start(history);
           }
-
-          gameInstance.seed(session.seed);
-          await gameInstance.start(history);
-        }
-        const parsedMessage = JSON.parse(message.content.toString());
-        console.log(`R ${process.pid} processGameEvent`, parsedMessage.type, parsedMessage.payload && parsedMessage.payload.userId);
-        switch (parsedMessage.type) {
-          case 'noop':
-            break;
-          case 'start':
-            gameInstance.playerStart();
-            break;
-          case 'action':
-            gameInstance.receiveAction(parsedMessage.payload.userId, parsedMessage.payload.sequence, ...parsedMessage.payload.action);
-            break;
-          case 'refresh':
-            await handle.publishEvent({
-              type: 'state',
-              userId: parsedMessage.payload.userId,
-              payload: playerViews[parsedMessage.payload.userId],
-            });
-            break;
-          case 'update':
-            gameInstance.updateUser(parsedMessage.payload.userId);
-            break;
-          case 'addPlayer':
-            gameInstance.addPlayer(parsedMessage.payload.userId, parsedMessage.payload.username);
-            gameInstance.updatePlayers();
-            break;
-          case 'reset':
-            await actionsChannel.purgeQueue(actionQueueName);
-            await db.SessionAction.destroy({ where: { sessionId } });
-            await session.update({ seed: String(Math.random()) });
-            stopConsuming = true;
-            break;
-          case 'undo':
-            await actionsChannel.purgeQueue(actionQueueName);
-            {
-              const lastAction = await session.getActions({ order: [['sequence', 'DESC']], limit: 1 });
-              console.log('lastAction', lastAction[0] && lastAction[0].id);
-              if (lastAction[0]) {
-                await db.SessionAction.destroy({ where: { id: lastAction[0].id } });
+          const parsedMessage = JSON.parse(message.content.toString());
+          console.log(`R ${process.pid} processGameEvent`, parsedMessage.type, parsedMessage.payload && parsedMessage.payload.userId);
+          switch (parsedMessage.type) {
+            case 'noop':
+              break;
+            case 'start':
+              gameInstance.playerStart();
+              break;
+            case 'action':
+              gameInstance.receiveAction(parsedMessage.payload.userId, parsedMessage.payload.sequence, ...parsedMessage.payload.action);
+              break;
+            case 'refresh':
+              await handle.publishEvent({
+                type: 'state',
+                userId: parsedMessage.payload.userId,
+                payload: playerViews[parsedMessage.payload.userId],
+              });
+              break;
+            case 'update':
+              gameInstance.updateUser(parsedMessage.payload.userId);
+              break;
+            case 'addPlayer':
+              gameInstance.addPlayer(parsedMessage.payload.userId, parsedMessage.payload.username);
+              gameInstance.updatePlayers();
+              break;
+            case 'reset':
+              await actionsChannel.purgeQueue(actionQueueName);
+              await db.SessionAction.destroy({ where: { sessionId } });
+              await session.update({ seed: String(Math.random()) });
+              stopConsuming = true;
+              break;
+            case 'undo':
+              await actionsChannel.purgeQueue(actionQueueName);
+              {
+                const lastAction = await session.getActions({ order: [['sequence', 'DESC']], limit: 1 });
+                console.log('lastAction', lastAction[0] && lastAction[0].id);
+                if (lastAction[0]) {
+                  await db.SessionAction.destroy({ where: { id: lastAction[0].id } });
+                }
               }
-            }
-            stopConsuming = true;
-            break;
-          default:
-            throw Error('unknown command', parsedMessage);
-        }
-        await actionsChannel.ack(message);
-        if (stopConsuming) {
-          await actionsChannel.cancel(consumerTag);
-          handle.emit('finished');
+              stopConsuming = true;
+              break;
+            default:
+              throw Error('unknown command', parsedMessage);
+          }
+          await actionsChannel.ack(message);
+          if (stopConsuming) {
+            await actionsChannel.cancel(consumerTag);
+            handle.emit('finished');
+          }
+        } catch (e) {
+          await handleError(e);
         }
       }, { noAck: false, consumerTag });
     };
 
     runner().catch(e => {
-      console.log('error in game runner loop', e);
-      Sentry.withScope(scope => {
-        scope.setTag('source', 'game-runner');
-        scope.setExtra('session_id', sessionId);
-        Sentry.captureException(e);
-      });
-      if (process.env.NODE_ENV !== 'development') {
-        session.update({ state: 'error' }).then(() => {
-          handle.emit('error', e);
-        });
-      }
+      handleError(e);
     });
     await handle.publishAction({ type: 'refresh', payload: { userId } });
     return handle;
