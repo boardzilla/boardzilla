@@ -4,25 +4,21 @@ const path = require('path');
 const Sentry = require('@sentry/node');
 const amqp = require('amqplib');
 const db = require('./models');
+const crypto = require('crypto')
 
 class GameRunner {
   constructor(rabbitmqUrl, s3Provider) {
     this.rabbitmqUrl = rabbitmqUrl;
     this.s3Provider = s3Provider;
+    this.conn = null;
+    this.handles = new Set()
   }
 
   async createSessionRunner(userId, sessionId) {
+    await this.setupConnection()
+
     let gameInstance;
-    const conn = await amqp.connect(this.rabbitmqUrl);
     const handle = new EventEmitter();
-    conn.on('error', (e) => {
-      handle.emit('error', e);
-    });
-    conn.on('close', (e) => {
-      if (gameInstance) {
-        gameInstance.stopListening();
-      }
-    });
 
     const handleError = async (e) => {
       if (e.message === 'No listener') {
@@ -43,17 +39,18 @@ class GameRunner {
       }
     };
 
-    const consumerTag = `actions-consume-${sessionId}-${userId}`;
+    const actionConsumerTag = crypto.randomBytes(32).toString('hex');
+    const eventConsumerTag = crypto.randomBytes(32).toString('hex');
     const sessionIdKey = String(sessionId);
     console.log(`CREATING RUNNER FOR SESSION ID ${sessionId} USER ID ${userId}`);
     const actionExchangeName = 'session-actions';
     const eventExchangeName = 'session-events';
     const eventFanoutExchangeName = `${eventExchangeName}-${sessionId}`;
     const actionQueueName = `${actionExchangeName}-${sessionId}-queue`;
-    const eventChannel = await conn.createChannel();
-    const actionsChannel = await conn.createChannel();
-    const actionPublishChannel = await conn.createConfirmChannel();
-    const eventPublishChannel = await conn.createConfirmChannel();
+    const eventChannel = await this.conn.createChannel();
+    const actionsChannel = await this.conn.createChannel();
+    const actionPublishChannel = await this.conn.createConfirmChannel();
+    const eventPublishChannel = await this.conn.createConfirmChannel();
 
     // action stuff
     await actionsChannel.assertExchange(actionExchangeName, 'direct');
@@ -68,16 +65,24 @@ class GameRunner {
     await eventChannel.bindQueue(playerEventQueue.queue, eventFanoutExchangeName, '');
 
     handle.stop = async () => {
-      await actionsChannel.cancel(consumerTag);
+      await actionsChannel.cancel(actionConsumerTag);
+      await eventChannel.cancel(eventConsumerTag);
+      if (gameInstance) {
+        gameInstance.stopListening();
+      }
       // ensure there will be a message for the next game runner to pick up
       await handle.publishAction({ type: 'noop' });
-      await conn.close();
+      await eventChannel.close();
+      await actionsChannel.close();
+      await actionPublishChannel.close();
+      await eventPublishChannel.close();
+      this.handles.delete(handle)
     };
     handle.listen = async (cb) => {
       await eventChannel.consume(playerEventQueue.queue, async (message) => {
         await cb(JSON.parse(message.content.toString()));
         await eventChannel.ack(message);
-      }, { noAck: false });
+      }, { noAck: false, consumerTag: eventConsumerTag });
     };
     handle.publishAction = async (payload) => {
       await actionPublishChannel.publish(actionExchangeName, sessionIdKey, Buffer.from(JSON.stringify(payload)), { publishMode: 2 });
@@ -194,20 +199,36 @@ class GameRunner {
           }
           await actionsChannel.ack(message);
           if (stopConsuming) {
-            await actionsChannel.cancel(consumerTag);
+            await actionsChannel.cancel(actionConsumerTag);
             handle.emit('finished');
           }
         } catch (e) {
           await handleError(e);
         }
-      }, { noAck: false, consumerTag });
+      }, { noAck: false, consumerTag: actionConsumerTag });
     };
 
     runner().catch(e => {
       handleError(e);
     });
     await handle.publishAction({ type: 'refresh', payload: { userId } });
+    this.handles.add(handle);
     return handle;
+  }
+
+  async setupConnection() {
+    if (this.conn !== null) return
+    this.conn = await amqp.connect(this.rabbitmqUrl);
+    this.conn.on('error', (e) => {
+      for (const h of this.handles) {
+        h.emit('error', e)
+      }
+    });
+    this.conn.on('close', (e) => {
+      for (const h of this.handles) {
+        h.emit('finished')
+      }
+    });
   }
 }
 
