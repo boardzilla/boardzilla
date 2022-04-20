@@ -3,19 +3,19 @@ const EventEmitter = require('events');
 const path = require('path');
 const Sentry = require('@sentry/node');
 const amqp = require('amqplib');
+const crypto = require('crypto');
 const db = require('./models');
-const crypto = require('crypto')
 
 class GameRunner {
   constructor(rabbitmqUrl, s3Provider) {
     this.rabbitmqUrl = rabbitmqUrl;
     this.s3Provider = s3Provider;
     this.conn = null;
-    this.handles = new Set()
+    this.handles = new Set();
   }
 
   async createSessionRunner(userId, sessionId) {
-    await this.setupConnection()
+    await this.setupConnection();
 
     let gameInstance;
     const handle = new EventEmitter();
@@ -76,7 +76,7 @@ class GameRunner {
       await actionsChannel.close();
       await actionPublishChannel.close();
       await eventPublishChannel.close();
-      this.handles.delete(handle)
+      this.handles.delete(handle);
     };
     handle.listen = async (cb) => {
       await eventChannel.consume(playerEventQueue.queue, async (message) => {
@@ -217,16 +217,16 @@ class GameRunner {
   }
 
   async setupConnection() {
-    if (this.conn !== null) return
+    if (this.conn !== null) return;
     this.conn = await amqp.connect(this.rabbitmqUrl);
     this.conn.on('error', (e) => {
       for (const h of this.handles) {
-        h.emit('error', e)
+        h.emit('error', e);
       }
     });
     this.conn.on('close', (e) => {
       for (const h of this.handles) {
-        h.emit('finished')
+        h.emit('finished');
       }
     });
   }
