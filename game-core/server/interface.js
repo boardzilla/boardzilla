@@ -210,7 +210,7 @@ class GameInterface extends EventEmitter {
   // add player to game
   addPlayer(userId, username) {
     if (this.#players.find(p => p[0] === userId)) return;
-    if (this.#maxPlayers && this.#players.length >= this.#maxPlayers) throw Error('game is full')
+    if (this.#maxPlayers && this.#players.length >= this.#maxPlayers) throw Error('game is full');
     if (this.#phase !== 'setup') throw Error('not able to add players while playing');
     if (this.#players.length === this.#maxPlayers) throw Error('game already full');
     this.#players.push([userId, username]);

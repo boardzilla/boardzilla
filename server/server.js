@@ -2,7 +2,6 @@ const url = require('url');
 const WebSocket = require('ws');
 const express = require('express');
 const http = require('http');
-const Redis = require('ioredis');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const { Sequelize } = require('sequelize');
@@ -16,7 +15,7 @@ const db = require('./models');
 const GameRunner = require('./gameRunner');
 
 module.exports = ({
-  secretKey, redisUrl, s3Provider, zkConnectionString,
+  secretKey, rabbitmqUrl, s3Provider,
 }) => {
   function loginUser(user, res) {
     const token = jwt.sign({ id: user.id }, secretKey);
@@ -43,10 +42,9 @@ module.exports = ({
   }
 
   const server = http.createServer(app);
-  const redisClient = new Redis(redisUrl);
   const devMode = process.env.NODE_ENV === 'development';
 
-  const gameRunner = new GameRunner(redisUrl, s3Provider, zkConnectionString);
+  const gameRunner = new GameRunner(rabbitmqUrl, s3Provider);
 
   app.enable('trust proxy');
   app.set('view engine', 'ejs');
@@ -360,8 +358,8 @@ module.exports = ({
   if (devMode) {
     server.reload = async () => {
       const sessions = await db.Session.findAll();
-      sessions.forEach(session => {
-        redisClient.publish(`session-events-${session.id}`, JSON.stringify({ type: 'reload' }));
+      sessions.forEach(async session => {
+        await sessionRunner.publish({ type: 'reload' });
       });
     };
   }
@@ -407,10 +405,23 @@ module.exports = ({
     }
 
     const session = await sessionUser.getSession();
-    const sessionEventKey = `session-events-${req.sessionId}`;
+    const sessionRunner = await gameRunner.createSessionRunner(req.user.id, session.id);
+    ws.addEventListener('close', async () => {
+      console.log('WS closing...');
+      await sessionRunner.stop();
+    }, { once: true });
 
-    const publish = async (type, payload) => redisClient.publish(sessionEventKey, JSON.stringify({ type, payload }));
-    const queue = async (type, payload) => redisClient.rpush(sessionEventKey, JSON.stringify({ type, payload }));
+    ws.addEventListener('error', async (error) => {
+      console.log('WS error...');
+      await sessionRunner.stop();
+      console.error('error in ws', error);
+    }, { once: true });
+
+    // const publish = async (type, payload) => redisClient.publish(sessionEventKey, JSON.stringify({ type, payload }));
+    // const queue = async (type, payload) => redisClient.rpush(sessionEventKey, JSON.stringify({ type, payload }));
+
+    const publish = async (type, payload) => await sessionRunner.publishEvent({ type, payload });
+    const queue = async (type, payload) => await sessionRunner.publishAction({ type, payload });
     const sendWS = (type, payload) => ws.send(JSON.stringify({ type, payload }));
 
     let locks = [];
@@ -474,9 +485,13 @@ module.exports = ({
       sendWS('error', {});
     };
 
-    const sessionRunner = gameRunner.createSessionRunner(session.id);
     sessionRunner.once('error', (error) => {
       console.error('error starting session!', error);
+      return ws.close(1011); // internal error
+    });
+
+    sessionRunner.once('finished', () => {
+      console.error('closing session!');
       return ws.close(1011); // internal error
     });
 
@@ -500,16 +515,14 @@ module.exports = ({
       }
     });
 
-    const subscriber = new Redis(redisUrl);
-    subscriber.on('message', async (channel, data) => {
-      const message = JSON.parse(data);
+    sessionRunner.listen(async (message) => {
       console.debug(`S ${req.user.id}: redis message`, message.type, message.userId);
       // TODO better as seperate channels for each user and all users?
       if (message.userId && message.userId !== req.user.id) {
         return null;
       }
       switch (message.type) {
-        case 'state': return sendPlayerView(data);
+        case 'state': return sendPlayerView(JSON.stringify(message));
         case 'locks': return sendPlayerLocks();
         case 'drag': return updateElement(message.payload);
         case 'log': return sendLog(message.payload);
@@ -518,28 +531,6 @@ module.exports = ({
       }
     });
 
-    ws.on('close', async () => {
-      await sessionRunner.stop();
-      await subscriber.quit();
-    });
-
-    ws.on('error', async (error) => {
-      await sessionRunner.stop();
-      await subscriber.quit();
-      console.error('error in ws', error);
-    });
-
-    console.log(`S ${req.user.id} subscribe`);
-    subscriber.subscribe(sessionEventKey, async (err) => {
-      if (err) {
-        await sessionRunner.stop();
-        return ws.close(1011); // internal error
-      }
-
-      console.log(`S ${req.user.id} addPlayer`);
-      const user = await db.User.findByPk(req.user.id);
-      queue('addPlayer', { userId: user.id, username: user.name });
-    });
     return null;
   };
   wss.on('connection', onWssConnection);
