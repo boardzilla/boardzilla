@@ -787,9 +787,8 @@ export default class Page extends Component {
 
         {this.props.background}
 
-        {this.state.data.phase === 'ready' && this.state.data.doc && this.renderBoard(boardXml)}
-
         {this.state.data.phase === 'ready' && boardXml && this.renderBoard(boardXml)}
+        {this.renderDebug()}
       </div>
     );
   }
