@@ -1,38 +1,42 @@
-/* global context, describe, it, beforeEach, afterEach, __dirname */
+/* global describe, it, beforeEach */
+/* eslint-disable no-unused-expressions */
 
-const Interface = require('../interface');
 const assert = require('assert');
 const chai = require('chai');
 const spies = require('chai-spies');
+const { DOMParser } = require('linkedom');
+const Interface = require('../interface');
 
 chai.use(spies);
 const { expect } = chai;
-const { DOMParser } = require('linkedom');
 const { times } = require('../utils');
 
 describe('GameInterface', () => {
   beforeEach(() => {
-    this.updateSpy = chai.spy(console.log);
-    this.spendSpy = chai.spy(console.log);
-    const game = this.interface = new Interface(1);
-    game.on('update', this.updateSpy);
-    game.minPlayers = 4;
-    [101, 102, 103, 104].forEach((p) => game.addPlayer(p));
-    game.play = async () => {
+    this.updateSpy = chai.spy();
+    this.spendSpy = chai.spy();
+    this.interface = new Interface(1);
+    const game = this.interface;
+    game.onUpdate(this.updateSpy);
+    game.setPlayers({ min: 4 });
+    [101, 102, 103, 104].forEach(p => game.addPlayer(p, `p${p}`));
+
+    game.play(async () => {
       game.set('tokens', 4);
       do {
         await game.anyPlayerPlay('addSome');
         console.log('in turn', game.get('tokens'), game.sequence);
       } while (game.get('tokens') < 8);
-      game.setCurrentPlayer(1);
+      game.currentPlayer = 1;
       do {
         await game.playersInTurn(async (turn) => {
           console.log('playersInTurn', turn, game.currentPlayer);
           await game.currentPlayerPlay('takeOne');
         });
       } while (game.get('tokens') > 0);
-    };
-    game.actions = {
+    });
+
+    game.defineActions({
       addSome: {
         prompt: 'add some counters',
         min: 1,
@@ -45,15 +49,18 @@ describe('GameInterface', () => {
       },
       hi: { prompt: 'hi' },
       spend: {
-        options: ['gold', 'silver'],
+        select: ['gold', 'silver'],
         prompt: 'Spend resource',
         next: {
-          options: [1, 2, 3],
+          select: [1, 2, 3],
           prompt: 'How much?',
           action: this.spendSpy,
         },
       },
-    };
+    });
+
+    game.initialize();
+    game.overridePhase('ready');
   });
 
   describe('replay', () => {
@@ -79,18 +86,18 @@ describe('GameInterface', () => {
   describe('waitForAction', () => {
     beforeEach(() => {
       this.interface.sequence = 0;
-      this.interface.registerAction = chai.spy();
+      this.interface.completeAction = chai.spy();
       this.interface.currentActions = ['hi'];
       this.interface.currentPlayer = 1;
     });
 
     it('resolves on action', async () => {
-      setTimeout(() => this.interface.emit('action', true, 1, 0, 'hi', '"there"', '"gamer"'), 100);
+      setTimeout(() => this.interface.receiveAction(101, 0, 'hi', '"there"', '"gamer"'), 100);
       const [action, ...args] = await this.interface.waitForAction();
       assert.equal(action, 'hi');
       assert.deepEqual(args, ['there', 'gamer']);
       assert.equal(this.interface.listenerCount('action'), 0);
-      expect(this.interface.registerAction).to.have.been.called.once;
+      expect(this.interface.completeAction).to.have.been.called.once;
     });
 
     it('waits without action', (done) => {
@@ -100,41 +107,41 @@ describe('GameInterface', () => {
       }, 200);
       this.interface.waitForAction().then(() => {
         assert(false, 'waitForAction completed early');
-        expect(this.interface.registerAction).not.to.have.been.called;
+        expect(this.interface.completeAction).not.to.have.been.called;
         done();
       });
     });
 
     it('waits with wrong action', (done) => {
-      setTimeout(() => this.interface.emit('action', true, 1, 0, 'wrong action'), 100);
+      setTimeout(() => this.interface.receiveAction(101, 0, 'wrong action'), 100);
       setTimeout(done, 200);
       this.interface.waitForAction().then(() => {
         assert(false, 'waitForAction completed early');
-        expect(this.interface.registerAction).not.to.have.been.called;
+        expect(this.interface.completeAction).not.to.have.been.called;
         done();
       });
     });
 
     it('waits with wrong player', (done) => {
-      setTimeout(() => this.interface.emit('action', true, 2, 0, 'hi'), 100);
+      setTimeout(() => this.interface.receiveAction(102, 0, 'hi', '"there"', '"gamer"'), 100);
       setTimeout(done, 200);
       this.interface.waitForAction().then(() => {
         assert(false, 'waitForAction completed early');
-        expect(this.interface.registerAction).not.to.have.been.called;
+        expect(this.interface.completeAction).not.to.have.been.called;
         done();
       });
     });
 
     it('processes out of sequence', async () => {
-      setTimeout(() => this.interface.emit('action', true, 1, 1, 'hi'), 100);
+      setTimeout(() => this.interface.receiveAction(101, 1, 'hi', '"there"', '"gamer"'), 100);
       await this.interface.waitForAction(['hi'], 1);
     });
 
     it('resolves on action eventually', async () => {
-      setTimeout(() => this.interface.emit('action', true, 1, 0, 'wrong action'), 100);
-      setTimeout(() => this.interface.emit('action', true, 1, 0, 'hi'), 150);
+      setTimeout(() => this.interface.receiveAction(101, 0, 'wrong action'), 100);
+      setTimeout(() => this.interface.receiveAction(101, 0, 'hi', '"there"', '"gamer"'), 100);
       await this.interface.waitForAction(['hi'], 1);
-      expect(this.interface.registerAction).to.have.been.called.once;
+      expect(this.interface.completeAction).to.have.been.called.once;
     });
   });
 
@@ -142,18 +149,6 @@ describe('GameInterface', () => {
     it('can run composite actions', () => {
       this.interface.runAction('spend', ['gold', 2]);
       expect(this.spendSpy).to.have.been.called.with('gold', 2);
-    });
-  });
-
-  describe('random', () => {
-    it('looks random', () => {
-      times(10, (i) => this.interface.board.addSpace('#a', 's', { n: i }));
-      this.interface.board.shuffle();
-      const doc = (new DOMParser()).parseFromString(this.interface.getState().doc, 'text/xml');
-      expect(doc.querySelectorAll('s').length).to.equal(10);
-      doc.querySelectorAll('s').forEach((n, i) => {
-        expect(parseInt(n.getAttribute('n'))).to.not.equal(i + 1);
-      });
     });
   });
 });

@@ -40,6 +40,9 @@ class GameInterface extends EventEmitter {
   // main game loop function
   #play;
 
+  // 1-indexed from list of players, or undefined if any player can play
+  #currentPlayer;
+
   constructor() {
     super();
     this.hiddenKeys = [];
@@ -48,7 +51,6 @@ class GameInterface extends EventEmitter {
     this.allowedMoveElements = ''; // piece selector that is always valid for moving
     this.alwaysAllowedPlays = []; // actions that anyone can take at any time
     this.drags = {};
-    this.currentPlayer = undefined; // 1-indexed from list of players, or undefined if any player can play
     this.currentActions = [];
     this.promptMessage = null;
     this.builtinActions = { // TODO this interface still needs work. Needs to look more like #actions? e.g. How set permissions?
@@ -81,7 +83,7 @@ class GameInterface extends EventEmitter {
   /**
    * after constructor and all game functions registered
    */
-  #initialize() {
+  initialize() {
     console.log('I: initialize');
     this.removeAllListeners('action');
     this.doc = new GameDocument(null, { game: this });
@@ -92,6 +94,7 @@ class GameInterface extends EventEmitter {
     this.idSequence = 0;
     this.sequence = 0;
     this.lastReplaySequence = -1;
+    this.currentPlayer = 1;
     this.random = random.create(this.rseed);
   }
 
@@ -103,7 +106,7 @@ class GameInterface extends EventEmitter {
   async start(history) {
     if (!this.seed) throw Error('Can\'t call start() before seed()');
 
-    this.#initialize();
+    this.initialize();
 
     if (!history) { // waiting for 'start'
       this.updatePlayers(); // initial game state with only 'start' action allowed
@@ -115,7 +118,6 @@ class GameInterface extends EventEmitter {
       this.#setupPlayerMat.forEach(f => f(playerMat));
     });
     this.#setupBoard.forEach(f => f(this.board));
-    this.currentPlayer = 1;
 
     if (history && history.length > 0) {
       this.lastReplaySequence = history[history.length - 1][1];
@@ -124,6 +126,7 @@ class GameInterface extends EventEmitter {
 
     // play will consume the replay events and begin listening for player events until game completes
     await this.beginPlay();
+    this.#phase = 'finished';
     this.updatePlayers(); // final game state with no actions allowed
   }
 
@@ -205,6 +208,10 @@ class GameInterface extends EventEmitter {
 
   onceReady(handler) {
     this.once('ready', handler);
+  }
+
+  overridePhase(phase) {
+    this.#phase = phase;
   }
 
   // add player to game
@@ -333,31 +340,30 @@ class GameInterface extends EventEmitter {
 
   getPlayerView(player) {
     const playerView = this.doc.clone();
-    const { currentPlayer } = this;
-    this.currentPlayer = player;
 
-    this.hiddenElements.forEach(([selector, attrs]) => {
-      playerView.findNodes(selector).forEach(n => {
-        n.removeAttribute('id');
-        attrs.forEach(attr => n.removeAttribute(attr));
-        if (n.classList.contains('space')) {
-          n.innerHTML = ''; // space contents are hidden
-        }
+    const allowedDrags = this.inScopeAsPlayer(player, () => {
+      this.hiddenElements.forEach(([selector, attrs]) => {
+        playerView.findNodes(selector).forEach(n => {
+          n.removeAttribute('id');
+          attrs.forEach(attr => n.removeAttribute(attr));
+          if (n.classList.contains('space')) {
+            n.innerHTML = ''; // space contents are hidden
+          }
+        });
       });
+
+      playerView.findNodes('.mine').forEach(n => n.classList.add('mine'));
+
+      return this.currentActions.reduce((drags, action) => {
+        if (this.#actions[action].drag) {
+          drags[action] = {
+            pieces: this.serialize(this.doc.findAll(this.#actions[action].drag)),
+            spaces: this.serialize(this.doc.findAll(this.#actions[action].onto)),
+          };
+        }
+        return drags;
+      }, {});
     });
-
-    playerView.findNodes('.mine').forEach(n => n.classList.add('mine'));
-
-    const allowedDrags = this.currentActions.reduce((drags, action) => {
-      if (this.#actions[action].drag) {
-        drags[action] = {
-          pieces: this.serialize(this.doc.findAll(this.#actions[action].drag)),
-          spaces: this.serialize(this.doc.findAll(this.#actions[action].onto)),
-        };
-      }
-      return drags;
-    }, {});
-    this.currentPlayer = currentPlayer;
 
     return {
       variables: this.shownVariables(),
@@ -397,6 +403,7 @@ class GameInterface extends EventEmitter {
 
   // runs provided async block for each player, starting with the current
   async playersInTurn(fn) {
+    if (!this.currentPlayer) this.currentPlayer = 1;
     await asyncTimes(this.#players.length, async turn => {
       await fn(turn);
       this.endTurn();
@@ -448,13 +455,7 @@ class GameInterface extends EventEmitter {
 
   // test a given action without modifying state, rethrow, returns prompt string
   testAction(action, player) {
-    const { currentPlayer } = this;
-    this.currentPlayer = player;
-    try {
-      return this.runAction(action, [], 0, true);
-    } finally {
-      this.currentPlayer = currentPlayer;
-    }
+    return this.inScopeAsPlayer(player, () => this.runAction(action, [], 0, true));
   }
 
   // function that tries to run an action and delegates to the various main types of actions to determine outcome, returns string prompt
@@ -575,7 +576,7 @@ class GameInterface extends EventEmitter {
       console.error(`${this.userId}: no listener`);
       throw Error('No listener');
     }
-    this.emit('action', this.#players.findIndex(p => p[0] === userId) + 1, sequence, action, ...args);
+    this.emit('action', this.playerByUserId(userId), sequence, action, ...args);
   }
 
   completeAction(player, action, ...args) {
@@ -590,7 +591,7 @@ class GameInterface extends EventEmitter {
   }
 
   updateUser(userId) {
-    this.updatePlayer(this.#players.findIndex(p => p[0] === userId) + 1);
+    this.updatePlayer(this.playerByUserId(userId));
   }
 
   stopListening() {
@@ -613,15 +614,12 @@ class GameInterface extends EventEmitter {
         const deserializedArgs = this.deserialize(args);
         if (action === 'moveElement') {
           // moveElement is a special case that doesn't count as a full action but we need to register it and just keep listening
-          const { currentPlayer } = this;
-          this.currentPlayer = player;
           try {
-            this.moveElement(...deserializedArgs);
+            this.inScopeAsPlayer(player, () => this.moveElement(...deserializedArgs));
             this.completeAction(player, 'moveElement', ...args);
           } catch (e) {
             console.error('unable to register move action', e);
           } finally {
-            this.currentPlayer = currentPlayer;
             this.updatePlayers();
             // cant update becuase state is unchanged and will be ignored
           }
@@ -642,32 +640,23 @@ class GameInterface extends EventEmitter {
           if (!this.alwaysAllowedPlays.concat(this.currentActions).includes(action)) {
             return console.error(`${action} not allowed yet. Only ${this.alwaysAllowedPlays.concat(this.currentActions).join(', ')}`);
           }
-          const { currentPlayer } = this;
-          this.currentPlayer = player;
+
           try {
-            this.runAction(action, deserializedArgs);
-          } catch (e) {
-            if (e instanceof IncompleteActionError) {
-              console.log('got IncompleteActionError', e);
-              this.updatePlayer(player, { [action]: { args, choices: e.choices, prompt: e.prompt } });
-              return null;
-            }
-            if (e instanceof InvalidChoiceError) {
-              console.log(e); // TODO send something
-            } else {
-              console.log(e);
-              throw e; // TODO should this throw? who catches? inconsistent with moveElement above. need to figure this out
-            }
-          } finally {
-            this.currentPlayer = currentPlayer;
-          }
-          console.log(`action succeeded completeAction(${player}, ${sequence}, ${action}, ${args})`);
-          try {
+            this.inScopeAsPlayer(player, () => this.runAction(action, deserializedArgs));
+            console.log(`action succeeded completeAction(${player}, ${sequence}, ${action}, ${args})`);
             this.completeAction(player, action, ...args);
             this.removeAllListeners('action');
             resolve([action, ...deserializedArgs]);
           } catch (e) {
-            console.error('unable to register action', e);
+            if (e instanceof IncompleteActionError) {
+              console.log('got IncompleteActionError', e);
+              this.updatePlayer(player, { [action]: { args, choices: e.choices, prompt: e.prompt } });
+            }
+            if (e instanceof InvalidChoiceError) {
+              console.log(e); // TODO send something
+            }
+            console.log(e);
+            throw e; // TODO should this throw? who catches? inconsistent with moveElement above. need to figure this out
           }
         }
         return null;
@@ -710,25 +699,42 @@ class GameInterface extends EventEmitter {
       if (!(el instanceof GameElement)) return el;
       return times(this.#players.length, fromPlayer => {
         if (previousNames[i] && previousNames[i][fromPlayer - 1].shown) return previousNames[i][fromPlayer - 1];
-        const { currentPlayer } = this;
-        this.currentPlayer = fromPlayer;
-        const hidden = !!this.hiddenElements.find(([selector]) => el.matches(selector));
-        this.currentPlayer = currentPlayer;
+        const hidden = this.inScopeAsPlayer(fromPlayer, () => !!this.hiddenElements.find(([selector]) => el.matches(selector)));
         const name = el.name(fromPlayer, hidden);
         return { [el.id && !hidden ? 'shown' : 'hidden']: name };
       });
     });
   }
 
-  setCurrentPlayer(player) {
+  set currentPlayer(player) {
     if (player > this.#players.length || player < 1) {
       throw new Error(`No such player ${player}`);
     }
-    this.currentPlayer = player;
+    this.#currentPlayer = player;
+  }
+
+  get currentPlayer() {
+    return this.#currentPlayer;
   }
 
   currentPlayerName() {
     return this.#players[this.currentPlayer - 1][1];
+  }
+
+  inScopeAsPlayer(player, fn) {
+    const tmpPlayer = this.currentPlayer;
+    this.currentPlayer = player;
+    try {
+      return fn();
+    } finally {
+      this.currentPlayer = tmpPlayer;
+    }
+  }
+
+  playerByUserId(userId) {
+    const player = this.#players.findIndex(p => p[0] === userId);
+    if (player < 0) throw Error(`No such player ${userId}`);
+    return player + 1;
   }
 
   endTurn() {

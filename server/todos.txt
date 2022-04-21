@@ -7,7 +7,7 @@ container
 
 X clean up interface
   X put startup into state?
-  - scope as current player
+  X scope as current player
 - email taken flash error
 - spread space
 X mobile events
