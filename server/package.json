@@ -14,6 +14,7 @@
   "dependencies": {
     "@sentry/node": "^6.19.6",
     "@sentry/tracing": "^6.19.6",
+    "amqplib": "^0.8.0",
     "aws-sdk": "^2.1109.0",
     "bcrypt": "^3.0.6",
     "body-parser": "^1.20.0",
@@ -21,9 +22,7 @@
     "ejs": "^2.6.2",
     "express": "^4.17.1",
     "immutable": "^4.0.0-rc.12",
-    "ioredis": "^5.0.2",
     "jsonwebtoken": "^8.5.1",
-    "locators": "^2.0.2",
     "lodash": "^4.17.15",
     "mime": "^2.4.4",
     "pg": "^8.7.3",
@@ -33,8 +32,7 @@
     "sequelize": "^6.19.0",
     "sequelize-cli": "^6.4.1",
     "vm2": "^3.8.3",
-    "ws": "^7.1.1",
-    "zk-lock": "^2.1.3"
+    "ws": "^8.5.0"
   },
   "devDependencies": {
     "@babel/core": "^7.14.6",

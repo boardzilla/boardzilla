@@ -105,10 +105,10 @@ async function run() {
   const s3Provider = AWSMock.S3({
     params: { Bucket: bucketName },
   });
-  const zkConnectionString = process.env.ZK_CONNECTION_STRING || 'localhost:2181';
+  const rabbitmqUrl = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
 
   const server = createServer({
-    redisUrl, secretKey, zkConnectionString, s3Provider,
+    secretKey, rabbitmqUrl, s3Provider,
   });
   console.log(`🎲🎲🎲 Ready on port ${port} 🎲🎲🎲`);
   const serverHandle = server.listen(port);
