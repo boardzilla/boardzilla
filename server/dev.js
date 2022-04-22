@@ -42,7 +42,7 @@ function modifyBuild(config) {
   };
 }
 
-async function build(sessionId) {
+async function build() {
   const serverConfig = require(path.join(gamePath, 'server', 'webpack.config.js'));
   const clientConfig = require(path.join(gamePath, 'client', 'webpack.config.cjs'));
 
@@ -55,11 +55,7 @@ async function build(sessionId) {
     let resolved = false;
     webpack(serverConfig, async () => {
       if (resolved) {
-        /* await db.SessionAction.destroy({
-         *   where: {
-         *     sessionId,
-         *   },
-         * }); */
+        await db.SessionAction.destroy({});
         return emitter.emit('update');
       }
       resolved = true;
@@ -96,7 +92,7 @@ async function run() {
   });
   const session = await db.Session.create({ creatorId: players[0].id, gameVersionId: gameVersion.id, seed: 0 });
   const sessionUsers = await Promise.all(players.map((player) => db.SessionUser.create({ sessionId: session.id, userId: player.id })));
-  const buildHandle = await build(session.id);
+  const buildHandle = await build();
   const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
   const secretKey = process.env.SECRET_KEY || 'some secret';
   const port = parseInt(process.env.PORT || 3000);

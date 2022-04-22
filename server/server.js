@@ -421,6 +421,24 @@ module.exports = ({
       const response = await sessionRunner.publishAction({ type, payload });
       sendWS('response', { id: payload.id, response });
     };
+    const publishChat = async (message) => {
+      await publish({ type: 'chat',
+        payload: {
+          id: message.id,
+          userId: message.userId,
+          createdAt: message.createdAt.getTime(),
+          value: message.value,
+        } });
+    };
+    const chat = async (value) => {
+      const chatMessage = await db.SessionChat.create({
+        sessionId: session.id,
+        userId: req.user.id,
+        value,
+      });
+
+      await publishChat(chatMessage);
+    };
 
     let locks = [];
 
@@ -497,6 +515,7 @@ module.exports = ({
           case 'releaseLock': return await releaseLock(message.payload.key);
           case 'drag': return await drag(message.payload);
           case 'ping': return publish('active', sessionUser.userId);
+          case 'chat': return chat(sessionUser.userId);
           default: {
             console.debug(`S ${req.user.id}: ws message`, message.type, message.payload);
             message.payload.userId = req.user.id;
@@ -520,6 +539,11 @@ module.exports = ({
         default: return sendWS(message.type, message.payload);
       }
     });
+
+    const chats = await session.getChats();
+    for (const c of chats) {
+      await publishChat(c);
+    }
 
     return null;
   };

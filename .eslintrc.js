@@ -32,5 +32,11 @@ module.exports = {
     'no-param-reassign': 0,
     'prefer-destructuring': ['error', { object: true, array: false }],
     'no-console': 0,
+    'import/no-extraneous-dependencies': [
+      'error',
+      {
+        devDependencies: ['**/*_test.js', 'server/dev.js'],
+      },
+    ],
   },
 };
