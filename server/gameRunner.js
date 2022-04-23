@@ -137,33 +137,35 @@ class GameRunner {
       let stopConsuming = false;
       const actionConsumer = await actionsChannel.consume(actionQueueName, async (message) => {
         try {
+          const messages = []
           if (!gameInstance) {
             console.log(process.pid, 'IS LOADING GAME', session.state);
             gameInstance = vm.run(serverBuffer.Body.toString());
-            gameInstance.onUpdate(async ({ type, userId, payload }) => {
-              console.log(`R ${process.pid} ${userId}: update ${type}`);
-              if (type === 'state') {
-                playerViews[userId] = payload;
-              }
-              await handle.publishEvent({ type, userId, payload });
-            });
+            // gameInstance.onUpdate(async ({ type, userId, payload }) => {
+            //   console.log(`R ${process.pid} ${userId}: update ${type}`);
+            //   if (type === 'state') {
+            //     playerViews[userId] = payload;
+            //   }
+            //   await handle.publishEvent({ type, userId, payload });
+            // });
 
-            gameInstance.onceReady(() => {
-              console.log('R ready and running');
-              session.update({ state: 'running' });
+            // this isn't needed anymore
+            // gameInstance.onceReady(() => {
+            //   console.log('R ready and running');
+            //   session.update({ state: 'running' });
 
-              gameInstance.onLogMessage(async (timestamp, sequence, message) => await handle.publishEvent({ type: 'log', payload: { timestamp, sequence, message } }));
+            //   gameInstance.onLogMessage(async (timestamp, sequence, message) => await handle.publishEvent({ type: 'log', payload: { timestamp, sequence, message } }));
 
-              gameInstance.onCompleteAction((player, sequence, action) => {
-                console.log('R completed-action', player, sequence, action);
-                try {
-                  session.createAction({ player, sequence, action });
-                  console.log('R session update');
-                } catch (e) {
-                  console.error(sequence, e);
-                }
-              });
-            });
+            //   gameInstance.onCompleteAction((player, sequence, action) => {
+            //     console.log('R completed-action', player, sequence, action);
+            //     try {
+            //       session.createAction({ player, sequence, action });
+            //       console.log('R session update');
+            //     } catch (e) {
+            //       console.error(sequence, e);
+            //     }
+            //   });
+            // });
 
             const sessionUsers = await session.getSessionUsers({ include: 'User' });
             const users = sessionUsers.map((su) => su.User);
@@ -179,19 +181,39 @@ class GameRunner {
 
             gameInstance.seed(session.seed);
             await gameInstance.start(history);
+            for (const view of gameInstance.playerViews()) {
+              playerViews[view.userId] = view.payload;
+            }
           }
           let out = null
+          let action
           const parsedMessage = JSON.parse(message.content.toString());
           console.log(`R ${process.pid} processGameEvent`, parsedMessage.type, parsedMessage.payload && parsedMessage.payload.userId);
           switch (parsedMessage.type) {
             case 'noop':
               break;
             case 'start':
-              gameInstance.playerStart();
+              await gameInstance.playerStart();
+              session.update({ state: 'running' });
               break;
             case 'action':
-              // const response = await
-              gameInstance.receiveAction(parsedMessage.payload.userId, parsedMessage.payload.sequence, ...parsedMessage.payload.action);
+              response = await gameInstance.receiveAction(parsedMessage.payload.userId, parsedMessage.payload.sequence, ...parsedMessage.payload.action);
+              switch(response.type) {
+                case 'ok':
+                  action = await session.createAction({
+                    player: response.player,
+                    sequence: response.sequence,
+                    action: response.action,
+                    messages: response.messages,
+                  });
+                  break
+                case 'more':
+                case 'error':
+                  out = response
+                  break
+                default:
+                  throw new Error(`unrecognized response ${JSON.stringify(response)}`)
+              }
               break;
             case 'refresh':
               await handle.publishEvent({
@@ -233,6 +255,23 @@ class GameRunner {
             })
           }
           await actionsChannel.ack(message);
+
+          if (action) {
+            for (const view of gameInstance.playerViews()) {
+              playerViews[view.userId] = view.payload;
+              await handle.publishEvent({ type, userId, payload });
+            }
+            for (const userId of Object.keys(action.messages)) {
+              const message = action.messages[userId];
+              await handle.publishEvent({ type: 'log', payload: {
+                userId,
+                timestamp: action.createdAt.getTime(),
+                action.sequence,
+                message,
+              }});
+            }
+          }
+
           if (stopConsuming) {
             await actionsChannel.cancel(actionConsumerTag);
             handle.emit('finished');

@@ -497,6 +497,7 @@ module.exports = ({
 
     ws.on('message', async (data) => {
       try {
+        let response;
         const message = JSON.parse(data);
         console.debug(`S ${req.user.id}: ws message`, message.type);
         switch (message.type) {
@@ -506,8 +507,10 @@ module.exports = ({
           case 'ping': return publish('active', sessionUser.userId);
           default: {
             message.payload.userId = req.user.id;
-            const out = await queue(message.type, message.payload);
-            console.log(out)
+            response = await queue(message.type, message.payload);
+            if (response) {
+              sendWS(response.type, response)
+            }
           }
         }
       } catch (e) {
