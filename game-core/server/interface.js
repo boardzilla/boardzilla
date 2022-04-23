@@ -2,6 +2,7 @@ const EventEmitter = require('events');
 const random = require('random-seed');
 const GameDocument = require('./document');
 const GameElement = require('./element');
+const ActionQueue = require('./actionqueue');
 const { times, range, asyncTimes } = require('./utils');
 
 class InvalidChoiceError extends Error {}
@@ -45,6 +46,7 @@ class GameInterface extends EventEmitter {
 
   constructor() {
     super();
+    this.actionQueue = new ActionQueue();
     this.hiddenKeys = [];
     this.hiddenElements = [];
     this.variables = {};
@@ -118,16 +120,21 @@ class GameInterface extends EventEmitter {
       this.#setupPlayerMat.forEach(f => f(playerMat));
     });
     this.#setupBoard.forEach(f => f(this.board));
+    this.updatePlayers();
+    console.log('update players with phase', this.#phase);
 
-    if (history && history.length > 0) {
-      this.lastReplaySequence = history[history.length - 1][1];
-      this.replay(history);
-    }
+    return new Promise(resolve => {
+      this.beginPlay().then(() => {
+        this.#phase = 'finished';
+        this.updatePlayers(); // needed?? final game state with no actions allowed
+        resolve();
+      });
 
-    // play will consume the replay events and begin listening for player events until game completes
-    await this.beginPlay();
-    this.#phase = 'finished';
-    this.updatePlayers(); // final game state with no actions allowed
+      if (history && history.length > 0) {
+        this.lastReplaySequence = history[history.length - 1][1];
+        this.replay(history);
+      }
+    });
   }
 
   defineAction(name, action) {
@@ -226,7 +233,7 @@ class GameInterface extends EventEmitter {
   // send all players state along with allowed actions
   updatePlayers() {
     if (this.sequence <= this.lastReplaySequence) return; // dont need to update unless at latest
-    console.log('I: updatePlayers', this.#players);
+    console.log('I: updatePlayers', this.sequence, this.#players);
     times(this.#players.length, player => {
       this.emit('update', {
         type: 'state',
@@ -289,29 +296,6 @@ class GameInterface extends EventEmitter {
     return a;
   }
 
-  getState() {
-    return {
-      variables: { ...this.variables },
-      players: [...this.#players],
-      currentPlayer: this.currentPlayer,
-      phase: this.#phase,
-      doc: this.doc.node.innerHTML,
-    };
-  }
-
-  setState(state) {
-    if (state) {
-      this.variables = state.variables;
-      this.#players = state.players;
-      this.currentPlayer = state.currentPlayer;
-      this.#phase = state.phase;
-      this.doc.node.innerHTML = state.doc;
-      this.board = this.doc.board();
-      this.pile = this.doc.pile();
-    }
-    return true;
-  }
-
   serialize(value) {
     try {
       if (value instanceof Array) return value.map(v => this.serialize(v));
@@ -365,6 +349,8 @@ class GameInterface extends EventEmitter {
       }, {});
     });
 
+    console.log('send state', this.#phase);
+
     return {
       variables: this.shownVariables(),
       phase: this.#phase,
@@ -395,10 +381,25 @@ class GameInterface extends EventEmitter {
     return this.playerPlay(actions);
   }
 
-  async playerPlay(actions, player) {
-    this.currentActions = actions instanceof Array ? actions : [actions];
-    this.currentPlayer = player;
-    return this.waitForAction();
+  async playerPlay(allowedActions, allowedPlayer) {
+    if (!(allowedActions instanceof Array)) throw Error('called a play action without a list of actions');
+    this.currentActions = allowedActions;
+    this.currentPlayer = allowedPlayer;
+    this.updatePlayers();
+
+    return this.actionQueue.waitForQualifyingAction(allowedActions, allowedPlayer, (player, action, ...args) => {
+      if (action === 'moveElement') {
+        // moveElement is a special case that doesn't count as a full action but we need to register it and just keep listening
+        try {
+          this.inScopeAsPlayer(player, () => this.moveElement(...args));
+        } catch (e) {
+          console.error('unable to register move action', e);
+        }
+      } else {
+        this.inScopeAsPlayer(player, () => this.runAction(action, args));
+        console.log(`action succeeded completeAction(${player}, ${action}, ${args})`);
+      }
+    });
   }
 
   // runs provided async block for each player, starting with the current
@@ -562,32 +563,38 @@ class GameInterface extends EventEmitter {
     };
   }
 
-  replay(actions) {
+  async replay(actions) {
     console.log('I: replay');
-    actions.forEach(action => setImmediate(
-      () => this.emit('action', ...action),
-    ));
+    for (let i = 0; i !== actions.length; i++) {
+      await this.processAction(...actions[i]);
+    }
   }
 
-  receiveAction(userId, sequence, action, ...args) {
+  async processAction(player, sequence, action, ...args) {
     if (this.#phase !== 'ready') throw Error(`Received action ${action} before ready`);
-    console.log(`received action (${userId}, ${sequence}, ${action}, ${args})`);
-    if (this.listenerCount('action') === 0) {
-      console.error(`${this.userId}: no listener`);
-      throw Error('No listener');
-    }
-    this.emit('action', this.playerByUserId(userId), sequence, action, ...args);
-  }
+    console.log(`received action (p=${player}, #${sequence} =? #${this.sequence}, ${action}, ${args})`);
 
-  completeAction(player, action, ...args) {
-    if (this.sequence > this.lastReplaySequence) {
-      this.emit('completed-action', player, this.sequence, [action, ...args]);
+    if (this.sequence !== sequence) {
+      if (sequence <= this.lastReplaySequence) {
+        throw Error('Unable to replay history with this game version');
+      }
+      console.log('Out of sequence - trying anyways', this.sequence, sequence);
     }
-    this.sequence++;
-  }
 
-  onCompleteAction(handler) {
-    this.on('completed-action', handler);
+    try {
+      const result = await this.actionQueue.processAction(player, action, ...this.deserialize(args));
+      console.log(`action #${this.sequence} accepted ${action} with ${result}`);
+      this.sequence++;
+      return { type: 'success', player, sequence: this.sequence - 1, action: [action, ...args], messages: 'hi' };
+    } catch (e) {
+      console.log('got processAction error', e);
+      if (e instanceof IncompleteActionError) {
+        this.updatePlayer(player, { [action]: { args, choices: e.choices, prompt: e.prompt } });
+        return { type: 'incomplete', choices: e.choices, prompt: e.prompt };
+      }
+      console.log(e); // TODO send something
+      return { type: 'failed', message: e.message };
+    }
   }
 
   updateUser(userId) {
@@ -596,72 +603,7 @@ class GameInterface extends EventEmitter {
 
   stopListening() {
     this.removeAllListeners('log');
-    this.removeAllListeners('completed-action');
     this.removeAllListeners('update');
-  }
-
-  // core function to listen for actions
-  // returns a promise that resolves when receiving one of currentActions from currentPlayer
-  // runs the action upon resolving. if action is partial, it sends a follow-up question
-  async waitForAction() {
-    if (this.listenerCount('action') > 0) {
-      throw Error('Game play has gotten ahead of itself. You are probably missing an `await` in the play function');
-    }
-    this.updatePlayers();
-    return new Promise((resolve, reject) => {
-      this.on('action', (player, sequence, action, ...args) => {
-        console.log(`I: got action (${player}, ${sequence}, ${action}, ${args})`);
-        const deserializedArgs = this.deserialize(args);
-        if (action === 'moveElement') {
-          // moveElement is a special case that doesn't count as a full action but we need to register it and just keep listening
-          try {
-            this.inScopeAsPlayer(player, () => this.moveElement(...deserializedArgs));
-            this.completeAction(player, 'moveElement', ...args);
-          } catch (e) {
-            console.error('unable to register move action', e);
-          } finally {
-            this.updatePlayers();
-            // cant update becuase state is unchanged and will be ignored
-          }
-        } else {
-          console.log('I try resolve with', action, `${this.currentPlayer}===${player}`, this.sequence, sequence);
-          if (this.sequence !== sequence) {
-            if (sequence <= this.lastReplaySequence) {
-              reject(new Error('Unable to replay history with this game version'));
-            }
-            console.log('Out of sequence - trying anyways', this.sequence, sequence);
-          }
-          if (this.currentPlayer !== undefined && player !== this.currentPlayer) {
-            return console.error(`Waiting for ${this.currentPlayer} and rejected action from ${player}.`);
-          }
-          if (!this.#actions[action] && !this.builtinActions[action]) {
-            return console.error(`No such action ${action}`);
-          }
-          if (!this.alwaysAllowedPlays.concat(this.currentActions).includes(action)) {
-            return console.error(`${action} not allowed yet. Only ${this.alwaysAllowedPlays.concat(this.currentActions).join(', ')}`);
-          }
-
-          try {
-            this.inScopeAsPlayer(player, () => this.runAction(action, deserializedArgs));
-            console.log(`action succeeded completeAction(${player}, ${sequence}, ${action}, ${args})`);
-            this.completeAction(player, action, ...args);
-            this.removeAllListeners('action');
-            resolve([action, ...deserializedArgs]);
-          } catch (e) {
-            if (e instanceof IncompleteActionError) {
-              console.log('got IncompleteActionError', e);
-              this.updatePlayer(player, { [action]: { args, choices: e.choices, prompt: e.prompt } });
-            }
-            if (e instanceof InvalidChoiceError) {
-              console.log(e); // TODO send something
-            }
-            console.log(e);
-            throw e; // TODO should this throw? who catches? inconsistent with moveElement above. need to figure this out
-          }
-        }
-        return null;
-      });
-    });
   }
 
   log(message) {

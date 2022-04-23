@@ -24,14 +24,14 @@ describe('GameInterface', () => {
     game.play(async () => {
       game.set('tokens', 4);
       do {
-        await game.anyPlayerPlay('addSome');
+        await game.anyPlayerPlay(['addSome']);
         console.log('in turn', game.get('tokens'), game.sequence);
       } while (game.get('tokens') < 8);
       game.currentPlayer = 1;
       do {
         await game.playersInTurn(async (turn) => {
           console.log('playersInTurn', turn, game.currentPlayer);
-          await game.currentPlayerPlay('takeOne');
+          await game.currentPlayerPlay(['takeOne']);
         });
       } while (game.get('tokens') > 0);
     });
@@ -79,69 +79,7 @@ describe('GameInterface', () => {
         [3, 8, 'takeOne'],
         [4, 9, 'takeOne'],
       ]);
-      expect(this.updateSpy).to.have.been.called.exactly(4);
-    });
-  });
-
-  describe('waitForAction', () => {
-    beforeEach(() => {
-      this.interface.sequence = 0;
-      this.interface.completeAction = chai.spy();
-      this.interface.currentActions = ['hi'];
-      this.interface.currentPlayer = 1;
-    });
-
-    it('resolves on action', async () => {
-      setTimeout(() => this.interface.receiveAction(101, 0, 'hi', '"there"', '"gamer"'), 100);
-      const [action, ...args] = await this.interface.waitForAction();
-      assert.equal(action, 'hi');
-      assert.deepEqual(args, ['there', 'gamer']);
-      assert.equal(this.interface.listenerCount('action'), 0);
-      expect(this.interface.completeAction).to.have.been.called.once;
-    });
-
-    it('waits without action', (done) => {
-      setTimeout(() => {
-        assert.equal(this.interface.listenerCount('action'), 1);
-        done();
-      }, 200);
-      this.interface.waitForAction().then(() => {
-        assert(false, 'waitForAction completed early');
-        expect(this.interface.completeAction).not.to.have.been.called;
-        done();
-      });
-    });
-
-    it('waits with wrong action', (done) => {
-      setTimeout(() => this.interface.receiveAction(101, 0, 'wrong action'), 100);
-      setTimeout(done, 200);
-      this.interface.waitForAction().then(() => {
-        assert(false, 'waitForAction completed early');
-        expect(this.interface.completeAction).not.to.have.been.called;
-        done();
-      });
-    });
-
-    it('waits with wrong player', (done) => {
-      setTimeout(() => this.interface.receiveAction(102, 0, 'hi', '"there"', '"gamer"'), 100);
-      setTimeout(done, 200);
-      this.interface.waitForAction().then(() => {
-        assert(false, 'waitForAction completed early');
-        expect(this.interface.completeAction).not.to.have.been.called;
-        done();
-      });
-    });
-
-    it('processes out of sequence', async () => {
-      setTimeout(() => this.interface.receiveAction(101, 1, 'hi', '"there"', '"gamer"'), 100);
-      await this.interface.waitForAction(['hi'], 1);
-    });
-
-    it('resolves on action eventually', async () => {
-      setTimeout(() => this.interface.receiveAction(101, 0, 'wrong action'), 100);
-      setTimeout(() => this.interface.receiveAction(101, 0, 'hi', '"there"', '"gamer"'), 100);
-      await this.interface.waitForAction(['hi'], 1);
-      expect(this.interface.completeAction).to.have.been.called.once;
+      expect(this.updateSpy).to.have.been.called.exactly(8);
     });
   });
 
