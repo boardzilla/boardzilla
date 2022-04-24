@@ -405,7 +405,7 @@ module.exports = ({
     }
 
     const session = await sessionUser.getSession();
-    const sessionRunner = await gameRunner.createSessionRunner(req.user.id, session.id);
+    const sessionRunner = await gameRunner.createSessionRunner(session.id);
     ws.addEventListener('close', async () => {
       console.log('WS closing...');
       await sessionRunner.stop();
@@ -425,10 +425,6 @@ module.exports = ({
     const sendWS = (type, payload) => ws.send(JSON.stringify({ type, payload }));
 
     let locks = [];
-
-    const sendPlayerView = async (jsonData) => {
-      ws.send(jsonData);
-    };
 
     const sendPlayerLocks = async () => {
       const payload = (await session.getElementLocks()).reduce((locks, lock) => { locks[lock.element] = lock.userId; return locks; }, {});
@@ -519,13 +515,13 @@ module.exports = ({
     });
 
     sessionRunner.listen(async (message) => {
-      console.debug(`S ${req.user.id}: redis message`, message.type, message.userId);
+      console.debug(`S ${req.user.id}: event`, message.type, message.userId);
       // TODO better as seperate channels for each user and all users?
       if (message.userId && message.userId !== req.user.id) {
+        console.log('S dropping. for wrong user');
         return null;
       }
       switch (message.type) {
-        case 'state': return sendPlayerView(JSON.stringify(message));
         case 'locks': return sendPlayerLocks();
         case 'drag': return updateElement(message.payload);
         case 'log': return sendLog(message.payload);

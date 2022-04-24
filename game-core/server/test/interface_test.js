@@ -9,15 +9,12 @@ const Interface = require('../interface');
 
 chai.use(spies);
 const { expect } = chai;
-const { times } = require('../utils');
 
 describe('GameInterface', () => {
   beforeEach(() => {
-    this.updateSpy = chai.spy();
     this.spendSpy = chai.spy();
     this.interface = new Interface(1);
     const game = this.interface;
-    game.onUpdate(this.updateSpy);
     game.setPlayers({ min: 4 });
     [101, 102, 103, 104].forEach(p => game.addPlayer(p, `p${p}`));
 
@@ -60,7 +57,19 @@ describe('GameInterface', () => {
     });
 
     game.initialize();
-    game.overridePhase('ready');
+  });
+
+  describe('start', () => {
+    it('waits for playerStart', done => {
+      this.interface.start([]).then(() => assert(false, 'start completed without player start'));
+      setTimeout(done, 100);
+    });
+
+    it('proceeds with playerStart', async () => {
+      this.interface.start();
+      const result = await this.interface.playerStart();
+      console.log(result);
+    });
   });
 
   describe('replay', () => {
@@ -79,7 +88,7 @@ describe('GameInterface', () => {
         [3, 8, 'takeOne'],
         [4, 9, 'takeOne'],
       ]);
-      expect(this.updateSpy).to.have.been.called.exactly(8);
+      expect(this.interface.sequence).equals(10);
     });
   });
 

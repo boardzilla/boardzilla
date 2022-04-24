@@ -3,40 +3,39 @@ class ActionQueue {
 
   #queueResolution;
 
-  // interface calls await waitForQualifyingAction(fromPlayer, allowedActions) (or higher-level wrapping functions)
-  async waitForQualifyingAction(actions, player, fn) {
-    let action;
-    let actionSucceeded = false;
-    do {
-      action = await this.waitForNextAction();
-      if (!actions.includes(action.action)) {
-        this.rejectAction(action, `'${action.action}' not allowed right now. Only '${actions.join('\', \'')}'`);
-      } else if (action && player && player !== action.player) {
-        this.rejectAction(action, `Waiting for player ${player} and rejected action from player ${action.player}.`);
+  async waitForMatchingAction(matchFn, processFn) {
+    let item;
+    let succeeded = false;
+    while (!succeeded) {
+      item = await this.waitForNext();
+      console.log('waitForNext', item);
+      const error = matchFn(item.action);
+      if (error !== true) {
+        this.rejectQueueItem(item, error);
       } else {
         try {
-          console.log('running action', action.action, ...action.args);
-          const result = fn(action.player, action.action, ...action.args);
+          console.log('running action', item.action);
+          const result = processFn && processFn(item.action);
           this.#queueResolution = null;
-          action.resolve(result);
-          actionSucceeded = true;
+          item.resolve(result);
+          succeeded = true;
         } catch (e) {
-          console.log('error from fn', e, action);
-          this.rejectAction(action, e);
+          console.log('error from processFn', e, item);
+          this.rejectQueueItem(item, e);
         }
       }
-    } while (!actionSucceeded);
+    }
 
-    return [action.player, action.action, ...action.args];
+    return item.action;
   }
 
-  rejectAction(action, reason) {
+  rejectQueueItem(item, reason) {
     this.#queueResolution = null;
-    console.log('rejecting action', reason, action.reject);
-    action.reject(reason instanceof Error ? reason : new Error(reason));
+    console.log('rejecting action', reason);
+    item.reject(reason instanceof Error ? reason : Error(reason));
   }
 
-  async waitForNextAction() {
+  async waitForNext() {
     if (this.#queueResolution) throw Error('single consumer at a time');
     const promise = new Promise((resolve, reject) => {
       this.#queueResolution = { resolve, reject };
@@ -47,15 +46,15 @@ class ActionQueue {
 
   #pump() {
     if (this.#queueResolution) {
-      const action = this.#queue.shift();
-      if (action) this.#queueResolution.resolve(action);
+      const queueItem = this.#queue.shift();
+      if (queueItem) this.#queueResolution.resolve(queueItem);
     }
   }
 
   // runner calls await processAction(playerAction...)
-  async processAction(player, action, ...args) {
+  async processAction(action) {
     return new Promise((resolve, reject) => {
-      this.#queue.push({ player, action, args, resolve, reject });
+      this.#queue.push({ action, resolve, reject });
       this.#pump();
     });
   }

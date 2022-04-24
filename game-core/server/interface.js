@@ -111,7 +111,6 @@ class GameInterface extends EventEmitter {
     this.initialize();
 
     if (!history) { // waiting for 'start'
-      this.updatePlayers(); // initial game state with only 'start' action allowed
       await this.waitForPlayerStart();
     }
 
@@ -120,13 +119,11 @@ class GameInterface extends EventEmitter {
       this.#setupPlayerMat.forEach(f => f(playerMat));
     });
     this.#setupBoard.forEach(f => f(this.board));
-    this.updatePlayers();
     console.log('update players with phase', this.#phase);
 
     return new Promise(resolve => {
       this.beginPlay().then(() => {
         this.#phase = 'finished';
-        this.updatePlayers(); // needed?? final game state with no actions allowed
         resolve();
       });
 
@@ -183,20 +180,11 @@ class GameInterface extends EventEmitter {
 
   async waitForPlayerStart() {
     console.log('I: waitForPlayerStart');
-    this.removeAllListeners('start');
-    return new Promise(resolve => {
-      this.on('start', () => {
-        if (this.#players.length < this.#minPlayers) {
-          console.error('not enough players');
-        } else {
-          resolve();
-        }
-      });
-    });
+    return this.actionQueue.waitForMatchingAction(({ action }) => action === 'start');
   }
 
-  playerStart() {
-    this.emit('start');
+  async playerStart() {
+    return this.actionQueue.processAction({ action: 'start' });
   }
 
   play(fn) {
@@ -322,6 +310,14 @@ class GameInterface extends EventEmitter {
     }
   }
 
+  getPlayerViews() {
+    return [...this.#players.entries()].reduce((views, [index, [userId, name]]) => {
+      console.log('getPlayerView', index, index+1, userId, name);
+      views[userId] = this.getPlayerView(index + 1);
+      return views;
+    }, {});
+  }
+
   getPlayerView(player) {
     const playerView = this.doc.clone();
 
@@ -348,8 +344,6 @@ class GameInterface extends EventEmitter {
         return drags;
       }, {});
     });
-
-    console.log('send state', this.#phase);
 
     return {
       variables: this.shownVariables(),
@@ -385,21 +379,32 @@ class GameInterface extends EventEmitter {
     if (!(allowedActions instanceof Array)) throw Error('called a play action without a list of actions');
     this.currentActions = allowedActions;
     this.currentPlayer = allowedPlayer;
-    this.updatePlayers();
 
-    return this.actionQueue.waitForQualifyingAction(allowedActions, allowedPlayer, (player, action, ...args) => {
-      if (action === 'moveElement') {
-        // moveElement is a special case that doesn't count as a full action but we need to register it and just keep listening
-        try {
-          this.inScopeAsPlayer(player, () => this.moveElement(...args));
-        } catch (e) {
-          console.error('unable to register move action', e);
+    try {
+      return this.actionQueue.waitForMatchingAction(({ player, action }) => {
+        if (!allowedActions.includes(action)) {
+          return `'${action}' not allowed right now. Only '${allowedActions.join('\', \'')}'`;
         }
-      } else {
-        this.inScopeAsPlayer(player, () => this.runAction(action, args));
-        console.log(`action succeeded completeAction(${player}, ${action}, ${args})`);
-      }
-    });
+        if (allowedPlayer && allowedPlayer !== player) {
+          return `Waiting for player ${allowedPlayer} and rejected action from player ${player}.`;
+        }
+        return true;
+      }, ({ player, action, args }) => {
+        if (action === 'moveElement') {
+          // moveElement is a special case that doesn't count as a full action but we need to register it and just keep listening
+          try {
+            this.inScopeAsPlayer(player, () => this.moveElement(...args));
+          } catch (e) {
+            console.error('unable to register move action', e);
+          }
+        } else {
+          this.inScopeAsPlayer(player, () => this.runAction(action, args));
+          console.log(`action succeeded completeAction(${player}, ${action}, ${args})`);
+        }
+      });
+    } catch (e) {
+      console.error('error during action', e);
+    }
   }
 
   // runs provided async block for each player, starting with the current
@@ -576,29 +581,25 @@ class GameInterface extends EventEmitter {
 
     if (this.sequence !== sequence) {
       if (sequence <= this.lastReplaySequence) {
-        throw Error('Unable to replay history with this game version');
+        return { type: 'error', message: 'Unable to replay history with this game version' };
       }
       console.log('Out of sequence - trying anyways', this.sequence, sequence);
     }
 
     try {
-      const result = await this.actionQueue.processAction(player, action, ...this.deserialize(args));
+      const result = await this.actionQueue.processAction({ player, action, args: this.deserialize(args) });
       console.log(`action #${this.sequence} accepted ${action} with ${result}`);
+      const actionResult = { type: 'ok', player, sequence: this.sequence, action: [action, ...args], messages: 'log message will go here' };
       this.sequence++;
-      return { type: 'success', player, sequence: this.sequence - 1, action: [action, ...args], messages: 'hi' };
+      return actionResult;
     } catch (e) {
       console.log('got processAction error', e);
       if (e instanceof IncompleteActionError) {
-        this.updatePlayer(player, { [action]: { args, choices: e.choices, prompt: e.prompt } });
         return { type: 'incomplete', choices: e.choices, prompt: e.prompt };
       }
       console.log(e); // TODO send something
-      return { type: 'failed', message: e.message };
+      return { type: 'error', message: e.message };
     }
-  }
-
-  updateUser(userId) {
-    this.updatePlayer(this.playerByUserId(userId));
   }
 
   stopListening() {
@@ -617,7 +618,7 @@ class GameInterface extends EventEmitter {
 
   logEntry(action, ...args) {
     if (action.drag) args = args.slice(0, 2);
-    return Object.entries(this.#players).reduce((entry, [player, [userId]]) => {
+    return [...this.#players.entries()].reduce((entry, [player, [userId]]) => {
       if (action.log) {
         entry[userId] = action.log.replace(/\$(\d+)/g, sub => {
           if (sub[1] !== '0') {
@@ -657,6 +658,10 @@ class GameInterface extends EventEmitter {
 
   get currentPlayer() {
     return this.#currentPlayer;
+  }
+
+  get phase() {
+    return this.#phase;
   }
 
   currentPlayerName() {

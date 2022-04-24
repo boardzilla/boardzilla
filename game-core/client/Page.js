@@ -301,7 +301,7 @@ export default class Page extends Component {
   handleClick(choice, event) {
     if (this.state.prompt) {
       this.setState({action: null, args: [], prompt: null, choices: null});
-      this.send('update');
+      //this.send('update');
     }
     let zooming = false;
     if (choiceHasKey(choice) && elementByKey(keyFromChoice(choice)).classList.contains('piece') && !elementByKey(keyFromChoice(choice)).classList.contains('component')) {
@@ -324,7 +324,7 @@ export default class Page extends Component {
   }
 
   cancel() {
-    if (this.state.action) this.send('update'); // need to refetch state to get full actions
+    //if (this.state.action) this.send('update'); // need to refetch state to get full actions
     this.setState({actions: null, action: null, zoomPiece: null, args: [], choices: null, help: false});
   }
 
