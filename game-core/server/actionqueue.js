@@ -8,21 +8,21 @@ class ActionQueue {
     let succeeded = false;
     while (!succeeded) {
       item = await this.waitForNext();
-      console.log('waitForNext', item);
-      const error = matchFn(item.action);
-      if (error !== true) {
-        this.rejectQueueItem(item, error);
-      } else {
-        try {
+      try {
+        console.log('waitForNext', item);
+        const error = matchFn(item.action);
+        if (error !== true) {
+          this.rejectQueueItem(item, error);
+        } else {
           console.log('running action', item.action);
           const result = processFn && processFn(item.action);
           this.#queueResolution = null;
           item.resolve(result);
           succeeded = true;
-        } catch (e) {
-          console.log('error from processFn', e, item);
-          this.rejectQueueItem(item, e);
         }
+      } catch (e) {
+        console.log('error from waitForMatchingAction', e, item);
+        this.rejectQueueItem(item, e);
       }
     }
 
