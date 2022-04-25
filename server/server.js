@@ -420,9 +420,12 @@ module.exports = ({
     // const publish = async (type, payload) => redisClient.publish(sessionEventKey, JSON.stringify({ type, payload }));
     // const queue = async (type, payload) => redisClient.rpush(sessionEventKey, JSON.stringify({ type, payload }));
 
-    const publish = async (type, payload) => await sessionRunner.publishEvent({ type, payload });
-    const queue = (type, payload) => sessionRunner.publishAction({ type, payload });
     const sendWS = (type, payload) => ws.send(JSON.stringify({ type, payload }));
+    const publish = async (type, payload) => await sessionRunner.publishEvent({ type, payload });
+    const queue = async (id, type, payload) => {
+      const response = await sessionRunner.publishAction({ type, payload })
+      sendWS('response', {id, response});
+    };
 
     let locks = [];
 
@@ -503,11 +506,7 @@ module.exports = ({
           case 'ping': return publish('active', sessionUser.userId);
           default: {
             message.payload.userId = req.user.id;
-            response = await queue(message.type, message.payload);
-            if (response) {
-              const { type, ...payload } = response;
-              sendWS(type, payload);
-            }
+            await queue(message.id, message.type, message.payload);
           }
         }
       } catch (e) {
