@@ -367,12 +367,12 @@ class GameInterface extends EventEmitter {
 
   // wait for an action from list of actions from current player
   async currentPlayerPlay(actions) {
-    return this.playerPlay(actions, this.currentPlayer);
+    return await this.playerPlay(actions, this.currentPlayer);
   }
 
   // wait for an action from list of actions from any player
   async anyPlayerPlay(actions) {
-    return this.playerPlay(actions);
+    return await this.playerPlay(actions);
   }
 
   async playerPlay(allowedActions, allowedPlayer) {
@@ -397,7 +397,7 @@ class GameInterface extends EventEmitter {
         console.log(`action succeeded completeAction(${player}, ${action}, ${args})`);
       }
     });
-    if (allowedActions.includes(completedAction)) return completedAction;
+    if (allowedActions.includes(completedAction.action)) return completedAction;
     return this.playerPlay(allowedActions, allowedPlayer);
   }
 

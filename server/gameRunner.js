@@ -22,22 +22,17 @@ class GameRunner {
     const responsePromises = {};
 
     const handleError = async e => {
-      if (e.message === 'No listener') {
-        console.log('no listener, aborting');
-        handle.emit('error', e);
-      } else {
-        console.log('error in game runner loop', e);
-        Sentry.withScope(scope => {
-          scope.setTag('source', 'game-runner');
-          scope.setExtra('session_id', sessionId);
-          Sentry.captureException(e);
+      console.log('error in game runner loop', e);
+      Sentry.withScope(scope => {
+        scope.setTag('source', 'game-runner');
+        scope.setExtra('session_id', sessionId);
+        Sentry.captureException(e);
+      });
+      if (process.env.NODE_ENV !== 'development') {
+        const session = await db.Session.findByPk(sessionId);
+        session.update({ state: 'error' }).then(() => {
+          handle.emit('error', e);
         });
-        if (process.env.NODE_ENV !== 'development') {
-          const session = await db.Session.findByPk(sessionId);
-          session.update({ state: 'error' }).then(() => {
-            handle.emit('error', e);
-          });
-        }
       }
     };
 
