@@ -505,7 +505,8 @@ module.exports = ({
             message.payload.userId = req.user.id;
             response = await queue(message.type, message.payload);
             if (response) {
-              sendWS(response.type, response)
+              const { type, ...payload } = response;
+              sendWS(type, payload);
             }
           }
         }

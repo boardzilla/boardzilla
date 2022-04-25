@@ -216,7 +216,7 @@ class GameRunner {
                   parsedMessage.payload.sequence,
                   ...parsedMessage.payload.action,
                 );
-                console.log(`R action succeeded u${parsedMessage.payload.userId} #${parsedMessage.payload.sequence} ${parsedMessage.payload.action}`);
+                console.log(`R action succeeded u${parsedMessage.payload.userId} #${parsedMessage.payload.sequence} ${parsedMessage.payload.action} ${response.type}`);
                 switch (response.type) {
                   case 'ok':
                     action = await session.createAction({

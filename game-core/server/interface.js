@@ -379,32 +379,26 @@ class GameInterface extends EventEmitter {
     if (!(allowedActions instanceof Array)) throw Error('called a play action without a list of actions');
     this.currentActions = allowedActions;
     this.currentPlayer = allowedPlayer;
+    const allAllowedActions = [...allowedActions, ...this.alwaysAllowedPlays, 'moveElement'];
 
-    try {
-      return this.actionQueue.waitForMatchingAction(({ player, action }) => {
-        if (!allowedActions.includes(action)) {
-          return `'${action}' not allowed right now. Only '${allowedActions.join('\', \'')}'`;
-        }
-        if (allowedPlayer && allowedPlayer !== player) {
-          return `Waiting for player ${allowedPlayer} and rejected action from player ${player}.`;
-        }
-        return true;
-      }, ({ player, action, args }) => {
-        if (action === 'moveElement') {
-          // moveElement is a special case that doesn't count as a full action but we need to register it and just keep listening
-          try {
-            this.inScopeAsPlayer(player, () => this.moveElement(...args));
-          } catch (e) {
-            console.error('unable to register move action', e);
-          }
-        } else {
-          this.inScopeAsPlayer(player, () => this.runAction(action, args));
-          console.log(`action succeeded completeAction(${player}, ${action}, ${args})`);
-        }
-      });
-    } catch (e) {
-      console.error('error during action', e);
-    }
+    const completedAction = await this.actionQueue.waitForMatchingAction(({ player, action }) => {
+      if (!allAllowedActions.includes(action)) {
+        return `'${action}' not allowed right now. Only '${allowedActions.join('\', \'')}'`;
+      }
+      if (allowedPlayer && allowedPlayer !== player) {
+        return `Waiting for player ${allowedPlayer} and rejected action from player ${player}.`;
+      }
+      return true;
+    }, ({ player, action, args }) => {
+      if (action === 'moveElement') {
+        this.inScopeAsPlayer(player, () => this.moveElement(...args));
+      } else {
+        this.inScopeAsPlayer(player, () => this.runAction(action, args));
+        console.log(`action succeeded completeAction(${player}, ${action}, ${args})`);
+      }
+    });
+    if (allowedActions.includes(completedAction)) return completedAction;
+    return this.playerPlay(allowedActions, allowedPlayer);
   }
 
   // runs provided async block for each player, starting with the current

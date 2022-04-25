@@ -68,10 +68,6 @@ export default class Page extends Component {
         case "state":
           if (res.payload) {
             this.setState({data: res.payload});
-            if (Object.entries(res.payload.allowedActions).length == 1) {
-              const [action, details] = Object.entries(res.payload.allowedActions)[0];
-              this.setState({action, args: details.args, prompt: details.prompt, choices: details.choices});
-            }
             if (this.state.zoomPiece) {
               this.setState({actions: this.actionsFor(choiceFromKey(this.state.zoomPiece))});
             }
@@ -126,6 +122,9 @@ export default class Page extends Component {
             const logUI = document.querySelector('#log ul');
             if (logUI) logUI.scrollTop = logUI.scrollHeight;
           }
+          break;
+        case 'incomplete':
+          this.setState({ prompt: res.payload.prompt, choices: res.payload.choices });
           break;
       }
     };
@@ -201,7 +200,7 @@ export default class Page extends Component {
         action: [action, ...args]
       },
     );
-    this.setState(state => ({actions: null, zoomPiece: null, action: null, args: [], prompt: null, choices: null, filter: '', data: Object.assign({}, state.data, {allowedActions: undefined})}));
+    this.setState(state => ({action, args, actions: null, zoomPiece: null, prompt: null, choices: null, filter: '', data: Object.assign({}, state.data, {allowedActions: undefined})}));
   }
 
   reset() {
