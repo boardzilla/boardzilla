@@ -167,7 +167,7 @@ class GameRunner {
               break;
             case 'start':
               await gameInstance.playerStart();
-              session.update({ state: 'running' });
+              await session.update({ state: 'running' });
               updateNeeded = true;
               break;
             case 'action':
@@ -230,11 +230,9 @@ class GameRunner {
             });
           }
           await actionsChannel.ack(message);
-
           if (updateNeeded) await publishPlayerViews();
           if (action && action.messages) {
-            gameInstance.players.forEach(([userId]) => {
-              handle.publishEvent({
+            await Promise.all(gameInstance.players.map(([userId]) => handle.publishEvent({
                 type: 'log',
                 payload: {
                   userId,
@@ -242,8 +240,8 @@ class GameRunner {
                   sequence: action.sequence,
                   message: typeof action.messages === 'string' ? action.messages : action.messages[userId],
                 },
-              });
-            });
+              })
+            ));
           }
 
           if (stopConsuming) {
