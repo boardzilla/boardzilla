@@ -1,8 +1,15 @@
-gameAction wrapped in promise
-resolve 'ok' clears zoomPiece?
-resolve 'incomplete' clears zoomPiece and prompts
+start w history
+- initializeboard
+- start loop
+- await history run
 
-cancel removes the action record
+start w/o history
+- waitForPlayer
+- initializeboard
+- start loop
+
+
+
 
 
 container
@@ -12,6 +19,7 @@ container
  zone
  zone
 
+- cancel removes the action record?
 - idle out
 X log???
   X each action creates a log{seq: [0: 'action', 1: 'action'...]...}

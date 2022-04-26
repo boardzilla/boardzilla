@@ -23,7 +23,7 @@ class GameInterface {
   #players = [];
 
   // phase state machine: setup (can addPlayer) -> ready (can receive player actions)
-  #phase = 'setup';
+  #phase;
 
   // list of functions for player-mat setup
   #setupPlayerMat = [];
@@ -75,17 +75,14 @@ class GameInterface {
         }
       },
     };
-    this.idSequence = 0;
-    this.lastReplaySequence = -1;
   }
 
   /**
    * after constructor and all game functions registered
    */
-  initialize() {
-    if (!this.rseed) throw Error('Can\'t call start() before seed()');
-
+  initialize(rseed) {
     console.log('I: initialize');
+    this.random = random.create(rseed);
     this.doc = new GameDocument(null, { game: this });
     this.board = this.doc.board();
     this.pile = this.doc.pile();
@@ -93,56 +90,35 @@ class GameInterface {
     this.variables = this.initialVariables || {};
     this.idSequence = 0;
     this.sequence = 0;
+    this.#phase = 'setup';
+  }
+
+  async startProcessing() {
+    await this.waitForPlayerStart();
+    await this.runPlayLoop();
+    this.#phase = 'finished';
+  }
+
+  async waitForPlayerStart() {
+    console.log('I: waitForPlayerStart');
+    await this.actionQueue.waitForMatchingAction(({ action }) => action === 'start');
+    this.initializeBoardWithPlayers();
     this.lastReplaySequence = -1;
-    this.currentPlayer = 1;
-    this.random = random.create(this.rseed);
   }
 
-  seed(rseed) {
-    this.rseed = rseed;
-  }
-
-  // start game from scratch. pass history if resuming existing game, otherwise will wait for players to start. resolves when game is done
-  async start(history, cb) {
-    this.initialize();
-
-    if (history && history.length !== 0) {
-      await this.startWithHistory(history, cb)
-    } else {
-      await this.startWithoutHistory(cb)
-    }
-  }
-
-  async startWithHistory(history, cb) {
-    this.initializePlayerMats()
-    this.beginPlay().then(() => {
-      this.#phase = 'finished';
-      cb();
-    });
+  async processHistory(history) {
+    await this.processPlayerStart();
     this.lastReplaySequence = history[history.length - 1][1];
-    await this.replay(history);
+    return this.replay(history);
   }
 
-  async startWithoutHistory(cb) {
-    return new Promise((resolve, reject) => {
-      this.waitForPlayerStart().then(() => {
-        this.initializePlayerMats()
-        this.beginPlay().then(() => {
-          this.#phase = 'finished';
-          cb();
-        });
-      })
-      resolve();
-    })
-  }
-
-  initializePlayerMats() {
+  initializeBoardWithPlayers() {
     times(this.#players.length, player => {
       const playerMat = this.doc.addSpace(`#player-mat-${player}`, 'area', { player, class: 'player-mat' });
       this.#setupPlayerMat.forEach(f => f(playerMat));
     });
     this.#setupBoard.forEach(f => f(this.board));
-    console.log('update players with phase', this.#phase);
+    this.currentPlayer = 1;
   }
 
   defineAction(name, action) {
@@ -189,12 +165,7 @@ class GameInterface {
     this.#maxPlayers = max;
   }
 
-  async waitForPlayerStart() {
-    console.log('I: waitForPlayerStart');
-    return this.actionQueue.waitForMatchingAction(({ action }) => action === 'start');
-  }
-
-  async playerStart() {
+  async processPlayerStart() {
     return this.actionQueue.processAction({ action: 'start' });
   }
 
@@ -204,7 +175,7 @@ class GameInterface {
     this.#play = fn;
   }
 
-  async beginPlay() {
+  async runPlayLoop() {
     console.log('I: ready');
     this.#phase = 'ready';
     if (!this.#play) throw Error('play() must be called');
@@ -215,7 +186,7 @@ class GameInterface {
   addPlayer(userId, username) {
     if (this.#players.find(p => p[0] === userId)) return;
     if (this.#maxPlayers && this.#players.length >= this.#maxPlayers) throw Error('game is full');
-    if (this.#phase !== 'setup') throw Error('not able to add players while playing');
+    if (this.phase !== 'setup') throw Error('not able to add players while playing');
     if (this.#players.length === this.#maxPlayers) throw Error('game already full');
     this.#players.push([userId, username]);
   }
@@ -316,7 +287,7 @@ class GameInterface {
 
     return {
       variables: this.shownVariables(),
-      phase: this.#phase,
+      phase: this.phase,
       players: this.#players,
       currentPlayer: this.currentPlayer,
       sequence: this.sequence,
@@ -540,7 +511,7 @@ class GameInterface {
   }
 
   async processAction(player, sequence, action, ...args) {
-    if (this.#phase !== 'ready') throw Error(`Received action ${action} before ready`);
+    if (this.phase !== 'ready') throw Error(`Received action ${action} before ready`);
     console.log(`received action (p=${player}, #${sequence} =? #${this.sequence}, ${action}, ${args})`);
 
     if (this.sequence !== sequence) {

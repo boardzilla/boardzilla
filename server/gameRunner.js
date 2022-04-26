@@ -130,32 +130,27 @@ class GameRunner {
         try {
           let updateNeeded = false;
           const publishPlayerViews = async () => {
-            await Promise.all(Object.entries(gameInstance.getPlayerViews()).map(([userId, view]) => {
-              return handle.publishEvent({ type: 'state', userId: parseInt(userId, 10), payload: view });
-            }));
+            await Promise.all(Object.entries(gameInstance.getPlayerViews()).map(([userId, view]) => (
+              handle.publishEvent({ type: 'state', userId: parseInt(userId, 10), payload: view })
+            )));
           };
           if (!gameInstance) {
             console.log(process.pid, 'IS LOADING GAME', session.state);
             gameInstance = vm.run(serverBuffer.Body.toString());
+            gameInstance.initialize(session.seed);
             const sessionUsers = await session.getSessionUsers({ include: 'User' });
             const users = sessionUsers.map((su) => su.User);
             users.forEach((user) => gameInstance.addPlayer(user.id, user.name));
+            gameInstance.startProcessing().then(() => console.log('game is finished!'));
 
             let history;
             if (session.state === 'running') {
               history = (await session.getActions({ order: ['sequence'] })).map((action) => (
                 [action.player, action.sequence, ...action.action]
               ));
-              console.log('R restarting runner loop', history.length);
+              console.log('R restarting runner and replaying history items', history.length);
+              await gameInstance.processHistory(history);
             }
-
-            console.log("setting seed")
-            gameInstance.seed(session.seed);
-            console.log("starting game with history")
-            await gameInstance.start(history, () => {
-              console.log("game is finished!")
-            })
-            console.log("done starting game with history")
             updateNeeded = true;
           }
           let out = null;
@@ -166,7 +161,7 @@ class GameRunner {
             case 'noop':
               break;
             case 'start':
-              await gameInstance.playerStart();
+              await gameInstance.processPlayerStart();
               await session.update({ state: 'running' });
               updateNeeded = true;
               break;
