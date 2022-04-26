@@ -1,4 +1,3 @@
-const EventEmitter = require('events');
 const random = require('random-seed');
 const GameDocument = require('./document');
 const GameElement = require('./element');
@@ -15,7 +14,7 @@ class IncompleteActionError extends Error {
   }
 }
 
-class GameInterface extends EventEmitter {
+class GameInterface {
   #minPlayers = 1;
 
   #maxPlayers;
@@ -45,7 +44,6 @@ class GameInterface extends EventEmitter {
   #currentPlayer;
 
   constructor() {
-    super();
     this.actionQueue = new ActionQueue();
     this.hiddenKeys = [];
     this.hiddenElements = [];
@@ -79,7 +77,6 @@ class GameInterface extends EventEmitter {
     };
     this.idSequence = 0;
     this.lastReplaySequence = -1;
-    this.setMaxListeners(1); // only one listener allowed per action - this will warn if that's exceeeded
   }
 
   /**
@@ -87,7 +84,6 @@ class GameInterface extends EventEmitter {
    */
   initialize() {
     console.log('I: initialize');
-    this.removeAllListeners('action');
     this.doc = new GameDocument(null, { game: this });
     this.board = this.doc.board();
     this.pile = this.doc.pile();
@@ -270,7 +266,7 @@ class GameInterface extends EventEmitter {
 
   getPlayerViews() {
     return [...this.#players.entries()].reduce((views, [index, [userId, name]]) => {
-      console.log('getPlayerView', index, index+1, userId, name);
+      console.log('getPlayerView', index, index + 1, userId, name);
       views[userId] = this.getPlayerView(index + 1);
       return views;
     }, {});
@@ -542,7 +538,7 @@ class GameInterface extends EventEmitter {
     try {
       const result = await this.actionQueue.processAction({ player, action, args });
       console.log(`action #${this.sequence} accepted ${action} with ${result}`);
-      const actionResult = { type: 'ok', player, sequence: this.sequence, action: [action, ...args], messages: 'log message will go here' };
+      const actionResult = { type: 'ok', player, sequence: this.sequence, action: [action, ...args], messages: this.logs[this.sequence] };
       this.sequence++;
       return actionResult;
     } catch (e) {
@@ -557,7 +553,6 @@ class GameInterface extends EventEmitter {
 
   log(message) {
     this.logs[this.sequence] = message;
-    this.emit('log', new Date(), this.sequence, message);
   }
 
   logEntry(action, ...args) {
@@ -606,6 +601,10 @@ class GameInterface extends EventEmitter {
 
   get phase() {
     return this.#phase;
+  }
+
+  get players() {
+    return this.#players;
   }
 
   currentPlayerName() {

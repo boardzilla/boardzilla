@@ -68,9 +68,6 @@ class GameRunner {
     handle.stop = async () => {
       await actionsChannel.cancel(actionConsumerTag);
       await eventChannel.cancel(eventConsumerTag);
-      if (gameInstance) {
-        gameInstance.stopListening();
-      }
       // ensure there will be a message for the next game runner to pick up
       handle.publishAction({ type: 'noop' });
       await eventChannel.close();
@@ -270,15 +267,14 @@ class GameRunner {
 
           if (updateNeeded) publishPlayerViews();
           if (action && action.messages) {
-            Object.keys(action.messages).forEach(userId => {
-              const logMessage = action.messages[userId];
+            gameInstance.players.forEach(([userId]) => {
               handle.publishEvent({
                 type: 'log',
                 payload: {
-                  userId: parseInt(userId, 10),
+                  userId,
                   timestamp: action.createdAt.getTime(),
                   sequence: action.sequence,
-                  message: logMessage,
+                  message: typeof action.messages === 'string' ? action.messages : action.messages[userId],
                 },
               });
             });

@@ -12,6 +12,7 @@ container
  zone
  zone
 
+- idle out
 X log???
   X each action creates a log{seq: [0: 'action', 1: 'action'...]...}
   X state broadcast with new log entry and merged into state

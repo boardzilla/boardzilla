@@ -229,7 +229,7 @@ export default class Page extends Component {
       replies: Object.assign({}, state.replies, {[id]: { time: Date.now(), action, callback }})
     }));
   }
-  
+
   reset() {
     this.send('reset');
     window.location.reload();
