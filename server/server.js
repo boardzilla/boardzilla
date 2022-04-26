@@ -417,9 +417,6 @@ module.exports = ({
       console.error('error in ws', error);
     }, { once: true });
 
-    // const publish = async (type, payload) => redisClient.publish(sessionEventKey, JSON.stringify({ type, payload }));
-    // const queue = async (type, payload) => redisClient.rpush(sessionEventKey, JSON.stringify({ type, payload }));
-
     const sendWS = (type, payload) => ws.send(JSON.stringify({ type, payload }));
     const publish = async (type, payload) => sessionRunner.publishEvent({ type, payload });
     const queue = async (type, payload) => {

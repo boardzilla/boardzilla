@@ -128,12 +128,27 @@ class GameRunner {
       let stopConsuming = false;
       await actionsChannel.consume(actionQueueName, async (message) => {
         try {
-          let updateNeeded = false;
           const publishPlayerViews = async () => {
             await Promise.all(Object.entries(gameInstance.getPlayerViews()).map(([userId, view]) => (
               handle.publishEvent({ type: 'state', userId: parseInt(userId, 10), payload: view })
             )));
           };
+
+          const publishLogs = (sequences, userIds) => {
+            if (!userIds) userIds = gameInstance.players.map(p => p[0]);
+            sequences.forEach(sequence => {
+              userIds.forEach(userId => {
+                const logMessage = gameInstance.getLogMessage(userId, sequence);
+                if (message) {
+                  handle.publishEvent({
+                    type: 'log',
+                    payload: { userId, sequence, message: logMessage },
+                  });
+                }
+              });
+            });
+          };
+
           if (!gameInstance) {
             console.log(process.pid, 'IS LOADING GAME', session.state);
             gameInstance = vm.run(serverBuffer.Body.toString());
@@ -150,11 +165,11 @@ class GameRunner {
               ));
               console.log('R restarting runner and replaying history items', history.length);
               await gameInstance.processHistory(history);
+              publishLogs(history.map(h => h[1]));
             }
-            updateNeeded = true;
+            await publishPlayerViews();
           }
           let out = null;
-          let action;
           const parsedMessage = JSON.parse(message.content.toString());
           console.log(`R ${process.pid} processGameEvent`, parsedMessage.type, parsedMessage.payload && parsedMessage.payload.userId);
           switch (parsedMessage.type) {
@@ -163,7 +178,7 @@ class GameRunner {
             case 'start':
               await gameInstance.processPlayerStart();
               await session.update({ state: 'running' });
-              updateNeeded = true;
+              await publishPlayerViews();
               break;
             case 'action':
               {
@@ -175,13 +190,14 @@ class GameRunner {
                 console.log(`R action succeeded u${parsedMessage.payload.userId} #${parsedMessage.payload.sequence} ${parsedMessage.payload.action} ${response.type}`);
                 switch (response.type) {
                   case 'ok':
-                    action = await session.createAction({
+                    await session.createAction({
                       player: response.player,
                       sequence: response.sequence,
                       action: response.action,
                       messages: response.messages,
                     });
-                    updateNeeded = true;
+                    await publishPlayerViews();
+                    publishLogs([response.sequence]);
                     out = { type: 'ok' };
                     break;
                   case 'incomplete':
@@ -194,11 +210,19 @@ class GameRunner {
               }
               break;
             case 'refresh':
-              updateNeeded = true;
+              publishLogs(
+                (await session.getActions()).map(a => a.sequence),
+                [parsedMessage.payload.userId],
+              );
+              await publishPlayerViews();
+              break;
+            case 'refreshAll':
+              publishLogs((await session.getActions()).map(a => a.sequence));
+              await publishPlayerViews();
               break;
             case 'addPlayer':
               gameInstance.addPlayer(parsedMessage.payload.userId, parsedMessage.payload.username);
-              updateNeeded = true;
+              await publishPlayerViews();
               break;
             case 'reset':
               await actionsChannel.purgeQueue(actionQueueName);
@@ -225,19 +249,6 @@ class GameRunner {
             });
           }
           await actionsChannel.ack(message);
-          if (updateNeeded) await publishPlayerViews();
-          if (action && action.messages) {
-            await Promise.all(gameInstance.players.map(([userId]) => handle.publishEvent({
-                type: 'log',
-                payload: {
-                  userId,
-                  timestamp: action.createdAt.getTime(),
-                  sequence: action.sequence,
-                  message: typeof action.messages === 'string' ? action.messages : action.messages[userId],
-                },
-              })
-            ));
-          }
 
           if (stopConsuming) {
             await actionsChannel.cancel(actionConsumerTag);
@@ -251,7 +262,7 @@ class GameRunner {
 
     runner().catch(handleError);
     this.handles.add(handle);
-    handle.publishAction({ type: 'refresh' });
+    handle.publishAction({ type: 'refreshAll' });
     return handle;
   }
 

@@ -524,7 +524,7 @@ class GameInterface {
     try {
       const result = await this.actionQueue.processAction({ player, action, args });
       console.log(`action #${this.sequence} accepted ${action} with ${result}`);
-      const actionResult = { type: 'ok', player, sequence: this.sequence, action: [action, ...args], messages: this.logs[this.sequence] };
+      const actionResult = { type: 'ok', player, sequence: this.sequence, action: [action, ...args] };
       this.sequence++;
       return actionResult;
     } catch (e) {
@@ -539,6 +539,11 @@ class GameInterface {
 
   log(message) {
     this.logs[this.sequence] = message;
+  }
+
+  getLogMessage(userId, sequence) {
+    const messages = this.logs[sequence];
+    return typeof messages === 'string' ? messages : messages[userId];
   }
 
   logEntry(action, ...args) {
