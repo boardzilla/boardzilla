@@ -129,41 +129,14 @@ class GameRunner {
       await actionsChannel.consume(actionQueueName, async (message) => {
         try {
           let updateNeeded = false;
-          // const messages = [];
-          const publishPlayerViews = () => {
-            Object.entries(gameInstance.getPlayerViews()).forEach(([userId, view]) => {
-              handle.publishEvent({ type: 'state', userId: parseInt(userId, 10), payload: view });
-            });
+          const publishPlayerViews = async () => {
+            await Promise.all(Object.entries(gameInstance.getPlayerViews()).map(([userId, view]) => {
+              return handle.publishEvent({ type: 'state', userId: parseInt(userId, 10), payload: view });
+            }));
           };
           if (!gameInstance) {
             console.log(process.pid, 'IS LOADING GAME', session.state);
             gameInstance = vm.run(serverBuffer.Body.toString());
-          // gameInstance.onUpdate(async ({ type, userId, payload }) => {
-          //   console.log(`R ${process.pid} ${userId}: update ${type}`);
-            //   if (type === 'state') {
-            //     playerViews[userId] = payload;
-            //   }
-            //   await handle.publishEvent({ type, userId, payload });
-            // });
-
-            // this isn't needed anymore
-            // gameInstance.onceReady(() => {
-            //   console.log('R ready and running');
-            //   session.update({ state: 'running' });
-
-            //   gameInstance.onLogMessage(async (timestamp, sequence, message) => await handle.publishEvent({ type: 'log', payload: { timestamp, sequence, message } }));
-
-            //   gameInstance.onCompleteAction((player, sequence, action) => {
-            //     console.log('R completed-action', player, sequence, action);
-            //     try {
-            //       session.createAction({ player, sequence, action });
-            //       console.log('R session update');
-            //     } catch (e) {
-            //       console.error(sequence, e);
-            //     }
-            //   });
-            // });
-
             const sessionUsers = await session.getSessionUsers({ include: 'User' });
             const users = sessionUsers.map((su) => su.User);
             users.forEach((user) => gameInstance.addPlayer(user.id, user.name));
@@ -184,8 +157,6 @@ class GameRunner {
             })
             console.log("done starting game with history")
             updateNeeded = true;
-            // gameInstance.getPlayerViews().forEach(playerView => { playerViews[view.userId] = playerView });
-
           }
           let out = null;
           let action;
@@ -228,11 +199,6 @@ class GameRunner {
               }
               break;
             case 'refresh':
-              /* await handle.publishEvent({
-               *   type: 'state',
-               *   userId: parsedMessage.payload.userId,
-               *   payload: playerViews[parsedMessage.payload.userId],
-               * }); */
               updateNeeded = true;
               break;
             case 'addPlayer':
@@ -265,7 +231,7 @@ class GameRunner {
           }
           await actionsChannel.ack(message);
 
-          if (updateNeeded) publishPlayerViews();
+          if (updateNeeded) await publishPlayerViews();
           if (action && action.messages) {
             gameInstance.players.forEach(([userId]) => {
               handle.publishEvent({
