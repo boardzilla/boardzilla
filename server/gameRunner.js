@@ -134,40 +134,34 @@ class GameRunner {
             )));
           };
 
-          const publishLogs = (sequences, userIds) => {
+          const publishLogs = (actions, userIds) => {
             if (!userIds) userIds = gameInstance.players.map(p => p[0]);
-            sequences.forEach(sequence => {
+            actions.filter(m => m.messages).forEach(({ messages, sequence }) => {
               userIds.forEach(userId => {
-                const logMessage = gameInstance.getLogMessage(userId, sequence);
-                if (message) {
-                  handle.publishEvent({
-                    type: 'log',
-                    payload: { userId, sequence, message: logMessage },
-                  });
-                }
+                handle.publishEvent({
+                  type: 'log',
+                  userId,
+                  payload: { sequence, message: typeof messages === 'string' ? messages : messages[userId] },
+                });
               });
             });
           };
 
           if (!gameInstance) {
+            await session.reload();
             console.log(process.pid, 'IS LOADING GAME', session.state);
             gameInstance = vm.run(serverBuffer.Body.toString());
             gameInstance.initialize(session.seed);
             const sessionUsers = await session.getSessionUsers({ include: 'User' });
-            const users = sessionUsers.map((su) => su.User);
-            users.forEach((user) => gameInstance.addPlayer(user.id, user.name));
+            const users = sessionUsers.map(su => su.User);
+            users.forEach(user => gameInstance.addPlayer(user.id, user.name));
             gameInstance.startProcessing().then(() => console.log('game is finished!'));
 
-            let history;
             if (session.state === 'running') {
-              history = (await session.getActions({ order: ['sequence'] })).map((action) => (
-                [action.player, action.sequence, ...action.action]
-              ));
-              console.log('R restarting runner and replaying history items', history.length);
-              await gameInstance.processHistory(history);
-              publishLogs(history.map(h => h[1]));
+              const actions = await session.getActions({ order: ['sequence'] });
+              await gameInstance.processHistory(actions.map(a => [a.player, a.sequence, ...a.action]));
+              console.log('R restarting runner and replaying history items', actions.length);
             }
-            await publishPlayerViews();
           }
           let out = null;
           const parsedMessage = JSON.parse(message.content.toString());
@@ -197,12 +191,12 @@ class GameRunner {
                       messages: response.messages,
                     });
                     await publishPlayerViews();
-                    publishLogs([response.sequence]);
+                    publishLogs([response]);
                     out = { type: 'ok' };
                     break;
                   case 'incomplete':
                   case 'error':
-                    out = response;
+                    out = response.message;
                     break;
                   default:
                     throw new Error(`unrecognized response ${JSON.stringify(response)}`);
@@ -210,14 +204,11 @@ class GameRunner {
               }
               break;
             case 'refresh':
-              publishLogs(
-                (await session.getActions()).map(a => a.sequence),
-                [parsedMessage.payload.userId],
-              );
+              publishLogs(await session.getActions(), [parsedMessage.payload.userId]);
               await publishPlayerViews();
               break;
             case 'refreshAll':
-              publishLogs((await session.getActions()).map(a => a.sequence));
+              publishLogs(await session.getActions());
               await publishPlayerViews();
               break;
             case 'addPlayer':

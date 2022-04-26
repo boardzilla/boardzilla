@@ -493,7 +493,6 @@ module.exports = ({
 
     ws.on('message', async (data) => {
       try {
-        let response;
         const message = JSON.parse(data);
         switch (message.type) {
           case 'requestLock': return await requestLock(message.payload.key);
@@ -512,12 +511,9 @@ module.exports = ({
     });
 
     sessionRunner.listen(async (message) => {
-      console.debug(`S ${req.user.id}: event`, message.type, message.userId);
       // TODO better as seperate channels for each user and all users?
-      if (message.userId && message.userId !== req.user.id) {
-        console.log('S dropping. for wrong user');
-        return null;
-      }
+      if (message.userId && message.userId !== req.user.id) return null;
+      console.debug(`S ${req.user.id}: event`, message.type, message.userId);
       switch (message.type) {
         case 'locks': return sendPlayerLocks();
         case 'drag': return updateElement(message.payload);

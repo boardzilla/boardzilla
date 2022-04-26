@@ -106,11 +106,11 @@ game.defineActions({
     prompt: 'Draw multiple',
     select: 'deck',
     key: 'm',
+    log: '$0 drew $2 from $1',
     next: {
       prompt: 'How many?',
       min: 2,
       max: 6,
-      log: '$0 drew $2 from $1',
       action: (deck, n) => deck.move('card', '.mine #hand', n),
     },
   },

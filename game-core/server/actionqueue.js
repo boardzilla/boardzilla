@@ -14,7 +14,6 @@ class ActionQueue {
           console.log('Q rejecting matchFn', error);
           item.reject(Error(error));
         } else {
-          console.log('Q processFn', item.action);
           const result = processFn && processFn(item.action);
           item.resolve(result);
           succeeded = true;

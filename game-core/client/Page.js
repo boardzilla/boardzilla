@@ -194,7 +194,7 @@ export default class Page extends Component {
     }
 
     this.send('refresh');
-    setInterval(() => this.send(this.selfActivePlayer() ? 'refresh' : 'ping'), PING_INTERVAL);
+    setInterval(() => this.send('ping'), PING_INTERVAL);
   }
 
   send(action, payload) {
