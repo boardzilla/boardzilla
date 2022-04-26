@@ -128,6 +128,7 @@ class GameRunner {
       let stopConsuming = false;
       await actionsChannel.consume(actionQueueName, async (message) => {
         try {
+          let updateNeeded = false;
           // const messages = [];
           const publishPlayerViews = () => {
             Object.entries(gameInstance.getPlayerViews()).forEach(([userId, view]) => {
@@ -175,19 +176,18 @@ class GameRunner {
               console.log('R restarting runner loop', history.length);
             }
 
-            try {
-              gameInstance.seed(session.seed);
-              gameInstance.start(history).then(() => {
-                // end Game
-              });
-            } catch (e) {
-              console.error('R error in game play', e);
-            }
+            console.log("setting seed")
+            gameInstance.seed(session.seed);
+            console.log("starting game with history")
+            await gameInstance.start(history, () => {
+              console.log("game is finished!")
+            })
+            console.log("done starting game with history")
+            updateNeeded = true;
             // gameInstance.getPlayerViews().forEach(playerView => { playerViews[view.userId] = playerView });
-            publishPlayerViews();
+
           }
           let out = null;
-          let updateNeeded = false;
           let action;
           const parsedMessage = JSON.parse(message.content.toString());
           console.log(`R ${process.pid} processGameEvent`, parsedMessage.type, parsedMessage.payload && parsedMessage.payload.userId);

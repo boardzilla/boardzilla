@@ -83,6 +83,8 @@ class GameInterface {
    * after constructor and all game functions registered
    */
   initialize() {
+    if (!this.rseed) throw Error('Can\'t call start() before seed()');
+
     console.log('I: initialize');
     this.doc = new GameDocument(null, { game: this });
     this.board = this.doc.board();
@@ -101,33 +103,46 @@ class GameInterface {
   }
 
   // start game from scratch. pass history if resuming existing game, otherwise will wait for players to start. resolves when game is done
-  async start(history) {
-    if (!this.seed) throw Error('Can\'t call start() before seed()');
-
+  async start(history, cb) {
     this.initialize();
 
-    if (!history) { // waiting for 'start'
-      await this.waitForPlayerStart();
+    if (history && history.length !== 0) {
+      this.startWithHistory(history, cb)
+    } else {
+      this.startWithoutHistory(cb)
     }
+  }
 
+  async startWithHistory(history, cb) {
+    this.initializePlayerMats()
+    this.beginPlay().then(() => {
+      this.#phase = 'finished';
+      cb();
+    });
+    this.lastReplaySequence = history[history.length - 1][1];
+    await this.replay(history);
+  }
+
+  async startWithoutHistory(cb) {
+    return new Promise((resolve, reject) => {
+      this.waitForPlayerStart().then(() => {
+        this.initializePlayerMats()
+        this.beginPlay().then(() => {
+          this.#phase = 'finished';
+          cb();
+        });
+        resolve();
+      })
+    })
+  }
+
+  initializePlayerMats() {
     times(this.#players.length, player => {
       const playerMat = this.doc.addSpace(`#player-mat-${player}`, 'area', { player, class: 'player-mat' });
       this.#setupPlayerMat.forEach(f => f(playerMat));
     });
     this.#setupBoard.forEach(f => f(this.board));
     console.log('update players with phase', this.#phase);
-
-    return new Promise(resolve => {
-      this.beginPlay().then(() => {
-        this.#phase = 'finished';
-        resolve();
-      });
-
-      if (history && history.length > 0) {
-        this.lastReplaySequence = history[history.length - 1][1];
-        this.replay(history);
-      }
-    });
   }
 
   defineAction(name, action) {

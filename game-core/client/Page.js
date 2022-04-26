@@ -133,6 +133,7 @@ export default class Page extends Component {
               return { replies };
             });
             callback(res.payload.response);
+            delete this.state.replies[res.payload.id];
           }
           break;
       }
