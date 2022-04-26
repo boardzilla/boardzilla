@@ -107,9 +107,9 @@ class GameInterface {
     this.initialize();
 
     if (history && history.length !== 0) {
-      this.startWithHistory(history, cb)
+      await this.startWithHistory(history, cb)
     } else {
-      this.startWithoutHistory(cb)
+      await this.startWithoutHistory(cb)
     }
   }
 
@@ -131,8 +131,8 @@ class GameInterface {
           this.#phase = 'finished';
           cb();
         });
-        resolve();
       })
+      resolve();
     })
   }
 
