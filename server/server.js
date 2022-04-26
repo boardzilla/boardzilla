@@ -421,16 +421,16 @@ module.exports = ({
     // const queue = async (type, payload) => redisClient.rpush(sessionEventKey, JSON.stringify({ type, payload }));
 
     const sendWS = (type, payload) => ws.send(JSON.stringify({ type, payload }));
-    const publish = async (type, payload) => await sessionRunner.publishEvent({ type, payload });
-    const queue = async (id, type, payload) => {
-      const response = await sessionRunner.publishAction({ type, payload })
-      sendWS('response', {id, response});
+    const publish = async (type, payload) => sessionRunner.publishEvent({ type, payload });
+    const queue = async (type, payload) => {
+      const response = await sessionRunner.publishAction({ type, payload });
+      sendWS('response', { id: payload.id, response });
     };
 
     let locks = [];
 
     const sendPlayerLocks = async () => {
-      const payload = (await session.getElementLocks()).reduce((locks, lock) => { locks[lock.element] = lock.userId; return locks; }, {});
+      const payload = (await session.getElementLocks()).reduce((l, lock) => { l[lock.element] = lock.userId; return l; }, {});
       sendWS('updateLocks', payload);
     };
 
@@ -498,15 +498,15 @@ module.exports = ({
       try {
         let response;
         const message = JSON.parse(data);
-        console.debug(`S ${req.user.id}: ws message`, message.type);
         switch (message.type) {
           case 'requestLock': return await requestLock(message.payload.key);
           case 'releaseLock': return await releaseLock(message.payload.key);
           case 'drag': return await drag(message.payload);
           case 'ping': return publish('active', sessionUser.userId);
           default: {
+            console.debug(`S ${req.user.id}: ws message`, message.type, message.payload);
             message.payload.userId = req.user.id;
-            await queue(message.id, message.type, message.payload);
+            await queue(message.type, message.payload);
           }
         }
       } catch (e) {

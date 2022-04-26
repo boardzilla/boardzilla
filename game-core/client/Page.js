@@ -28,6 +28,7 @@ const IDLE_WAIT = 10000;
 const IS_MOBILE_PORTRAIT = !!(window.matchMedia("(orientation: portrait)").matches && window.TouchEvent);
 let SIDEBAR_WIDTH = 320;
 let mouse = {};
+let actionId = 1;
 
 export default class Page extends Component {
   constructor(props) {
@@ -50,6 +51,7 @@ export default class Page extends Component {
       help: false, // show help content
       playerStatus: {[props.userId]: new Date()}, // timestamps of last ping from each player
       logs: {},
+      replies: {} // action callbacks { id: { time, callback }, ... }
     };
     this.components = {
       counter: Counter,
@@ -123,8 +125,15 @@ export default class Page extends Component {
             if (logUI) logUI.scrollTop = logUI.scrollHeight;
           }
           break;
-        case 'incomplete':
-          this.setState({ prompt: res.payload.prompt, choices: res.payload.choices });
+        case 'response':
+          if (this.state.replies[res.payload.id]) {
+            const { callback } = this.state.replies[res.payload.id];
+            this.setState(state => {
+              const { [res.payload.id]: _, ...replies } = state.replies;
+              return { replies };
+            });
+            callback(res.payload.response);
+          }
           break;
       }
     };
@@ -196,13 +205,31 @@ export default class Page extends Component {
     console.log('gameAction', action, ...args);
     this.send(
       'action', {
+        id: actionId,
         sequence: this.state.data.sequence,
         action: [action, ...args]
       },
     );
-    this.setState(state => ({action, args, actions: null, zoomPiece: null, prompt: null, choices: null, filter: '', data: Object.assign({}, state.data, {allowedActions: undefined})}));
+    this.waitForReply(actionId, action, reply => {
+      if (reply.type === 'ok') {
+        this.setState({ action: null, args: [], prompt: null, choices: null, zoomPiece: null });
+      } else if (reply.type === 'incomplete') {
+        this.setState({ action, args, prompt: reply.prompt, choices: reply.choices, zoomPiece: null });
+      } else if (reply.type === 'error') {
+        this.setState({ action: null, args: [], prompt: null, choices: null, zoomPiece: null });
+        console.error(reply);
+      }
+    });
+    actionId++;
+    this.setState(state => ({action, args, actions: null, prompt: null, choices: null, filter: '', data: Object.assign({}, state.data, {allowedActions: undefined})}));
   }
 
+  waitForReply(id, action, callback) {
+    this.setState(state => ({
+      replies: Object.assign({}, state.replies, {[id]: { time: Date.now(), action, callback }})
+    }));
+  }
+  
   reset() {
     this.send('reset');
     window.location.reload();
@@ -583,7 +610,7 @@ export default class Page extends Component {
           className={classNames(messagesPane, {"big-zoom": this.state.bigZoom})}
           style={{width: IS_MOBILE_PORTRAIT ? 2 * SIDEBAR_WIDTH: 20 + SIDEBAR_WIDTH}}
         > {/* why is this 2 and not devicePixelRatio ?? */}
-          <div>{this.selfActivePlayer() ? "🟢 connected": "🔴 not connected"}</div>
+          <div>{Object.keys(this.state.replies).length ? '🟡 waiting' : (this.selfActivePlayer() ? "🟢 connected" : "🔴 not connected")}</div>
           <div className="prompt">{this.state.prompt || this.state.data.prompt}</div>
           {messagesPane == 'choices' &&
            <div>

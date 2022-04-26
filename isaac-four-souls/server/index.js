@@ -334,6 +334,7 @@ game.play(async () => {
   const souls = [1, 2, 3].map(() => bonusSouls.splice(game.random(bonusSouls.length), 1)[0]);
   addCards(souls, game.board.find('#bonus-souls'));
 
+  console.log('G starting while-true loop');
   while (true) { // eslint-disable-line no-constant-condition
     await game.anyPlayerPlay(game.getAllActions().filter((a) => !startingActions.includes(a)));
   }

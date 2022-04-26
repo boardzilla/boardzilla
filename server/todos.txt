@@ -1,3 +1,10 @@
+gameAction wrapped in promise
+resolve 'ok' clears zoomPiece?
+resolve 'incomplete' clears zoomPiece and prompts
+
+cancel removes the action record
+
+
 container
  zone - fixed size
   space - area, deck, spread?

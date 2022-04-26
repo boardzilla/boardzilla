@@ -9,7 +9,7 @@ chai.use(spies);
 const matcher = ({ player, action }) => {
   if (action !== 'hi') return 'can only say hi';
   if (player !== 1) return 'must be player 1';
-  return false;
+  return true;
 };
 
 describe('ActionQueue', () => {

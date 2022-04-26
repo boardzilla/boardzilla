@@ -196,17 +196,8 @@ class GameInterface extends EventEmitter {
   async beginPlay() {
     console.log('I: ready');
     this.#phase = 'ready';
-    this.emit('ready');
     if (!this.#play) throw Error('play() must be called');
     return this.#play();
-  }
-
-  onceReady(handler) {
-    this.once('ready', handler);
-  }
-
-  overridePhase(phase) {
-    this.#phase = phase;
   }
 
   // add player to game
@@ -216,39 +207,6 @@ class GameInterface extends EventEmitter {
     if (this.#phase !== 'setup') throw Error('not able to add players while playing');
     if (this.#players.length === this.#maxPlayers) throw Error('game already full');
     this.#players.push([userId, username]);
-  }
-
-  // send all players state along with allowed actions
-  updatePlayers() {
-    if (this.sequence <= this.lastReplaySequence) return; // dont need to update unless at latest
-    console.log('I: updatePlayers', this.sequence, this.#players);
-    times(this.#players.length, player => {
-      this.emit('update', {
-        type: 'state',
-        userId: this.#players[player - 1][0],
-        payload: this.getPlayerView(player),
-      });
-    });
-  }
-
-  // send a player specific allowed actions
-  updatePlayer(player, allowedActions = null) {
-    if (this.sequence <= this.lastReplaySequence) return; // dont need to update unless at latest
-    const payload = this.getPlayerView(player);
-    if (allowedActions) {
-      payload.allowedActions = allowedActions;
-      payload.allowedMoveElements = null;
-      payload.allowedDrags = {};
-    }
-    this.emit('update', {
-      type: 'state',
-      userId: this.#players[player - 1][0],
-      payload,
-    });
-  }
-
-  onUpdate(handler) {
-    this.on('update', handler);
   }
 
   get(key) {
@@ -390,10 +348,11 @@ class GameInterface extends EventEmitter {
       }
       return true;
     }, ({ player, action, args }) => {
+      console.log('I runAction', action, args);
       if (action === 'moveElement') {
-        this.inScopeAsPlayer(player, () => this.moveElement(...args));
+        this.inScopeAsPlayer(player, () => this.moveElement(...this.deserialize(args)));
       } else {
-        this.inScopeAsPlayer(player, () => this.runAction(action, args));
+        this.inScopeAsPlayer(player, () => this.runAction(action, this.deserialize(args)));
         console.log(`action succeeded completeAction(${player}, ${action}, ${args})`);
       }
     });
@@ -581,7 +540,7 @@ class GameInterface extends EventEmitter {
     }
 
     try {
-      const result = await this.actionQueue.processAction({ player, action, args: this.deserialize(args) });
+      const result = await this.actionQueue.processAction({ player, action, args });
       console.log(`action #${this.sequence} accepted ${action} with ${result}`);
       const actionResult = { type: 'ok', player, sequence: this.sequence, action: [action, ...args], messages: 'log message will go here' };
       this.sequence++;
@@ -596,18 +555,9 @@ class GameInterface extends EventEmitter {
     }
   }
 
-  stopListening() {
-    this.removeAllListeners('log');
-    this.removeAllListeners('update');
-  }
-
   log(message) {
     this.logs[this.sequence] = message;
     this.emit('log', new Date(), this.sequence, message);
-  }
-
-  onLogMessage(handler) {
-    this.on('log', handler);
   }
 
   logEntry(action, ...args) {

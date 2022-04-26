@@ -9,30 +9,23 @@ class ActionQueue {
     while (!succeeded) {
       item = await this.waitForNext();
       try {
-        console.log('waitForNext', item);
         const error = matchFn(item.action);
         if (error !== true) {
-          this.rejectQueueItem(item, error);
+          console.log('Q rejecting matchFn', error);
+          item.reject(Error(error));
         } else {
-          console.log('running action', item.action);
+          console.log('Q processFn', item.action);
           const result = processFn && processFn(item.action);
-          this.#queueResolution = null;
           item.resolve(result);
           succeeded = true;
         }
       } catch (e) {
-        console.log('error from waitForMatchingAction', e, item);
-        this.rejectQueueItem(item, e);
+        console.log('Q error from waitForMatchingAction', e, item);
+        item.reject(e);
       }
     }
 
     return item.action;
-  }
-
-  rejectQueueItem(item, reason) {
-    this.#queueResolution = null;
-    console.log('rejecting action', reason);
-    item.reject(reason instanceof Error ? reason : Error(reason));
   }
 
   async waitForNext() {
@@ -47,7 +40,10 @@ class ActionQueue {
   #pump() {
     if (this.#queueResolution) {
       const queueItem = this.#queue.shift();
-      if (queueItem) this.#queueResolution.resolve(queueItem);
+      if (queueItem) {
+        this.#queueResolution.resolve(queueItem);
+        this.#queueResolution = null;
+      }
     }
   }
 

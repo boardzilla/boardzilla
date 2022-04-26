@@ -133,9 +133,7 @@ class GameRunner {
         try {
           // const messages = [];
           const publishPlayerViews = () => {
-            console.log('publishPlayerViews');
             Object.entries(gameInstance.getPlayerViews()).forEach(([userId, view]) => {
-              console.log(userId, view.phase);
               handle.publishEvent({ type: 'state', userId: parseInt(userId, 10), payload: view });
             });
           };
@@ -221,6 +219,7 @@ class GameRunner {
                       messages: response.messages,
                     });
                     updateNeeded = true;
+                    out = { type: 'ok' };
                     break;
                   case 'incomplete':
                   case 'error':
@@ -253,7 +252,6 @@ class GameRunner {
               await actionsChannel.purgeQueue(actionQueueName);
               {
                 const lastAction = await session.getActions({ order: [['sequence', 'DESC']], limit: 1 });
-                console.log('lastAction', lastAction[0] && lastAction[0].id);
                 if (lastAction[0]) {
                   await db.SessionAction.destroy({ where: { id: lastAction[0].id } });
                 }
@@ -263,19 +261,16 @@ class GameRunner {
             default:
               throw Error('unknown command', parsedMessage);
           }
-          console.log('R publish action?', message.properties.correlationId);
           if (message.properties.correlationId) {
             await actionsChannel.publish('', message.properties.replyTo, Buffer.from(JSON.stringify(out)), {
               correlationId: message.properties.correlationId,
             });
           }
-          console.log('R publish ack');
           await actionsChannel.ack(message);
 
           if (updateNeeded) publishPlayerViews();
-          if (action && action.message) {
+          if (action && action.messages) {
             Object.keys(action.messages).forEach(userId => {
-              console.log('R publish log', userId);
               const logMessage = action.messages[userId];
               handle.publishEvent({
                 type: 'log',
