@@ -20,8 +20,13 @@ class GameRunner {
     let gameInstance;
     const handle = new EventEmitter();
     const responsePromises = {};
+    let stopConsuming = false;
 
     const handleError = async e => {
+      if (stopConsuming) {
+        console.log("erorr in game loop, but consuming was stopped, so, ignoring", e)
+        return
+      }
       console.log('error in game runner loop', e);
       Sentry.withScope(scope => {
         scope.setTag('source', 'game-runner');
@@ -125,7 +130,6 @@ class GameRunner {
     const game = await gameVersion.getGame();
     const serverBuffer = await this.s3Provider.getObject({ Key: path.join(game.name, 'server', gameVersion.serverDigest, 'index.js') }).promise();
     const runner = async () => {
-      let stopConsuming = false;
       await actionsChannel.consume(actionQueueName, async message => {
         try {
           const publishPlayerViews = async () => {
