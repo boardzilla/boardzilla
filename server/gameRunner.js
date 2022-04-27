@@ -236,7 +236,7 @@ class GameRunner {
               throw Error('unknown command', parsedMessage);
           }
           if (message.properties.correlationId) {
-            await actionsChannel.publish('', message.properties.replyTo, Buffer.from(JSON.stringify(out)), {
+            await actionsChannel.publish('', message.properties.replyTo, Buffer.from(JSON.stringify(out || null)), {
               correlationId: message.properties.correlationId,
             });
           }
