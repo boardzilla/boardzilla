@@ -2,9 +2,8 @@ const AWS = require('aws-sdk');
 const cluster = require('cluster');
 const { cpus } = require('os');
 
-const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 const secretKey = process.env.SECRET_KEY || 'some secret';
-const zkConnectionString = process.env.ZK_CONNECTION_STRING || 'localhost:2181';
+const rabbitUrl = process.env.RABBIT_URL || 'some secret';
 const s3GameBucket = process.env.S3_GAME_BUCKET;
 
 const createServer = require('./server');
@@ -25,7 +24,7 @@ if (cluster.isPrimary) {
 } else {
   const s3Provider = new AWS.S3({ params: { Bucket: s3GameBucket } });
   const server = createServer({
-    redisUrl, secretKey, zkConnectionString, s3Provider,
+    secretKey, rabbitUrl, s3Provider,
   });
   server.listen(port);
   console.log(`Worker ${process.pid} started`);
