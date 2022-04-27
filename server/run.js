@@ -3,7 +3,7 @@ const cluster = require('cluster');
 const { cpus } = require('os');
 
 const secretKey = process.env.SECRET_KEY || 'some secret';
-const rabbitUrl = process.env.RABBIT_URL || 'some secret';
+const rabbitmqUrl = process.env.RABBIT_URL || 'some secret';
 const s3GameBucket = process.env.S3_GAME_BUCKET;
 
 const createServer = require('./server');
@@ -24,7 +24,7 @@ if (cluster.isPrimary) {
 } else {
   const s3Provider = new AWS.S3({ params: { Bucket: s3GameBucket } });
   const server = createServer({
-    secretKey, rabbitUrl, s3Provider,
+    secretKey, rabbitmqUrl, s3Provider,
   });
   server.listen(port);
   console.log(`Worker ${process.pid} started`);
