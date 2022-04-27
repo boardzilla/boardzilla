@@ -126,7 +126,7 @@ class GameRunner {
     const serverBuffer = await this.s3Provider.getObject({ Key: path.join(game.name, 'server', gameVersion.serverDigest, 'index.js') }).promise();
     const runner = async () => {
       let stopConsuming = false;
-      await actionsChannel.consume(actionQueueName, async (message) => {
+      await actionsChannel.consume(actionQueueName, async message => {
         try {
           const publishPlayerViews = async () => {
             await Promise.all(Object.entries(gameInstance.getPlayerViews()).map(([userId, view]) => (
@@ -148,10 +148,10 @@ class GameRunner {
           };
 
           if (!gameInstance) {
-            await session.reload();
             console.log(process.pid, 'IS LOADING GAME', session.state);
             gameInstance = vm.run(serverBuffer.Body.toString());
             gameInstance.initialize(session.seed);
+            await session.reload();
             const sessionUsers = await session.getSessionUsers({ include: 'User' });
             const users = sessionUsers.map(su => su.User);
             users.forEach(user => gameInstance.addPlayer(user.id, user.name));
@@ -159,8 +159,8 @@ class GameRunner {
 
             if (session.state === 'running') {
               const actions = await session.getActions({ order: ['sequence'] });
-              await gameInstance.processHistory(actions.map(a => [a.player, a.sequence, ...a.action]));
               console.log('R restarting runner and replaying history items', actions.length);
+              await gameInstance.processHistory(actions.map(a => [a.player, a.sequence, ...a.action]));
             }
           }
           let out = null;

@@ -69,7 +69,13 @@ export default class Page extends Component {
       switch(res.type) {
         case "state":
           if (res.payload) {
-            this.setState({data: res.payload});
+            this.setState(state => ({
+              data: res.payload,
+              logs: Object.keys(state.logs).reduce((logs, sequence) => {
+                if (res.payload.sequence <= parseInt(sequence, 10)) delete logs[sequence];
+                return logs;
+              }, state.logs),
+            }));
             if (this.state.zoomPiece) {
               this.setState({actions: this.actionsFor(choiceFromKey(this.state.zoomPiece))});
             }
