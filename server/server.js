@@ -510,7 +510,7 @@ module.exports = ({
       }
     });
 
-    sessionRunner.listen(async (message) => {
+    sessionRunner.listen(message => {
       // TODO better as seperate channels for each user and all users?
       if (message.userId && message.userId !== req.user.id) return null;
       console.debug(`S ${req.user.id}: event`, message.type, message.userId);

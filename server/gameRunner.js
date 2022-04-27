@@ -78,11 +78,10 @@ class GameRunner {
       await eventPublishChannel.close();
       this.handles.delete(handle);
     };
-    handle.listen = async (cb) => {
-      await eventChannel.consume(playerEventQueue.queue, async (message) => {
-        await cb(JSON.parse(message.content.toString()));
-        await eventChannel.ack(message);
-      }, { noAck: false, consumerTag: eventConsumerTag });
+    handle.listen = (cb) => {
+      eventChannel.consume(playerEventQueue.queue, (message) => {
+        cb(JSON.parse(message.content.toString()));
+      }, { noAck: true, consumerTag: eventConsumerTag });
     };
     handle.publishAction = async (payload) => {
       const correlationId = crypto.randomBytes(16).toString('hex');
