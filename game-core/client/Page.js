@@ -20,6 +20,7 @@ import {
 } from './utils';
 import Counter from './Counter';
 import Die from './Die';
+import Spinner from './Spinner';
 import './style.scss';
 
 const DRAG_TOLERANCE = 1;
@@ -135,11 +136,10 @@ export default class Page extends Component {
           if (this.state.replies[res.payload.id]) {
             const { callback } = this.state.replies[res.payload.id];
             this.setState(state => {
-              const { [res.payload.id]: _, ...replies } = state.replies;
-              return { replies };
+              delete state.replies[res.payload.id];
+              return { replies: state.replies };
             });
             callback(res.payload.response);
-            delete this.state.replies[res.payload.id];
           }
           break;
       }
@@ -617,7 +617,7 @@ export default class Page extends Component {
           className={classNames(messagesPane, {"big-zoom": this.state.bigZoom})}
           style={{width: IS_MOBILE_PORTRAIT ? 2 * SIDEBAR_WIDTH: 20 + SIDEBAR_WIDTH}}
         > {/* why is this 2 and not devicePixelRatio ?? */}
-          <div>{Object.keys(this.state.replies).length ? '♻️ connected' : (this.selfActivePlayer() ? "🟢 connected" : "🔴 not connected")}</div>
+          <div>{Object.keys(this.state.replies).length ? <span id="spinner"><Spinner/> connected</span> : (this.selfActivePlayer() ? "🟢 connected" : "🔴 not connected")}</div>
           <div className="prompt">{this.state.prompt || this.state.data.prompt}</div>
           {messagesPane == 'choices' &&
            <div>
