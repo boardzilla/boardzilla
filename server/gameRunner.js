@@ -46,7 +46,7 @@ class GameRunner {
     const actionQueueName = `${actionExchangeName}-${sessionId}-queue`;
     const eventChannel = await this.conn.createChannel();
     const actionsChannel = await this.conn.createChannel();
-    actionsChannel.prefetch(1)
+    actionsChannel.prefetch(1);
     const responseChannel = await this.conn.createChannel();
     const actionPublishChannel = await this.conn.createConfirmChannel();
     const eventPublishChannel = await this.conn.createConfirmChannel();
