@@ -617,7 +617,7 @@ export default class Page extends Component {
           className={classNames(messagesPane, {"big-zoom": this.state.bigZoom})}
           style={{width: IS_MOBILE_PORTRAIT ? 2 * SIDEBAR_WIDTH: 20 + SIDEBAR_WIDTH}}
         > {/* why is this 2 and not devicePixelRatio ?? */}
-          <div>{Object.keys(this.state.replies).length ? '🟡 waiting' : (this.selfActivePlayer() ? "🟢 connected" : "🔴 not connected")}</div>
+          <div>{Object.keys(this.state.replies).length ? '♻️ connected' : (this.selfActivePlayer() ? "🟢 connected" : "🔴 not connected")}</div>
           <div className="prompt">{this.state.prompt || this.state.data.prompt}</div>
           {messagesPane == 'choices' &&
            <div>
