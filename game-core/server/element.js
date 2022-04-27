@@ -202,7 +202,7 @@ class GameElement {
     const el = this.document.createElement(type);
     if (name[0] !== '#') throw Error(`id ${name} must start with #`);
     el.id = name.slice(1);
-    el.className = `${className} ${attrs.class}`;
+    el.className = `${className} ${attrs.class || ''}`.trim();
     delete attrs.class;
     Object.keys(attrs).forEach(attr => el.setAttribute(attr, escape(attrs[attr])));
     if (attrs.left === undefined && attrs.top === undefined && attrs.right === undefined && attrs.bottom === undefined) {

@@ -20,6 +20,7 @@ import {
 } from './utils';
 import Counter from './Counter';
 import Die from './Die';
+import Spinner from './Spinner';
 import './style.scss';
 
 const DRAG_TOLERANCE = 1;
@@ -28,6 +29,7 @@ const IDLE_WAIT = 10000;
 const IS_MOBILE_PORTRAIT = !!(window.matchMedia("(orientation: portrait)").matches && window.TouchEvent);
 let SIDEBAR_WIDTH = 320;
 let mouse = {};
+let actionId = 1;
 
 export default class Page extends Component {
   constructor(props) {
@@ -50,6 +52,7 @@ export default class Page extends Component {
       help: false, // show help content
       playerStatus: {[props.userId]: new Date()}, // timestamps of last ping from each player
       logs: {},
+      replies: {} // action callbacks { id: { time, callback }, ... }
     };
     this.components = {
       counter: Counter,
@@ -67,11 +70,13 @@ export default class Page extends Component {
       switch(res.type) {
         case "state":
           if (res.payload) {
-            this.setState({data: res.payload});
-            if (Object.entries(res.payload.allowedActions).length == 1) {
-              const [action, details] = Object.entries(res.payload.allowedActions)[0];
-              this.setState({action, args: details.args, prompt: details.prompt, choices: details.choices});
-            }
+            this.setState(state => ({
+              data: res.payload,
+              logs: Object.keys(state.logs).reduce((logs, sequence) => {
+                if (res.payload.sequence <= parseInt(sequence, 10)) delete logs[sequence];
+                return logs;
+              }, state.logs),
+            }));
             if (this.state.zoomPiece) {
               this.setState({actions: this.actionsFor(choiceFromKey(this.state.zoomPiece))});
             }
@@ -125,6 +130,16 @@ export default class Page extends Component {
           {
             const logUI = document.querySelector('#log ul');
             if (logUI) logUI.scrollTop = logUI.scrollHeight;
+          }
+          break;
+        case 'response':
+          if (this.state.replies[res.payload.id]) {
+            const { callback } = this.state.replies[res.payload.id];
+            this.setState(state => {
+              delete state.replies[res.payload.id];
+              return { replies: state.replies };
+            });
+            callback(res.payload.response);
           }
           break;
       }
@@ -197,11 +212,29 @@ export default class Page extends Component {
     console.log('gameAction', action, ...args);
     this.send(
       'action', {
+        id: actionId,
         sequence: this.state.data.sequence,
         action: [action, ...args]
       },
     );
-    this.setState(state => ({actions: null, zoomPiece: null, action: null, args: [], prompt: null, choices: null, filter: '', data: Object.assign({}, state.data, {allowedActions: undefined})}));
+    this.waitForReply(actionId, action, reply => {
+      if (reply.type === 'ok') {
+        this.cancel();
+      } else if (reply.type === 'incomplete') {
+        this.setState({ action, args, prompt: reply.prompt, choices: reply.choices, zoomPiece: null });
+      } else if (reply.type === 'error') {
+        this.cancel();
+        console.error(reply);
+      }
+    });
+    actionId++;
+    this.setState({ action, args, actions: null, prompt: null, choices: null, filter: '' });
+  }
+
+  waitForReply(id, action, callback) {
+    this.setState(state => ({
+      replies: Object.assign({}, state.replies, {[id]: { time: Date.now(), action, callback }})
+    }));
   }
 
   reset() {
@@ -301,7 +334,7 @@ export default class Page extends Component {
   handleClick(choice, event) {
     if (this.state.prompt) {
       this.setState({action: null, args: [], prompt: null, choices: null});
-      this.send('update');
+      //this.send('update');
     }
     let zooming = false;
     if (choiceHasKey(choice) && elementByKey(keyFromChoice(choice)).classList.contains('piece') && !elementByKey(keyFromChoice(choice)).classList.contains('component')) {
@@ -324,8 +357,7 @@ export default class Page extends Component {
   }
 
   cancel() {
-    if (this.state.action) this.send('update'); // need to refetch state to get full actions
-    this.setState({actions: null, action: null, zoomPiece: null, args: [], choices: null, help: false});
+    this.setState({action: null, args: [], zoomPiece: null, choices: null, prompt: null, help: false});
   }
 
   zoomOnPiece(element) {
@@ -584,7 +616,7 @@ export default class Page extends Component {
           className={classNames(messagesPane, {"big-zoom": this.state.bigZoom})}
           style={{width: IS_MOBILE_PORTRAIT ? 2 * SIDEBAR_WIDTH: 20 + SIDEBAR_WIDTH}}
         > {/* why is this 2 and not devicePixelRatio ?? */}
-          <div>{this.selfActivePlayer() ? "🟢 connected": "🔴 not connected"}</div>
+          <div>{Object.keys(this.state.replies).length ? <span id="spinner"><Spinner/> connected</span> : (this.selfActivePlayer() ? "🟢 connected" : "🔴 not connected")}</div>
           <div className="prompt">{this.state.prompt || this.state.data.prompt}</div>
           {messagesPane == 'choices' &&
            <div>

@@ -149,6 +149,15 @@ button {
         }
       }
     }
+    #spinner {
+      margin-left: 2.5ex;
+      img {
+        height: 1.2em;
+        position: absolute;
+        top: 0.8em;
+        left: 0.5em;
+      }
+    }
   }
   .table {
     z-index: -100;
@@ -244,6 +253,12 @@ button {
       }
       #choiceFilter {
         height: 7vw;
+      }
+      #spinner {
+        margin-left: 3ex;
+        img {
+          top: 0.5em;
+        }
       }
     }
   }

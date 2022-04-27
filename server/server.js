@@ -359,7 +359,7 @@ module.exports = ({
     server.reload = async () => {
       const sessions = await db.Session.findAll();
       sessions.forEach(async session => {
-        await sessionRunner.publish({ type: 'reload' });
+        //await sessionRunner.publish({ type: 'reload' });
       });
     };
   }
@@ -405,7 +405,7 @@ module.exports = ({
     }
 
     const session = await sessionUser.getSession();
-    const sessionRunner = await gameRunner.createSessionRunner(req.user.id, session.id);
+    const sessionRunner = await gameRunner.createSessionRunner(session.id);
     ws.addEventListener('close', async () => {
       console.log('WS closing...');
       await sessionRunner.stop();
@@ -417,21 +417,17 @@ module.exports = ({
       console.error('error in ws', error);
     }, { once: true });
 
-    // const publish = async (type, payload) => redisClient.publish(sessionEventKey, JSON.stringify({ type, payload }));
-    // const queue = async (type, payload) => redisClient.rpush(sessionEventKey, JSON.stringify({ type, payload }));
-
-    const publish = async (type, payload) => await sessionRunner.publishEvent({ type, payload });
-    const queue = async (type, payload) => await sessionRunner.publishAction({ type, payload });
     const sendWS = (type, payload) => ws.send(JSON.stringify({ type, payload }));
+    const publish = async (type, payload) => sessionRunner.publishEvent({ type, payload });
+    const queue = async (type, payload) => {
+      const response = await sessionRunner.publishAction({ type, payload });
+      sendWS('response', { id: payload.id, response });
+    };
 
     let locks = [];
 
-    const sendPlayerView = async (jsonData) => {
-      ws.send(jsonData);
-    };
-
     const sendPlayerLocks = async () => {
-      const payload = (await session.getElementLocks()).reduce((locks, lock) => { locks[lock.element] = lock.userId; return locks; }, {});
+      const payload = (await session.getElementLocks()).reduce((l, lock) => { l[lock.element] = lock.userId; return l; }, {});
       sendWS('updateLocks', payload);
     };
 
@@ -498,16 +494,15 @@ module.exports = ({
     ws.on('message', async (data) => {
       try {
         const message = JSON.parse(data);
-        console.debug(`S ${req.user.id}: ws message`, message.type);
         switch (message.type) {
           case 'requestLock': return await requestLock(message.payload.key);
           case 'releaseLock': return await releaseLock(message.payload.key);
           case 'drag': return await drag(message.payload);
           case 'ping': return publish('active', sessionUser.userId);
           default: {
+            console.debug(`S ${req.user.id}: ws message`, message.type, message.payload);
             message.payload.userId = req.user.id;
-            const out = await queue(message.type, message.payload);
-            return out;
+            await queue(message.type, message.payload);
           }
         }
       } catch (e) {
@@ -515,14 +510,11 @@ module.exports = ({
       }
     });
 
-    sessionRunner.listen(async (message) => {
-      console.debug(`S ${req.user.id}: redis message`, message.type, message.userId);
+    sessionRunner.listen(message => {
       // TODO better as seperate channels for each user and all users?
-      if (message.userId && message.userId !== req.user.id) {
-        return null;
-      }
+      if (message.userId && message.userId !== req.user.id) return null;
+      console.debug(`S ${req.user.id}: event`, message.type, message.userId);
       switch (message.type) {
-        case 'state': return sendPlayerView(JSON.stringify(message));
         case 'locks': return sendPlayerLocks();
         case 'drag': return updateElement(message.payload);
         case 'log': return sendLog(message.payload);

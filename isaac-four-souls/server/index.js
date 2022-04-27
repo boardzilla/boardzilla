@@ -106,6 +106,7 @@ game.defineActions({
     prompt: 'Draw multiple',
     select: 'deck',
     key: 'm',
+    log: '$0 drew $2 from $1',
     next: {
       prompt: 'How many?',
       min: 2,
@@ -324,7 +325,7 @@ game.play(async () => {
   let action;
   game.prompt('Select starting characters and eternals, then hit Begin game');
   do {
-    [action] = await game.anyPlayerPlay([...startingActions, 'draw', 'drawOne', 'drawMultiple', 'shuffle', 'play', 'remove']);
+    ({ action } = await game.anyPlayerPlay([...startingActions, 'draw', 'drawOne', 'drawMultiple', 'shuffle', 'play', 'remove']));
     console.log('G', action);
   } while (action !== 'start');
   game.board.find('#characters').destroy();
@@ -334,6 +335,7 @@ game.play(async () => {
   const souls = [1, 2, 3].map(() => bonusSouls.splice(game.random(bonusSouls.length), 1)[0]);
   addCards(souls, game.board.find('#bonus-souls'));
 
+  console.log('G starting while-true loop');
   while (true) { // eslint-disable-line no-constant-condition
     await game.anyPlayerPlay(game.getAllActions().filter((a) => !startingActions.includes(a)));
   }

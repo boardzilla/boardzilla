@@ -5,6 +5,13 @@ container
  zone
  zone
 
+- cancel removes the action record?
+- idle out
+X log???
+  X each action creates a log{seq: [0: 'action', 1: 'action'...]...}
+  X state broadcast with new log entry and merged into state
+  - need a full refresh?
+  - complete log messages
 X clean up interface
   X put startup into state?
   X scope as current player
@@ -16,10 +23,6 @@ X ..mobile layout
 - rooms
 X addPlayers multiple
 X counter
-X log???
-  X each action creates a log{seq: [0: 'action', 1: 'action'...]...}
-  X state broadcast with new log entry and merged into state
-  - need a full refresh?
 - mouse tracking
 - movement echo???
   - send last pos (zone,x,y)

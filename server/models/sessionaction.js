@@ -4,6 +4,7 @@ module.exports = (sequelize, DataTypes) => {
     sequence: DataTypes.INTEGER,
     player: DataTypes.INTEGER,
     action: DataTypes.JSON,
+    messages: DataTypes.JSON,
   }, {});
   SessionAction.associate = function (models) {
     models.SessionAction.belongsTo(models.Session, { foreignKey: 'sessionId' });
