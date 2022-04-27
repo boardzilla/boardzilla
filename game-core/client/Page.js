@@ -219,16 +219,16 @@ export default class Page extends Component {
     );
     this.waitForReply(actionId, action, reply => {
       if (reply.type === 'ok') {
-        this.setState({ action: null, args: [], prompt: null, choices: null, zoomPiece: null });
+        this.cancel();
       } else if (reply.type === 'incomplete') {
         this.setState({ action, args, prompt: reply.prompt, choices: reply.choices, zoomPiece: null });
       } else if (reply.type === 'error') {
-        this.setState({ action: null, args: [], prompt: null, choices: null, zoomPiece: null });
+        this.cancel();
         console.error(reply);
       }
     });
     actionId++;
-    this.setState(state => ({action, args, actions: null, prompt: null, choices: null, filter: '', data: Object.assign({}, state.data, {allowedActions: undefined})}));
+    this.setState({ action, args, actions: null, prompt: null, choices: null, filter: '' });
   }
 
   waitForReply(id, action, callback) {
@@ -357,8 +357,7 @@ export default class Page extends Component {
   }
 
   cancel() {
-    //if (this.state.action) this.send('update'); // need to refetch state to get full actions
-    this.setState({actions: null, action: null, zoomPiece: null, args: [], choices: null, help: false});
+    this.setState({action: null, args: [], zoomPiece: null, choices: null, prompt: null, help: false});
   }
 
   zoomOnPiece(element) {

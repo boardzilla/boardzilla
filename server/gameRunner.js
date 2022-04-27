@@ -196,7 +196,7 @@ class GameRunner {
                     break;
                   case 'incomplete':
                   case 'error':
-                    out = response.message;
+                    out = response;
                     break;
                   default:
                     throw new Error(`unrecognized response ${JSON.stringify(response)}`);
@@ -235,7 +235,7 @@ class GameRunner {
               throw Error('unknown command', parsedMessage);
           }
           if (message.properties.correlationId) {
-            await actionsChannel.publish('', message.properties.replyTo, Buffer.from(JSON.stringify(out || null)), {
+            await actionsChannel.publish('', message.properties.replyTo, Buffer.from(JSON.stringify(out)), {
               correlationId: message.properties.correlationId,
             });
           }
