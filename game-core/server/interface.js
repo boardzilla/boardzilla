@@ -109,11 +109,8 @@ class GameInterface {
 
   async processHistory(history) {
     await this.processPlayerStart();
-    if (history.length !== 0) {
-      this.lastReplaySequence = history[history.length - 1][1];
-      return this.replay(history);
-    }
-    this.lastReplaySequence = 0;
+    this.lastReplaySequence = history.length > 0 ? history[history.length - 1][1] : -1;
+    return this.replay(history);
   }
 
   initializeBoardWithPlayers() {

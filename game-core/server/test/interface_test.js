@@ -16,6 +16,7 @@ describe('GameInterface', () => {
     this.interface = new Interface(1);
     const game = this.interface;
     game.setPlayers({ min: 4 });
+    game.initialize();
     [101, 102, 103, 104].forEach(p => game.addPlayer(p, `p${p}`));
 
     game.play(async () => {
@@ -55,8 +56,6 @@ describe('GameInterface', () => {
         },
       },
     });
-
-    game.initialize();
   });
 
   describe('start', () => {
