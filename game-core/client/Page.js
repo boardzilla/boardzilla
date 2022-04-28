@@ -56,14 +56,23 @@ export default class Page extends Component {
       logs: {},
       replies: {} // action callbacks { id: { time, callback }, ... }
     };
+    this.componentCleanup = this.componentCleanup.bind(this);
     this.components = {
       counter: Counter,
       die: Die,
     };
   }
 
+  componentCleanup() {
+    if (this.webSocket) {
+      this.webSocket.close();
+      this.webSocket = null;
+    }
+  }
+
   componentDidMount() {
-    this.webSocket=new ReconnectingWebSocket((location.protocol == 'http:' ? 'ws://' : 'wss://') + document.location.host + '/sessions/' + this.props.session);
+    window.addEventListener('beforeunload', this.componentCleanup);
+    this.webSocket = new ReconnectingWebSocket((location.protocol == 'http:' ? 'ws://' : 'wss://') + document.location.host + '/sessions/' + this.props.session);
     this.webSocket.onopen = () => this.setState({connected: true});
     this.webSocket.onclose = () => this.setState({connected: false});
     this.webSocket.onmessage = e => {
@@ -213,6 +222,11 @@ export default class Page extends Component {
 
     this.send('refresh');
     setInterval(() => this.send('ping'), PING_INTERVAL);
+  }
+
+  componentWillUnmount() {
+    this.componentCleanup();
+    window.removeEventListener('beforeunload', this.componentCleanup);
   }
 
   send(action, payload) {
