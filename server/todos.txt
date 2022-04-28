@@ -6,7 +6,7 @@ container
  zone
 
 - builtins overhaul, get closer to isolated and importable?
-- cancel removes the correct record
+X cancel removes the correct record
 - debug pane
 - idle out
 X log???

@@ -326,10 +326,12 @@ export default class Page extends Component {
         this.gameAction(dragAction, choiceFromKey(key), choiceFromKey(dragOver), translation.x, translation.y);
         // optimistically update the location to avoid flicker
         this.setPieceAt(key, {x, y, moved: true});
+        this.setState({ zoomPiece: null });
       } else if (dragOver === parentKey(key)) {
         this.gameAction('moveElement', choiceFromKey(key), x, y);
         // optimistically update the location to avoid flicker
         this.setPieceAt(key, {x, y});
+        this.setState({ zoomPiece: null });
       } else {
         // invalid drag - put it back
         this.setPieceAt(key, {x: dragging.x, y: dragging.y});
