@@ -357,10 +357,7 @@ module.exports = ({
 
   if (devMode) {
     server.reload = async () => {
-      const sessions = await db.Session.findAll();
-      sessions.forEach(async session => {
-        //await sessionRunner.publish({ type: 'reload' });
-      });
+      await gameRunner.refreshAll();
     };
   }
 

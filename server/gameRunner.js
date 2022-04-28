@@ -259,7 +259,7 @@ class GameRunner {
             await actionsChannel.reject(message);
           }
           handle.emit('finished');
-          return
+          return;
         }
       } catch (e) {
         await handleError(e);
@@ -290,6 +290,12 @@ class GameRunner {
         h.emit('finished');
       }
     });
+  }
+
+  async refreshAll() {
+    for (const h of this.handles) {
+      await h.publishEvent({ type: 'reload' });
+    }
   }
 }
 
