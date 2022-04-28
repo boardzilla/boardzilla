@@ -17,11 +17,12 @@ import {
   branch,
   keyFromEl,
   isFlipped,
-  pieceAt
+  pieceAt,
 } from './utils';
 import Counter from './Counter';
 import Die from './Die';
 import Spinner from './Spinner';
+import DebugLine from './DebugLine';
 import './style.scss';
 
 const DRAG_TOLERANCE = 1;
@@ -503,7 +504,7 @@ export default class Page extends Component {
                              reduce((attrs, attr) => Object.assign(attrs, { [attr.name.toLowerCase()]: !attr.value || isNaN(attr.value) ? attr.value : +attr.value }), {});
 
     const type = node.nodeName.toLowerCase();
-    const key = branch(node).join('-');
+    const key = branch(node);
 
     const props = {
       key,
@@ -636,6 +637,18 @@ export default class Page extends Component {
     } else {
       return contents;
     }
+  }
+
+  renderDebug() {
+    return (
+      <Draggable>
+        <div id="debug">
+          <pre>
+            <DebugLine xml={boardXml} nest={0}/>
+          </pre>
+        </div>
+      </Draggable>
+    );      
   }
 
   render() {
@@ -773,6 +786,8 @@ export default class Page extends Component {
         </div>
 
         {this.props.background}
+
+        {this.state.data.phase === 'ready' && this.state.data.doc && this.renderBoard(boardXml)}
 
         {this.state.data.phase === 'ready' && boardXml && this.renderBoard(boardXml)}
       </div>

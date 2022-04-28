@@ -349,6 +349,26 @@ div.nametag {
   }
 }
 
+#debug {
+  border: 1px solid #999;
+  padding: 10px;
+  background: #eee;
+  width: 700px;
+  height: 350px;
+  z-index: 1000;
+  overflow: scroll;
+  position: relative;
+  .node-name {
+    color: #933;
+  }
+  .attr-name {
+    color: #339;
+  }
+  .attr-value {
+    color: #393;
+  }
+}
+    
 #choiceFilter {
   width: 100%;
   height: 26px;

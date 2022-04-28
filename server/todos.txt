@@ -26,6 +26,8 @@ X clean up interface
   X scope as current player
 - email taken flash error
 - spread space
+- spectator
+- more tests
 X mobile events
 X ..mobile layout
 - bonus souls at start and replaceable
@@ -52,7 +54,6 @@ X better sidebar?
 - escape stuck in drag? might be fixed
 X card flipping in space - remove active from deck card
 - ...homepage
-- show errors from server
 X new cards
 X 2-sided cards
 X counter move count

@@ -7,10 +7,12 @@
     "@sentry/browser": "^6.19.6",
     "@sentry/tracing": "^6.19.6",
     "classnames": "^2.3.1",
+    "install": "^0.13.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-draggable": "^4.4.3",
-    "reconnecting-websocket": "^4.4.0"
+    "reconnecting-websocket": "^4.4.0",
+    "xml-formatter": "^2.6.1"
   },
   "devDependencies": {
     "eslint-plugin-react": "^7.29.4"

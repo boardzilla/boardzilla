@@ -1,3 +1,5 @@
+import format from 'xml-formatter';
+
 let throttled = false;
 
 export const throttle = fn => {
@@ -45,7 +47,7 @@ export const branch = node => {
     branch.unshift(Array.from(node.parentNode.childNodes).indexOf(node) + 1);
     node = node.parentNode;
   }
-  return branch;
+  return branch.join('-');
 };
 
 export const isFlipped = el => el.matches('.flipped, .flipped *');
@@ -54,3 +56,5 @@ export const pieceAt = (doc, key) => {
   const query = `game > ${key.split('-').map((index) => `*:nth-child(${index})`).join(' > ')}`;
   return doc.querySelector(query.replace(/#(\d)/g, '#\\3$1 '));
 };
+
+export const xmlFormat = xml => format(xml);
