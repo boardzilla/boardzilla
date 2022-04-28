@@ -5,12 +5,14 @@ container
  zone
  zone
 
-- cancel removes the action record?
+- builtins overhaul, get closer to isolated and importable?
+- cancel removes the correct record
+- debug pane
 - idle out
 X log???
   X each action creates a log{seq: [0: 'action', 1: 'action'...]...}
   X state broadcast with new log entry and merged into state
-  - need a full refresh?
+  X need a full refresh?
   - complete log messages
 X clean up interface
   X put startup into state?
@@ -63,7 +65,6 @@ X undo/reset
 X kb shortcuts?
 X .mine class on client
 X rseed
-- debug pane
 X EJS front pages
 - ...game file packaging
 X drag onto multiple areas? then cant be both mouse drag and mouse click?

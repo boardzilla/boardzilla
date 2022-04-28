@@ -4,6 +4,7 @@ import Draggable from 'react-draggable';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import {
   throttle,
+  findEl,
   elementByKey,
   parentKey,
   zoneKey,
@@ -30,6 +31,7 @@ const IS_MOBILE_PORTRAIT = !!(window.matchMedia("(orientation: portrait)").match
 let SIDEBAR_WIDTH = 320;
 let mouse = {};
 let actionId = 1;
+let boardXml;
 
 export default class Page extends Component {
   constructor(props) {
@@ -70,6 +72,7 @@ export default class Page extends Component {
       switch(res.type) {
         case "state":
           if (res.payload) {
+            boardXml = xmlToNode(res.payload.doc);
             this.setState(state => ({
               data: res.payload,
               logs: Object.keys(state.logs).reduce((logs, sequence) => {
@@ -78,7 +81,16 @@ export default class Page extends Component {
               }, state.logs),
             }));
             if (this.state.zoomPiece) {
-              this.setState({actions: this.actionsFor(choiceFromKey(this.state.zoomPiece))});
+              let zoomPiece = this.state.zoomPiece;
+              const zoomEl = pieceAt(boardXml, zoomPiece);
+              if (!zoomEl || zoomEl.id != this.state.zoomId) { // piece went away, remove actions that may no longer apply
+                const newEl = findEl('#' + this.state.zoomId);
+                if (newEl) {
+                  zoomPiece = keyFromEl(newEl);
+                  this.setState({ zoomPiece });
+                }
+              }
+              this.setState({actions: this.actionsFor(choiceFromKey(zoomPiece))});
             }
             document.getElementsByTagName('body')[0].dataset.players = this.state.data.players && this.state.data.players.length;
           }
@@ -166,21 +178,21 @@ export default class Page extends Component {
       if (e.key == "Escape") this.cancel();
     });
     document.addEventListener('keyup', e => {
-      if (e.key == 'Enter' && this.state.choices) {
-        const choices = this.state.choices.filter(choice => !choiceHasKey(choice) && choice.toLowerCase().includes(this.state.filter.toLowerCase()));
-        if (choices.length == 1) {
-          this.gameAction(this.state.action, ...this.state.args, choices[0]);
+      if (this.state.choices) {
+        if (e.key == 'Enter') {
+          const choices = this.state.choices.filter(choice => !choiceHasKey(choice) && choice.toLowerCase().includes(this.state.filter.toLowerCase()));
+          if (choices.length == 1) {
+            this.gameAction(this.state.action, ...this.state.args, choices[0]);
+          }
         }
-      }
-      let key = this.state.zoomPiece || (mouse.x != undefined && keyAtPoint(mouse.x, mouse.y));
-      if (key) {
-        if (key[0] == '#') {
-          const el = document.querySelector(`#game ${key.replace(/#(\d)/g, '#\\3$1 ')}`);
-          key = el && el.dataset && el.dataset.key;
+      } else {
+        let key = this.state.zoomPiece || (mouse.x != undefined && keyAtPoint(mouse.x, mouse.y));
+        if (key) {
+          const choice = choiceFromKey(key);
+          const action = Object.entries(this.state.actions || this.actionsFor(choice)).find(([_, a]) => a.key && a.key.toLowerCase() == e.key);
+          console.log('zoom on key', choice, this.actionsFor(choice), action, this.state.args);
+          if (action) this.gameAction(action[0], ...this.state.args, action[1].choice);
         }
-        const choice = choiceFromKey(key);
-        const action = Object.entries(this.state.actions || this.actionsFor(choice)).find(([_, a]) => a.key && a.key.toLowerCase() == e.key);
-        if (action) this.gameAction(action[0], ...this.state.args, action[1].choice);
       }
     });
 
@@ -217,18 +229,20 @@ export default class Page extends Component {
         action: [action, ...args]
       },
     );
+    let zoomPiece = this.state.zoomPiece;
     this.waitForReply(actionId, action, reply => {
       if (reply.type === 'ok') {
-        this.cancel();
+        if (zoomPiece === this.state.zoomPiece) this.setState({ zoomPiece: null });
+        this.setState({action: null, args: [], choices: null, prompt: null, actions: null, filter: '' });
       } else if (reply.type === 'incomplete') {
-        this.setState({ action, args, prompt: reply.prompt, choices: reply.choices, zoomPiece: null });
+        this.setState({ action, args, prompt: reply.prompt, choices: reply.choices, zoomPiece: null, filter: '' });
       } else if (reply.type === 'error') {
-        this.cancel();
+        this.setState({action: null, args: [], choices: null, prompt: null, actions: null, filter: '' });
         console.error(reply);
       }
     });
     actionId++;
-    this.setState({ action, args, actions: null, prompt: null, choices: null, filter: '' });
+    this.setState({ action, args });
   }
 
   waitForReply(id, action, callback) {
@@ -251,15 +265,14 @@ export default class Page extends Component {
   }
 
   setPieceAt(key, attributes) {
-    const xml = xmlToNode(this.state.data.doc);
-    const el = xml.querySelector(
+    const el = boardXml.querySelector(
       key.split('-').reduce((path, index) => `${path} > *:nth-child(${index})`, 'game')
     );
     if (!el) return;
     for (const attr in attributes) {
       el.setAttribute(attr, attributes[attr]);
     }
-    this.setState(state => ({data: Object.assign({}, state.data, {doc: xml.outerHTML})}));
+    this.setState(state => ({data: Object.assign({}, state.data, {doc: boardXml.outerHTML})}));
   }
 
   setVariable(key, value) {
@@ -334,7 +347,6 @@ export default class Page extends Component {
   handleClick(choice, event) {
     if (this.state.prompt) {
       this.setState({action: null, args: [], prompt: null, choices: null});
-      //this.send('update');
     }
     let zooming = false;
     if (choiceHasKey(choice) && elementByKey(keyFromChoice(choice)).classList.contains('piece') && !elementByKey(keyFromChoice(choice)).classList.contains('component')) {
@@ -351,17 +363,24 @@ export default class Page extends Component {
     } else if (Object.keys(actions).length > 1) {
       this.setState({actions});
       event.stopPropagation();
-    } else if (!zooming) {
+    } else if (!zooming && Object.keys(this.state.replies).length === 0) {
       this.cancel();
     }
   }
 
   cancel() {
-    this.setState({action: null, args: [], zoomPiece: null, choices: null, prompt: null, help: false});
+    this.setState({action: null, args: [], actions: null, zoomPiece: null, choices: null, prompt: null, help: false});
   }
 
   zoomOnPiece(element) {
-    this.setState({zoomPiece: keyFromEl(element), zoomOriginalSize: {height: element.offsetHeight, width: element.offsetWidth}});
+    this.setState({
+      zoomPiece: keyFromEl(element),
+      zoomId: element.id,
+      zoomOriginalSize: {
+        height: element.offsetHeight,
+        width: element.offsetWidth
+      }
+    });
   }
 
   // return available actions association to this element {action: {choice, prompt},...}
@@ -572,16 +591,11 @@ export default class Page extends Component {
   render() {
     const textChoices = this.state.choices instanceof Array && this.state.choices.filter(choice => !choiceHasKey(choice));
     const nonBoardActions = this.nonBoardActions();
-    const boardXml = this.state.data.doc && xmlToNode(this.state.data.doc);
 
-    let messagesPane = 'hidden', zoomScale, zoomEl, actions = this.state.actions;
+    let messagesPane = 'hidden', zoomScale, actions = this.state.actions;
+    const zoomEl = this.state.zoomPiece && boardXml && pieceAt(boardXml, this.state.zoomPiece);
+
     if (!this.state.dragging && !this.state.touchMoving) {
-      if (this.state.zoomPiece) {
-        zoomEl = pieceAt(boardXml, this.state.zoomPiece);
-        if (!zoomEl) { // piece went away, remove actions that may no longer apply
-          actions = this.actionsFor(choiceFromKey(this.state.zoomKey));
-        }
-      }
       if (this.state.help) {
         messagesPane = 'help';
       } else if (this.state.choices) {
@@ -601,7 +615,7 @@ export default class Page extends Component {
     }
 
     const showKeybind = message => {
-      let key = message.match(/\s*\((\w)\)$/);
+        let key = message.match(/\s*\((\w)\)$/);
       if (key) {
         message = message.replace(key[0], '');
         key = key[1].toUpperCase();
@@ -697,7 +711,7 @@ export default class Page extends Component {
 
         {this.props.background}
 
-        {this.state.data.phase === 'ready' && this.state.data.doc && this.renderBoard(boardXml)}
+        {this.state.data.phase === 'ready' && boardXml && this.renderBoard(boardXml)}
       </div>
     );
   }

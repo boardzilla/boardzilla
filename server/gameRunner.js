@@ -192,7 +192,7 @@ class GameRunner {
                     });
                     await publishPlayerViews();
                     publishLogs([response]);
-                    out = { type: 'ok' };
+                    out = { type: 'ok', payload: response.action };
                     break;
                   case 'incomplete':
                   case 'error':
