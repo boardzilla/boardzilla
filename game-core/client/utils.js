@@ -7,7 +7,9 @@ export const throttle = fn => {
   throttled = true;
 };
 
-export const elementByKey = key => document.querySelector(`#game *[data-key="${key}"]`);
+export const findEl = q => document.querySelector(`#game ${q}`);
+
+export const elementByKey = key => findEl(`[data-key="${key}"]`);
 
 export const parentKey = key => key.split('-').slice(0, -1).join('-');
 
@@ -49,6 +51,6 @@ export const branch = node => {
 export const isFlipped = el => el.matches('.flipped, .flipped *');
 
 export const pieceAt = (doc, key) => {
-  const query = key[0] == '#' ? `game ${key}` : `game > ${key.split('-').map((index) => `*:nth-child(${index})`).join(' > ')}`;
+  const query = `game > ${key.split('-').map((index) => `*:nth-child(${index})`).join(' > ')}`;
   return doc.querySelector(query.replace(/#(\d)/g, '#\\3$1 '));
 };
