@@ -7,7 +7,7 @@ build_type() {
 	local build_type=$2
 	local ext=$3
 	rm -rf "${game}/${build_type}/build"
-	./node_modules/.bin/webpack -c "${game}/${build_type}/webpack.config.${ext}"
+	NODE_ENV=production ./node_modules/.bin/webpack -c "${game}/${build_type}/webpack.config.${ext}"
 	dir="$game/$build_type/build"
 	digest=$(find "$dir" -type f -exec shasum -a256 {} \; | sed "s~$dir~~g" | LC_ALL=C sort -d | shasum -a256 | awk '{ print $1 }')
 	mkdir -p $game/dist/$build_type/$digest
