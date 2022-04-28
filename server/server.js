@@ -296,6 +296,7 @@ module.exports = ({
       const info = await s3Provider.headObject(s3Params).promise();
       res.set('Content-Type', info.ContentType);
       res.set('Content-Length', info.ContentLength);
+      res.set('Cache-Control', 'public, max-age=604800, immutable');
       const stream = s3Provider.getObject(s3Params).createReadStream();
       stream.on('error', (e) => {
         console.log('error while streaming', e);
