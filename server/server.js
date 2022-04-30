@@ -1,3 +1,4 @@
+const log = require('./log');
 const url = require('url');
 const WebSocket = require('ws');
 const express = require('express');
@@ -25,6 +26,7 @@ module.exports = ({
   const app = express();
 
   if (process.env.NODE_ENV === 'production') {
+    log.setLevel("info");
     Sentry.init({
       dsn: process.env.SENTRY_DSN,
       integrations: [
@@ -39,6 +41,8 @@ module.exports = ({
       // We recommend adjusting this value in production
       tracesSampleRate: 1.0,
     });
+  } else {
+    log.setLevel("debug");
   }
 
   const server = http.createServer(app);
@@ -100,7 +104,7 @@ module.exports = ({
         return next();
       });
     } catch (error) {
-      console.error('verifyToken: ', error);
+      log.warn('verifyToken: ', error);
       return next();
     }
   });
@@ -148,7 +152,7 @@ module.exports = ({
             res.cookie('error', 'Email taken');
             break;
           default:
-            console.error('error', e);
+            log.error('error', e);
             res.cookie('error', 'Unknown error');
         }
         res.render('register');
@@ -299,11 +303,11 @@ module.exports = ({
       if (process.env.NODE_ENV === 'production') res.set('Cache-Control', 'public, max-age=604800, immutable');
       const stream = s3Provider.getObject(s3Params).createReadStream();
       stream.on('error', (e) => {
-        console.log('error while streaming', e);
+        log.error('error while streaming', e);
       });
       stream.pipe(res);
     } catch (e) {
-      console.log('error getting', s3Path, e);
+      log.error('error getting', s3Path, e);
       res.status(404).end('not found');
     }
   });
@@ -373,14 +377,14 @@ module.exports = ({
     try {
       verifyToken(info.req, (error, user) => {
         if (error || !user) {
-          console.error('verifyClient fail: ', error, user);
+          log.error('verifyClient fail: ', error, user);
           return verified(false, 401, 'Unauthorized');
         }
         info.req.user = user;
         return verified(true);
       });
     } catch (error) {
-      console.error('verifyClient: ', error);
+      log.error('verifyClient: ', error);
       throw error;
     }
   };
@@ -406,14 +410,13 @@ module.exports = ({
     const session = await sessionUser.getSession();
     const sessionRunner = await gameRunner.createSessionRunner(session.id);
     ws.addEventListener('close', async () => {
-      console.log('WS closing...');
+      log.debug('WS closing...');
       await sessionRunner.stop();
     }, { once: true });
 
     ws.addEventListener('error', async (error) => {
-      console.log('WS error...');
+      log.warn('WS error...', error);
       await sessionRunner.stop();
-      console.error('error in ws', error);
     }, { once: true });
 
     const sendWS = (type, payload) => ws.send(JSON.stringify({ type, payload }));
@@ -500,12 +503,12 @@ module.exports = ({
     };
 
     sessionRunner.once('error', (error) => {
-      console.error('error starting session!', error);
+      log.error('error starting session!', error);
       return ws.close(1011); // internal error
     });
 
     sessionRunner.once('finished', () => {
-      console.error('closing session!');
+      log.error('closing session!');
       return ws.close(1011); // internal error
     });
 
@@ -519,20 +522,20 @@ module.exports = ({
           case 'ping': return publish('active', sessionUser.userId);
           case 'chat': return chat(message.payload.message);
           default: {
-            console.debug(`S ${req.user.id}: ws message`, message.type, message.payload);
+            log.debug(`S ${req.user.id}: ws message`, message.type, message.payload);
             message.payload.userId = req.user.id;
             await queue(message.type, message.payload);
           }
         }
       } catch (e) {
-        console.error('error', data, e);
+        log.error('error', data, e);
       }
     });
 
     sessionRunner.listen(message => {
       // TODO better as seperate channels for each user and all users?
       if (message.userId && message.userId !== req.user.id) return null;
-      console.debug(`S ${req.user.id}: event`, message.type, message.userId);
+      log.debug(`S ${req.user.id}: event`, message.type, message.userId);
       switch (message.type) {
         case 'locks': return sendPlayerLocks();
         case 'drag': return updateElement(message.payload);

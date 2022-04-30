@@ -1,9 +1,10 @@
+const { nanoid } = require('nanoid');
+const log = require('./log');
 const { NodeVM } = require('vm2');
 const EventEmitter = require('events');
 const path = require('path');
 const Sentry = require('@sentry/node');
 const amqp = require('amqplib');
-const crypto = require('crypto');
 const db = require('./models');
 
 class GameRunner {
@@ -24,10 +25,10 @@ class GameRunner {
 
     const handleError = async e => {
       if (stopConsuming) {
-        console.log('erorr in game loop, but consuming was stopped, so, ignoring', e);
+        log.debug('erorr in game loop, but consuming was stopped, so, ignoring', e);
         return;
       }
-      console.log('error in game runner loop', e);
+      log.error('error in game runner loop', e);
       Sentry.withScope(scope => {
         scope.setTag('source', 'game-runner');
         scope.setExtra('session_id', sessionId);
@@ -41,10 +42,10 @@ class GameRunner {
       }
     };
 
-    const actionConsumerTag = crypto.randomBytes(32).toString('hex');
-    const eventConsumerTag = crypto.randomBytes(32).toString('hex');
+    const actionConsumerTag = nanoid();
+    const eventConsumerTag = nanoid();
     const sessionIdKey = String(sessionId);
-    console.log(`CREATING RUNNER FOR SESSION ID ${sessionId}`);
+    log.debug(`CREATING RUNNER FOR SESSION ID ${sessionId}`);
     const actionExchangeName = 'session-actions';
     const eventExchangeName = 'session-events';
     const eventFanoutExchangeName = `${eventExchangeName}-${sessionId}`;
@@ -53,8 +54,8 @@ class GameRunner {
     const actionsChannel = await this.conn.createChannel();
     actionsChannel.prefetch(10);
     const responseChannel = await this.conn.createChannel();
-    const actionPublishChannel = await this.conn.createConfirmChannel();
-    const eventPublishChannel = await this.conn.createConfirmChannel();
+    const actionPublishChannel = await this.conn.createChannel();
+    const eventPublishChannel = await this.conn.createChannel();
 
     // action stuff
     await actionsChannel.assertExchange(actionExchangeName, 'direct');
@@ -89,12 +90,12 @@ class GameRunner {
       }, { noAck: true, consumerTag: eventConsumerTag });
     };
     handle.publishAction = async (payload) => {
-      const correlationId = crypto.randomBytes(16).toString('hex');
+      const correlationId = nanoid();
       const p = new Promise((resolve, reject) => {
         responsePromises[correlationId] = { resolve, reject };
       });
       await actionPublishChannel.publish(actionExchangeName, sessionIdKey, Buffer.from(JSON.stringify(payload)), {
-        publishMode: 2,
+        deliveryMode: 1,
         correlationId,
         replyTo: responseQueue.queue,
       });
@@ -102,7 +103,7 @@ class GameRunner {
     };
     handle.publishEvent = async (payload) => {
       await eventPublishChannel.publish(eventExchangeName, sessionIdKey, Buffer.from(JSON.stringify(payload)), {
-        publishMode: 2,
+        deliveryMode: 1,
       });
     };
 
@@ -118,7 +119,7 @@ class GameRunner {
 
     const session = await db.Session.findByPk(sessionId);
     if (session.state === 'error') {
-      console.log('attempted to run session in error state');
+      log.debug('attempted to run session in error state');
       await handle.publishEvent({ type: 'error' });
       return null;
     }
@@ -141,16 +142,17 @@ class GameRunner {
       processorRunning = true;
       try {
         const publishPlayerViews = async () => {
-          await Promise.all(Object.entries(gameInstance.getPlayerViews()).map(([userId, view]) => (
+          const playerViews = gameInstance.getPlayerViews();
+          return await Promise.all(Object.entries(playerViews).map(([userId, view]) => (
             handle.publishEvent({ type: 'state', userId: parseInt(userId, 10), payload: view })
           )));
         };
 
-        const publishLogs = (actions, userIds) => {
+        const publishLogs = async (actions, userIds) => {
           if (!userIds) userIds = gameInstance.players.map(p => p[0]);
-          actions.filter(m => m.messages).forEach(({ messages, createdAt, sequence }) => {
-            userIds.forEach(userId => {
-              handle.publishEvent({
+          await Promise.all(actions.filter(m => m.messages).map(({ messages, createdAt, sequence }) => {
+            return userIds.map(userId => {
+              return handle.publishEvent({
                 type: 'log',
                 userId,
                 payload: {
@@ -160,27 +162,27 @@ class GameRunner {
                 },
               });
             });
-          });
+          }));
         };
 
         if (!gameInstance) {
-          console.log(process.pid, 'IS LOADING GAME', session.state);
+          log.debug(process.pid, 'IS LOADING GAME', session.state);
           gameInstance = vm.run(serverBuffer.Body.toString());
           gameInstance.initialize(session.seed);
           await session.reload();
           const sessionUsers = await session.getSessionUsers({ include: 'User' });
           sessionUsers.forEach(sessionUser => gameInstance.addPlayer(sessionUser.User.id, sessionUser.User.name, sessionUser.color));
-          gameInstance.startProcessing().then(() => console.log('game is finished!'));
+          gameInstance.startProcessing().then(() => log.debug('game is finished!'));
 
           if (session.state === 'running') {
             const actions = await session.getActions({ order: ['sequence'] });
-            console.log('R restarting runner and replaying history items', actions.length);
+            log.debug('R restarting runner and replaying history items', actions.length);
             await gameInstance.processHistory(actions.map(a => [a.player, a.sequence, ...a.action]));
           }
         }
         let out = null;
         const parsedMessage = JSON.parse(message.content.toString());
-        console.log(`R ${process.pid} processGameEvent`, parsedMessage.type, parsedMessage.payload && parsedMessage.payload.userId);
+        log.debug(`R ${process.pid} processGameEvent`, parsedMessage.type, parsedMessage.payload && parsedMessage.payload.userId);
         switch (parsedMessage.type) {
           case 'noop':
             break;
@@ -196,7 +198,7 @@ class GameRunner {
                 parsedMessage.payload.sequence,
                 ...parsedMessage.payload.action,
               );
-              console.log(`R action succeeded u${parsedMessage.payload.userId} #${parsedMessage.payload.sequence} ${parsedMessage.payload.action} ${response.type}`);
+              log.debug(`R action succeeded u${parsedMessage.payload.userId} #${parsedMessage.payload.sequence} ${parsedMessage.payload.action} ${response.type}`);
               switch (response.type) {
                 case 'ok':
                   const action = await session.createAction({
@@ -205,7 +207,7 @@ class GameRunner {
                     action: response.action,
                     messages: response.messages,
                   });
-                  await publishPlayerViews();
+                  publishPlayerViews();
                   publishLogs([action]);
                   out = { type: 'ok', payload: response.action };
                   break;
