@@ -2,7 +2,7 @@ module.exports = (sequelize, DataTypes) => {
   const SessionChat = sequelize.define('SessionChat', {
     sessionId: DataTypes.INTEGER,
     userId: DataTypes.INTEGER,
-    value: DataTypes.INTEGER,
+    message: DataTypes.STRING,
     createdAt: DataTypes.DATE,
   }, {
     timestamps: false,

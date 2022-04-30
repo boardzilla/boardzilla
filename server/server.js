@@ -421,20 +421,21 @@ module.exports = ({
       const response = await sessionRunner.publishAction({ type, payload });
       sendWS('response', { id: payload.id, response });
     };
-    const publishChat = async (message) => {
+    const publishChat = async (chat) => {
       await publish({ type: 'chat',
         payload: {
-          id: message.id,
-          userId: message.userId,
-          createdAt: message.createdAt.getTime(),
-          value: message.value,
+          id: chat.id,
+          userId: chat.userId,
+          createdAt: chat.createdAt.getTime(),
+          message: chat.message,
         } });
     };
-    const chat = async (value) => {
+    const chat = async (message) => {
       const chatMessage = await db.SessionChat.create({
         sessionId: session.id,
         userId: req.user.id,
-        value,
+        createdAt: new Date(),
+        message,
       });
 
       await publishChat(chatMessage);
@@ -515,7 +516,7 @@ module.exports = ({
           case 'releaseLock': return await releaseLock(message.payload.key);
           case 'drag': return await drag(message.payload);
           case 'ping': return publish('active', sessionUser.userId);
-          case 'chat': return chat(sessionUser.userId);
+          case 'chat': return chat(message.payload.message);
           default: {
             console.debug(`S ${req.user.id}: ws message`, message.type, message.payload);
             message.payload.userId = req.user.id;

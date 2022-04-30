@@ -459,6 +459,7 @@ export default class Page extends Component {
 
   chat(event) {
     const [_, name, color] = this.state.data.players[this.player() - 1];
+    this.send('chat', {message: this.state.chatMessage});
     this.setState(state => ({
       chatMessage: '',
       chatId: state.chatId + 1,
@@ -469,6 +470,7 @@ export default class Page extends Component {
         }
       })
     }), this.scrollLogs);
+
     event.preventDefault();
   }
 
