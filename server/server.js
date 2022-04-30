@@ -422,13 +422,12 @@ module.exports = ({
       sendWS('response', { id: payload.id, response });
     };
     const publishChat = async (chat) => {
-      await publish({ type: 'chat',
-        payload: {
-          id: chat.id,
-          userId: chat.userId,
-          createdAt: chat.createdAt.getTime(),
-          message: chat.message,
-        } });
+      await publish('chat', {
+        id: chat.id,
+        userId: chat.userId,
+        createdAt: chat.createdAt.getTime(),
+        message: chat.message,
+      });
     };
     const chat = async (message) => {
       const chatMessage = await db.SessionChat.create({

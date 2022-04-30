@@ -165,6 +165,19 @@ export default class Page extends Component {
             callback(payload.response);
           }
           break;
+        case 'chat':
+          const [_, name, color] = this.state.data.players.find(p => p[0] === payload.userId);
+          this.setState(state => ({
+            logs: Object.assign({}, state.logs, {
+              [`chat-${payload.id}`]: {
+                message: `<span color="${color}">${name}: ${payload.message}</span>`,
+                timestamp: new Date(payload.createdAt),
+              }
+            })
+          }), this.scrollLogs);
+          break;
+        default:
+          console.log("UNHANDLED MESSAGE", type, payload);
       }
     };
     document.addEventListener('touchmove', e => {
@@ -462,15 +475,7 @@ export default class Page extends Component {
     this.send('chat', {message: this.state.chatMessage});
     this.setState(state => ({
       chatMessage: '',
-      chatId: state.chatId + 1,
-      logs: Object.assign({}, state.logs, {
-        [`chat-${state.chatId}`]: {
-          message: `<span color="${color}">${name}: ${state.chatMessage}</span>`,
-          timestamp: Date.now()
-        }
-      })
-    }), this.scrollLogs);
-
+    }));
     event.preventDefault();
   }
 
