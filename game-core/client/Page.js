@@ -166,15 +166,17 @@ export default class Page extends Component {
           }
           break;
         case 'chat':
-          const [_, name, color] = this.state.data.players.find(p => p[0] === payload.userId);
-          this.setState(state => ({
-            logs: Object.assign({}, state.logs, {
-              [`chat-${payload.id}`]: {
-                message: `<span color="${color}">${name}: ${payload.message}</span>`,
-                timestamp: new Date(payload.createdAt),
-              }
-            })
-          }), this.scrollLogs);
+          {
+            const [_, name, color] = this.state.data.players.find(p => p[0] === payload.userId);
+            this.setState(state => ({
+              logs: Object.assign({}, state.logs, {
+                [`chat-${payload.id}`]: {
+                  message: `<span color="${color}">${name}: ${payload.message}</span>`,
+                  timestamp: new Date(payload.createdAt),
+                }
+              })
+            }), this.scrollLogs);
+          }
           break;
         default:
           console.log("UNHANDLED MESSAGE", type, payload);
@@ -471,11 +473,8 @@ export default class Page extends Component {
   }
 
   chat(event) {
-    const [_, name, color] = this.state.data.players[this.player() - 1];
     this.send('chat', {message: this.state.chatMessage});
-    this.setState(state => ({
-      chatMessage: '',
-    }));
+    this.setState({ chatMessage: '' });
     event.preventDefault();
   }
 
