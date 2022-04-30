@@ -63,27 +63,31 @@ game.afterMove(
 
 game.hideBoard(
   'card[flipped], .player-mat:not(.mine) #hand card, #loot card, #treasure card, #monsters card, #characters card, #eternals card',
-  ['front', 'name', 'edition'],
+  ['front', 'name', 'edition', 'p3'],
 );
 
 game.defineActions({
   start: {
     prompt: 'Begin game',
+    log: false,
   },
   activate: {
     select: '.mine #tableau card:not([active]):not([flipped])',
     prompt: 'Tap',
+    log: '$0 tapped $1',
     key: 'x',
     action: (card) => card.set('active', true),
   },
   deactivate: {
     prompt: 'Untap',
+    log: '$0 untapped $1',
     select: '.mine #tableau card[active]:not([flipped])',
     key: 'x',
     action: (card) => card.set('active', false),
   },
   deactivateAll: {
     prompt: 'Untap all',
+    log: '$0 untapped all cards',
     select: '.mine #tableau card[active]:not([flipped])',
     key: 'l',
     action: (card) => card.parent().findAll('card[active]').forEach((c) => c.set('active', false)),
@@ -106,7 +110,7 @@ game.defineActions({
     prompt: 'Draw multiple',
     select: 'deck',
     key: 'm',
-    log: '$0 drew $2 from $1',
+    log: '$0 drew $2 $1',
     next: {
       prompt: 'How many?',
       min: 2,
@@ -116,12 +120,14 @@ game.defineActions({
   },
   purchase: {
     prompt: 'Purchase',
+    log: '$0 purchased $1',
     drag: '#shop card, #treasure card',
     key: 'p',
     onto: '.mine #tableau',
   },
   drawOne: {
     prompt: 'Draw specific card',
+    log: '$0 drew $2 out of the deck',
     select: 'deck',
     key: 'i',
     next: {
@@ -132,12 +138,14 @@ game.defineActions({
   },
   discardLoot: {
     prompt: 'Discard',
+    log: '$0 discarded $1',
     key: 'f',
     drag: '#loot card, .mine card[type="loot"]',
     onto: '#loot-discard',
   },
   playLoot: {
     prompt: 'Play',
+    log: '$0 played $1',
     key: 'p',
     drag: '.mine card[type="loot"]',
     onto: '#loot-discard',
@@ -151,66 +159,77 @@ game.defineActions({
   },
   intoLootDeckBottom: {
     prompt: 'Put bottom of deck',
+    log: '$0 put $1 on the bottom of the deck',
     key: 'b',
     select: '.mine card[type="loot"]',
     action: (card) => card.moveToBottom('#loot'),
   },
   intoShop: {
     prompt: 'Put into shop',
+    log: false,
     key: 's',
     drag: '#treasure card, #treasure-discard card, .mine card[type="treasure"]',
     onto: '#shop',
   },
   discardTreasure: {
     prompt: 'Discard',
+    log: '$0 discarded $1',
     key: 'f',
     drag: '#treasure card, #shop card, .mine card[type="treasure"]',
     onto: '#treasure-discard',
   },
   intoTreasureDeck: {
     prompt: 'Put top of deck',
+    log: '$0 put $1 on top of the deck',
     key: 't',
     drag: '#treasure-discard card, #shop card, .mine card[type="treasure"]',
     onto: '#treasure',
   },
   intoTreasureDeckBottom: {
     prompt: 'Put bottom of deck',
+    log: '$0 put $1 on the bottom of the deck',
     key: 'b',
     select: '#treasure-discard card, #shop card, .mine card[type="treasure"]',
     action: (card) => card.moveToBottom('#treasure'),
   },
   intoDungeon: {
     prompt: 'Put into dungeon',
+    log: false,
     key: 's',
     drag: '#monsters card, #monsters-discard card, .mine card[type="monster"]',
     onto: '#dungeon',
   },
   takeMonster: {
     prompt: 'Play onto board',
+    log: '$0 played $1 onto the board',
     key: 'p',
     drag: '#board card[type="monster"]',
     onto: '.mine #tableau',
   },
   discardMonster: {
     prompt: 'Discard',
+    log: '$0 discarded $1',
     key: 'f',
     drag: '#board card[type="monster"], .mine card[type="monster"]',
     onto: '#monsters-discard',
   },
   intoMonsterDeck: {
     prompt: 'Put top of deck',
+    log: '$0 put $1 in the top of the deck',
     key: 't',
     drag: '#board card[type="monster"], .mine card[type="monster"]',
     onto: '#monsters',
   },
   intoMonsterDeckBottom: {
     prompt: 'Put bottom of deck',
+    log: '$0 put $1 in the bottom of the deck',
     key: 'b',
     select: '#board card[type="monster"], .mine card[type="monster"]',
     action: (card) => card.moveToBottom('#monsters'),
   },
   intoMonsterDeckAt: {
     prompt: 'Put nth card down in deck',
+    log: '$0 put $1 in the deck at position $2',
     key: 'n',
     select: '#board card[type="monster"], .mine card[type="monster"]',
     next: {
@@ -222,12 +241,14 @@ game.defineActions({
   },
   takeBonus: {
     prompt: 'Claim bonus soul',
+    log: '$0 claimed $1',
     key: 'd',
     drag: "#board card[type='bonus']",
     onto: '.mine #tableau',
   },
   discardBonus: {
     prompt: 'Discard',
+    log: '$0 discarded $1',
     key: 'f',
     drag: ".mine card[type='bonus']",
     onto: '#bonus-souls',
@@ -235,6 +256,7 @@ game.defineActions({
   giveCard: {
     prompt: 'Give to player',
     promptOnto: 'Which player',
+    log: '$0 gave $1',
     key: 'g',
     drag: ".mine #tableau card, .mine card[type='monster']",
     onto: '.player-mat:not(.mine) #tableau',
@@ -242,6 +264,7 @@ game.defineActions({
   giveLoot: {
     prompt: 'Give to player',
     promptOnto: 'Which player',
+    log: '$0 gave $1',
     key: 'g',
     drag: ".mine #hand card[type='loot']",
     onto: '.player-mat:not(.mine) #hand',
@@ -249,6 +272,7 @@ game.defineActions({
   giveAllLoot: {
     prompt: 'Give all cards to player',
     select: '.mine #hand card',
+    log: '$0 gave all',
     next: {
       prompt: 'Which player?',
       select: '.player-mat:not(.mine) #hand',

@@ -148,12 +148,16 @@ class GameRunner {
 
         const publishLogs = (actions, userIds) => {
           if (!userIds) userIds = gameInstance.players.map(p => p[0]);
-          actions.filter(m => m.messages).forEach(({ messages, sequence }) => {
+          actions.filter(m => m.messages).forEach(({ messages, createdAt, sequence }) => {
             userIds.forEach(userId => {
               handle.publishEvent({
                 type: 'log',
                 userId,
-                payload: { sequence, message: typeof messages === 'string' ? messages : messages[userId] },
+                payload: {
+                  sequence,
+                  timestamp: Date.parse(createdAt),
+                  message: typeof messages === 'string' ? messages : messages[userId],
+                },
               });
             });
           });
@@ -196,14 +200,14 @@ class GameRunner {
               console.log(`R action succeeded u${parsedMessage.payload.userId} #${parsedMessage.payload.sequence} ${parsedMessage.payload.action} ${response.type}`);
               switch (response.type) {
                 case 'ok':
-                  await session.createAction({
+                  const action = await session.createAction({
                     player: response.player,
                     sequence: response.sequence,
                     action: response.action,
                     messages: response.messages,
                   });
                   await publishPlayerViews();
-                  publishLogs([response]);
+                  publishLogs([action]);
                   out = { type: 'ok', payload: response.action };
                   break;
                 case 'incomplete':

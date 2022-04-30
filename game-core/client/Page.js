@@ -45,6 +45,8 @@ export default class Page extends Component {
       data: {}, // complete server state
       input: '',
       filter: '', // user input to filter available choices
+      chatMessage: '', // user input to chat box
+      chatId: 0,
       locks: {}, // locks from server
       positions: {}, // xy positions from server (i.e. other players)
       actions: null, // currently possible actions in menu {action: {choice, prompt},...}
@@ -76,16 +78,16 @@ export default class Page extends Component {
     this.webSocket.onopen = () => this.setState({connected: true});
     this.webSocket.onclose = () => this.setState({connected: false});
     this.webSocket.onmessage = e => {
-      const res = JSON.parse(e.data);
-      console.log("Received", res.type, res);
-      switch(res.type) {
+      const { type, payload } = JSON.parse(e.data);
+      console.log("Received", type, payload);
+      switch(type) {
         case "state":
-          if (res.payload) {
-            boardXml = xmlToNode(res.payload.doc);
+          if (payload) {
+            boardXml = xmlToNode(payload.doc);
             this.setState(state => ({
-              data: res.payload,
+              data: payload,
               logs: Object.keys(state.logs).reduce((logs, sequence) => {
-                if (res.payload.sequence <= parseInt(sequence, 10)) delete logs[sequence];
+                if (payload.sequence <= parseInt(sequence, 10)) delete logs[sequence];
                 return logs;
               }, state.logs),
             }));
@@ -105,11 +107,11 @@ export default class Page extends Component {
           }
           break;
         case "updateLocks":
-          this.setState({locks: res.payload});
+          this.setState({locks: payload});
           break;
         case "updateElement":
-          if (res.payload) {
-            let {key, x, y, start, end, endFlip} = res.payload;
+          if (payload) {
+            let {key, x, y, start, end, endFlip} = payload;
             if (start) {
               const startZone = elementByKey(start);
               const endZone = elementByKey(end);
@@ -140,27 +142,27 @@ export default class Page extends Component {
           }
           break;
         case "active":
-          this.setState(state => ({playerStatus: Object.assign({}, state.playerStatus, {[res.payload]: new Date()})}));
+          this.setState(state => ({playerStatus: Object.assign({}, state.playerStatus, {[payload]: new Date()})}));
           break;
         case 'error':
         case 'reload':
           location.reload();
           break;
         case 'log':
-          this.setState(state => ({logs: Object.assign({}, state.logs, {[res.payload.sequence]: res.payload.message})}));
-          {
-            const logUI = document.querySelector('#log ul');
-            if (logUI) logUI.scrollTop = logUI.scrollHeight;
-          }
+          if (!payload.message) break;
+          this.setState(
+            state => ({logs: Object.assign({}, state.logs, { [payload.sequence]: {timestamp: payload.timestamp, message: payload.message }})}),
+            this.scrollLogs
+          );
           break;
         case 'response':
-          if (this.state.replies[res.payload.id]) {
-            const { callback } = this.state.replies[res.payload.id];
+          if (this.state.replies[payload.id]) {
+            const { callback } = this.state.replies[payload.id];
             this.setState(state => {
-              delete state.replies[res.payload.id];
+              delete state.replies[payload.id];
               return { replies: state.replies };
             });
-            callback(res.payload.response);
+            callback(payload.response);
           }
           break;
       }
@@ -446,6 +448,30 @@ export default class Page extends Component {
     return methods.reduce((list, method) => {list[method] = this[method].bind(this); return list}, {});
   }
 
+  toggleLogExpand() {
+    this.setState({expandLogs: !this.state.expandLogs}, this.scrollLogs);
+  }
+
+  scrollLogs() {
+    const logUI = document.querySelector('#log ul');
+    if (logUI) logUI.scrollTop = logUI.scrollHeight;
+  }
+
+  chat(event) {
+    const [_, name, color] = this.state.data.players[this.player() - 1];
+    this.setState(state => ({
+      chatMessage: '',
+      chatId: state.chatId + 1,
+      logs: Object.assign({}, state.logs, {
+        [`chat-${state.chatId}`]: {
+          message: `<span color="${color}">${name}: ${state.chatMessage}</span>`,
+          timestamp: Date.now()
+        }
+      })
+    }), this.scrollLogs);
+    event.preventDefault();
+  }
+
   renderBoard(board) {
     let otherPlayers = 0;
     return (
@@ -718,10 +744,23 @@ export default class Page extends Component {
           }
           {messagesPane == 'standard' || messagesPane == 'setup' || <button className="fab cancel" onClick={() => this.cancel()}>✕</button>}
           {!this.state.bigZoom &&
-           <div id="log">
-             <a className="expander" onClick={() => this.setState({expandLogs: !this.state.expandLogs})}>{this.state.expandLogs ? '▼' : '▲'}</a>
-             <ul>{Object.entries(this.state.logs).slice(this.state.expandLogs ? -100 : -2).map(([k, l]) => <li key={k}>{l}</li>)}</ul>
-           </div>
+           <>
+             <div key="log" id="log">
+               <a className="expander" onClick={() => this.toggleLogExpand()}>{this.state.expandLogs ? '▼' : '▲'}</a>
+               <ul className={classNames({ expanded: this.state.expandLogs })}>
+                 {Object.entries(this.state.logs)
+                  .sort((a, b) => a[1].timestamp > b[1].timestamp ? 1 : -1)
+                  .map(([k, {message}]) => <li key={k} dangerouslySetInnerHTML={{__html: message}}/>)
+                 }
+               </ul>
+             </div>
+             <div key="chat" id="chat">
+               <form onSubmit={e => this.chat(e)}>
+                 <label>💬</label>
+                 <input placeholder="Send message" value={this.state.chatMessage} onChange={e => this.setState({chatMessage: e.target.value})} />
+               </form>
+             </div>
+           </>
           }
         </div>
 
