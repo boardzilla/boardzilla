@@ -167,11 +167,10 @@ export default class Page extends Component {
           break;
         case 'chat':
           {
-            const [_, name, color] = this.state.data.players.find(p => p[0] === payload.userId);
             this.setState(state => ({
               logs: Object.assign({}, state.logs, {
                 [`chat-${payload.id}`]: {
-                  message: `<span color="${color}">${name}: ${payload.message}</span>`,
+                  message: payload.message,
                   timestamp: new Date(payload.createdAt),
                 }
               })

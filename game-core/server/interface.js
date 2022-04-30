@@ -184,20 +184,24 @@ class GameInterface {
   }
 
   // add player to game
-  addPlayer(userId, username) {
+  addPlayer(userId, username, color) {
     if (this.#players.find(p => p[0] === userId)) return;
     if (this.#maxPlayers && this.#players.length >= this.#maxPlayers) throw Error('game is full');
     if (this.phase !== 'setup') throw Error('not able to add players while playing');
     if (this.#players.length === this.#maxPlayers) throw Error('game already full');
-    this.#players.push([userId, username, this.color(this.#players.length + 1)]);
+    this.#players.push([userId, username, color]);
   }
 
   colorEncodedName(player) {
-    return `<span color="${this.color(player)}">${this.#players[player - 1][1]}</span>`;
+    return `<span color="${this.color(player)}">${this.playerName(player)}</span>`;
+  }
+
+  playerName(player) {
+    return this.#players[player - 1][1];
   }
 
   color(player) {
-    return ['', 'red', 'green', 'blue', 'purple'][player];
+    return this.#players[player - 1][2];
   }
 
   get(key) {

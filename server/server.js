@@ -314,7 +314,7 @@ module.exports = ({
     const game = await db.Game.findByPk(req.body.gameId);
     const gameVersion = req.body.beta ? await game.latestVersion() : await game.latestStableVersion();
     const session = await db.Session.create({ gameVersionId: gameVersion.id, creatorId: req.user.id, seed: String(Math.random()) });
-    await db.SessionUser.create({ userId: req.user.id, sessionId: session.id });
+    await db.SessionUser.create({ userId: req.user.id, sessionId: session.id, color: 'red' });
     if (req.is('json')) {
       res.json({ id: session.id });
     } else {
@@ -337,18 +337,19 @@ module.exports = ({
     if (sessionUser) {
       return res.redirect(`/play/${session.id}/`);
     }
-    const started = await db.SessionAction.findOne({ where: { sessionId: session.id } });
     res.render('session', {
       session,
       me: req.user.id,
-      started,
+      started: session.state !== 'initial',
       game: session.GameVersion.Game.name,
     });
   });
 
   app.post('/user-sessions/:id', async (req, res) => {
     if (!req.user) return unauthorized(req, res, 'permission denied');
-    const userSession = await db.SessionUser.create({ userId: req.user.id, sessionId: req.params.id });
+    const existingColors = (await db.SessionUser.findAll({ where: { sessionId: req.params.id } })).map(u => u.color);
+    const newColor = ['red', 'green', 'blue', 'purple'].find(c => !existingColors.includes(c));
+    const userSession = await db.SessionUser.create({ userId: req.user.id, sessionId: req.params.id, color: newColor });
     if (req.is('json')) {
       res.json({ id: userSession.id });
     } else {
@@ -421,7 +422,7 @@ module.exports = ({
       const response = await sessionRunner.publishAction({ type, payload });
       sendWS('response', { id: payload.id, response });
     };
-    const publishChat = async (chat) => {
+    const publishChat = async chat => {
       await publish('chat', {
         id: chat.id,
         userId: chat.userId,
@@ -429,12 +430,13 @@ module.exports = ({
         message: chat.message,
       });
     };
-    const chat = async (message) => {
+    const chat = async message => {
+      const user = await db.User.findByPk(req.user.id);
       const chatMessage = await db.SessionChat.create({
         sessionId: session.id,
         userId: req.user.id,
         createdAt: new Date(),
-        message,
+        message: `<span color="${sessionUser.color}">${user.name}: ${message}</span>`,
       });
 
       await publishChat(chatMessage);
@@ -540,11 +542,7 @@ module.exports = ({
       }
     });
 
-    const chats = await session.getChats();
-    for (const c of chats) {
-      await publishChat(c);
-    }
-
+    (await session.getChats()).forEach(publishChat);
     return null;
   };
   wss.on('connection', onWssConnection);

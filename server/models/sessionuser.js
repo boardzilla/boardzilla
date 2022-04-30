@@ -2,6 +2,7 @@ module.exports = (sequelize, DataTypes) => {
   const SessionUser = sequelize.define('SessionUser', {
     sessionId: DataTypes.INTEGER,
     userId: DataTypes.INTEGER,
+    color: DataTypes.STRING,
   }, {});
   SessionUser.associate = function (models) {
     models.SessionUser.belongsTo(models.Session, { foreignKey: 'sessionId' });

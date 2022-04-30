@@ -22,6 +22,8 @@ const allPlayerInfo = [
   },
 ];
 
+const colors = [null, 'red', 'green', 'blue', 'purple'];
+
 if (!process.env.GAME) {
   console.error('expected GAME to be defined in the environment');
   process.exit(1);
@@ -78,9 +80,9 @@ async function build() {
 }
 
 async function run() {
-  const numberOfPlayers = parseInt(process.env.PLAYERS_NUM || 2);
+  const numberOfPlayers = parseInt(process.env.PLAYERS_NUM || 2, 10);
   const playerInfo = allPlayerInfo.slice(0, numberOfPlayers);
-  const players = await Promise.all(playerInfo.map((info) => db.User.create(info)));
+  const players = await Promise.all(playerInfo.map(info => db.User.create(info)));
   const game = await db.Game.create({
     name: gameName,
   });
@@ -91,7 +93,7 @@ async function run() {
     serverDigest: 'build',
   });
   const session = await db.Session.create({ creatorId: players[0].id, gameVersionId: gameVersion.id, seed: 0 });
-  const sessionUsers = await Promise.all(players.map((player) => db.SessionUser.create({ sessionId: session.id, userId: player.id })));
+  await Promise.all(players.map((player) => db.SessionUser.create({ sessionId: session.id, userId: player.id, color: colors[player.id] })));
   const buildHandle = await build();
   const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
   const secretKey = process.env.SECRET_KEY || 'some secret';

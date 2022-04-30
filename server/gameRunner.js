@@ -169,8 +169,7 @@ class GameRunner {
           gameInstance.initialize(session.seed);
           await session.reload();
           const sessionUsers = await session.getSessionUsers({ include: 'User' });
-          const users = sessionUsers.map(su => su.User);
-          users.forEach(user => gameInstance.addPlayer(user.id, user.name));
+          sessionUsers.forEach(sessionUser => gameInstance.addPlayer(sessionUser.User.id, sessionUser.User.name, sessionUser.color));
           gameInstance.startProcessing().then(() => console.log('game is finished!'));
 
           if (session.state === 'running') {
@@ -225,10 +224,6 @@ class GameRunner {
             break;
           case 'refreshAll':
             publishLogs(await session.getActions());
-            await publishPlayerViews();
-            break;
-          case 'addPlayer':
-            gameInstance.addPlayer(parsedMessage.payload.userId, parsedMessage.payload.username);
             await publishPlayerViews();
             break;
           case 'reset':
