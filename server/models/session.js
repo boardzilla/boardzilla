@@ -10,6 +10,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {});
   Session.associate = models => {
     models.Session.hasMany(models.SessionUser, { foreignKey: 'sessionId' });
+    models.Session.hasMany(models.SessionChat, { foreignKey: 'sessionId', as: 'chats' });
     models.Session.hasMany(models.ElementLock, { foreignKey: 'sessionId' });
     models.Session.hasMany(models.SessionAction, { foreignKey: 'sessionId', as: 'actions' });
     models.Session.hasOne(models.GameVersion, { sourceKey: 'gameVersionId', foreignKey: 'id' });

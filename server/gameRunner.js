@@ -148,12 +148,16 @@ class GameRunner {
 
         const publishLogs = (actions, userIds) => {
           if (!userIds) userIds = gameInstance.players.map(p => p[0]);
-          actions.filter(m => m.messages).forEach(({ messages, sequence }) => {
+          actions.filter(m => m.messages).forEach(({ messages, createdAt, sequence }) => {
             userIds.forEach(userId => {
               handle.publishEvent({
                 type: 'log',
                 userId,
-                payload: { sequence, message: typeof messages === 'string' ? messages : messages[userId] },
+                payload: {
+                  sequence,
+                  timestamp: Date.parse(createdAt),
+                  message: typeof messages === 'string' ? messages : messages[userId],
+                },
               });
             });
           });
@@ -165,8 +169,7 @@ class GameRunner {
           gameInstance.initialize(session.seed);
           await session.reload();
           const sessionUsers = await session.getSessionUsers({ include: 'User' });
-          const users = sessionUsers.map(su => su.User);
-          users.forEach(user => gameInstance.addPlayer(user.id, user.name));
+          sessionUsers.forEach(sessionUser => gameInstance.addPlayer(sessionUser.User.id, sessionUser.User.name, sessionUser.color));
           gameInstance.startProcessing().then(() => console.log('game is finished!'));
 
           if (session.state === 'running') {
@@ -196,14 +199,14 @@ class GameRunner {
               console.log(`R action succeeded u${parsedMessage.payload.userId} #${parsedMessage.payload.sequence} ${parsedMessage.payload.action} ${response.type}`);
               switch (response.type) {
                 case 'ok':
-                  await session.createAction({
+                  const action = await session.createAction({
                     player: response.player,
                     sequence: response.sequence,
                     action: response.action,
                     messages: response.messages,
                   });
                   await publishPlayerViews();
-                  publishLogs([response]);
+                  publishLogs([action]);
                   out = { type: 'ok', payload: response.action };
                   break;
                 case 'incomplete':
@@ -221,10 +224,6 @@ class GameRunner {
             break;
           case 'refreshAll':
             publishLogs(await session.getActions());
-            await publishPlayerViews();
-            break;
-          case 'addPlayer':
-            gameInstance.addPlayer(parsedMessage.payload.userId, parsedMessage.payload.username);
             await publishPlayerViews();
             break;
           case 'reset':

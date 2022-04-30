@@ -137,12 +137,27 @@ button {
       ul {
         padding: 2px;
         margin: 4px 0 0 3px;
-        max-height: 400px;
         overflow-y: scroll;
+        max-height: 2.8em;
+        &.expanded {
+          max-height: 400px;
+        }
         li {
           margin: 0;
           padding: 0 6px 0 25px;
           text-indent: -25px;
+          [color="red"] {
+            color: #f66;
+          }
+          [color="green"] {
+            color: #6f6;
+          }
+          [color="blue"] {
+            color: #66f;
+          }
+          [color="purple"] {
+            color: #c6f;
+          }
         }
         &:empty {
           display: none;
@@ -156,6 +171,26 @@ button {
         position: absolute;
         top: 0.8em;
         left: 0.5em;
+      }
+    }
+    #chat {
+      position: relative;
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 4px 6px 4px 30px;
+        border-radius: 0 0 8px 8px;
+        background: black;
+        color: white;
+        &:focus {
+          box-shadow: none;
+          background: #333;
+        }
+      }
+      label {
+        position: absolute;
+        left: 6px;
+        top: 3px;
       }
     }
   }
@@ -185,14 +220,31 @@ button {
   .hilited {
     outline: 5px solid rgba(255,255,0,.5)
   }
-  div.nametag {
-    font-size: 30px;
-    pointer-events: none;
-    opacity: .3;
-    color: black;
-    &.active {
-      opacity: 1;
-    }
+}
+
+div.nametag {
+  font-size: 30px;
+  pointer-events: none;
+  opacity: .3;
+  color: black;
+  .player-mat[color="red"] & {
+    color: #900;
+    text-shadow: 1px 1px #fcc;
+  }
+  .player-mat[color="green"] & {
+    color: #090;
+    text-shadow: 1px 1px #cfc;
+  }
+  .player-mat[color="blue"] & {
+    color: #009;
+    text-shadow: 1px 1px #ccf;
+  }
+  .player-mat[color="purple"] & {
+    color: #709;
+    text-shadow: 1px 1px #dcf;
+  }
+  &.active {
+    opacity: 1;
   }
 }
 
@@ -478,5 +530,20 @@ button {
   }
   [number="6"] &[data-spin="down"] {
     transform: rotateX(-360deg) rotateY(-900deg) rotateZ(-360deg);
+  }
+  .player-mat[color="red"] & .die-face {
+    background-color: #f66;
+  }
+
+  .player-mat[color="green"] & .die-face {
+    background-color: #6c6;
+  }
+
+  .player-mat[color="blue"] & .die-face {
+    background-color: #66f;
+  }
+
+  .player-mat[color="purple"] & .die-face {
+    background-color: #b0f;
   }
 }

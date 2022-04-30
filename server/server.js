@@ -296,7 +296,7 @@ module.exports = ({
       const info = await s3Provider.headObject(s3Params).promise();
       res.set('Content-Type', info.ContentType);
       res.set('Content-Length', info.ContentLength);
-      res.set('Cache-Control', 'public, max-age=604800, immutable');
+      if (process.env.NODE_ENV === 'production') res.set('Cache-Control', 'public, max-age=604800, immutable');
       const stream = s3Provider.getObject(s3Params).createReadStream();
       stream.on('error', (e) => {
         console.log('error while streaming', e);
@@ -314,7 +314,7 @@ module.exports = ({
     const game = await db.Game.findByPk(req.body.gameId);
     const gameVersion = req.body.beta ? await game.latestVersion() : await game.latestStableVersion();
     const session = await db.Session.create({ gameVersionId: gameVersion.id, creatorId: req.user.id, seed: String(Math.random()) });
-    await db.SessionUser.create({ userId: req.user.id, sessionId: session.id });
+    await db.SessionUser.create({ userId: req.user.id, sessionId: session.id, color: 'red' });
     if (req.is('json')) {
       res.json({ id: session.id });
     } else {
@@ -337,18 +337,19 @@ module.exports = ({
     if (sessionUser) {
       return res.redirect(`/play/${session.id}/`);
     }
-    const started = await db.SessionAction.findOne({ where: { sessionId: session.id } });
     res.render('session', {
       session,
       me: req.user.id,
-      started,
+      started: session.state !== 'initial',
       game: session.GameVersion.Game.name,
     });
   });
 
   app.post('/user-sessions/:id', async (req, res) => {
     if (!req.user) return unauthorized(req, res, 'permission denied');
-    const userSession = await db.SessionUser.create({ userId: req.user.id, sessionId: req.params.id });
+    const existingColors = (await db.SessionUser.findAll({ where: { sessionId: req.params.id } })).map(u => u.color);
+    const newColor = ['red', 'green', 'blue', 'purple'].find(c => !existingColors.includes(c));
+    const userSession = await db.SessionUser.create({ userId: req.user.id, sessionId: req.params.id, color: newColor });
     if (req.is('json')) {
       res.json({ id: userSession.id });
     } else {
@@ -420,6 +421,25 @@ module.exports = ({
     const queue = async (type, payload) => {
       const response = await sessionRunner.publishAction({ type, payload });
       sendWS('response', { id: payload.id, response });
+    };
+    const publishChat = async chat => {
+      await publish('chat', {
+        id: chat.id,
+        userId: chat.userId,
+        createdAt: chat.createdAt.getTime(),
+        message: chat.message,
+      });
+    };
+    const chat = async message => {
+      const user = await db.User.findByPk(req.user.id);
+      const chatMessage = await db.SessionChat.create({
+        sessionId: session.id,
+        userId: req.user.id,
+        createdAt: new Date(),
+        message: `<span color="${sessionUser.color}">${user.name}: ${message}</span>`,
+      });
+
+      await publishChat(chatMessage);
     };
 
     let locks = [];
@@ -497,6 +517,7 @@ module.exports = ({
           case 'releaseLock': return await releaseLock(message.payload.key);
           case 'drag': return await drag(message.payload);
           case 'ping': return publish('active', sessionUser.userId);
+          case 'chat': return chat(message.payload.message);
           default: {
             console.debug(`S ${req.user.id}: ws message`, message.type, message.payload);
             message.payload.userId = req.user.id;
@@ -521,6 +542,7 @@ module.exports = ({
       }
     });
 
+    (await session.getChats()).forEach(publishChat);
     return null;
   };
   wss.on('connection', onWssConnection);

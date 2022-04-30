@@ -62,7 +62,7 @@ class GameInterface {
           if (counter.get('max')) newValue = Math.min(newValue, counter.get('max'));
           counter.set('value', newValue);
           counter.set('moves', counter.get('moves') + 1);
-          return `${this.currentPlayerName()} set ${counter.get('name') || 'counter'} to ${newValue}`;
+          return `${this.colorEncodedName(this.currentPlayer)} set ${counter.get('name') || 'counter'} to ${newValue}`;
         }
         return null;
       },
@@ -72,7 +72,7 @@ class GameInterface {
           const number = this.random(die.get('faces')) + 1;
           die.set('number', number);
           die.set('rolls', die.get('rolls') + 1);
-          return `${this.currentPlayerName()} rolled a ${number}`;
+          return `${this.colorEncodedName(this.currentPlayer)} rolled a ${number}`;
         }
         return null;
       },
@@ -115,7 +115,7 @@ class GameInterface {
 
   initializeBoardWithPlayers() {
     times(this.#players.length, player => {
-      const playerMat = this.doc.addSpace(`#player-mat-${player}`, 'area', { player, class: 'player-mat' });
+      const playerMat = this.doc.addSpace(`#player-mat-${player}`, 'area', { player, class: 'player-mat', color: this.color(player) });
       this.#setupPlayerMat.forEach(f => f(playerMat));
     });
     this.#setupBoard.forEach(f => f(this.board));
@@ -184,12 +184,24 @@ class GameInterface {
   }
 
   // add player to game
-  addPlayer(userId, username) {
+  addPlayer(userId, username, color) {
     if (this.#players.find(p => p[0] === userId)) return;
     if (this.#maxPlayers && this.#players.length >= this.#maxPlayers) throw Error('game is full');
     if (this.phase !== 'setup') throw Error('not able to add players while playing');
     if (this.#players.length === this.#maxPlayers) throw Error('game already full');
-    this.#players.push([userId, username]);
+    this.#players.push([userId, username, color]);
+  }
+
+  colorEncodedName(player) {
+    return `<span color="${this.color(player)}">${this.playerName(player)}</span>`;
+  }
+
+  playerName(player) {
+    return this.#players[player - 1][1];
+  }
+
+  color(player) {
+    return this.#players[player - 1][2];
   }
 
   get(key) {
@@ -528,6 +540,7 @@ class GameInterface {
         sequence: this.sequence,
         action: [action, ...args],
         messages: result && result.log,
+        timestamp: Date.now(),
       };
       this.sequence++;
       return actionResult;
@@ -542,18 +555,17 @@ class GameInterface {
 
   logEntry(action, ...args) {
     if (action.drag) args = args.slice(0, 2);
+    const name = this.colorEncodedName(this.currentPlayer);
     return [...this.#players.entries()].reduce((entry, [player, [userId]]) => {
       if (action.log) {
         entry[userId] = action.log.replace(/\$(\d+)/g, sub => {
-          if (sub[1] !== '0') {
-            const namedArg = args[parseInt(sub[1], 10) - 1];
-            if (namedArg && namedArg[player]) return namedArg[player].shown || namedArg[player].hidden;
-            return namedArg;
-          }
-          return this.currentPlayerName();
+          if (sub[1] === '0') return name;
+          const namedArg = args[parseInt(sub[1], 10) - 1];
+          if (namedArg && namedArg[player]) return namedArg[player].shown || namedArg[player].hidden;
+          return namedArg;
         });
-      } else {
-        entry[userId] = `${this.currentPlayerName()} : ${action.prompt} ${args.map(a => (a instanceof Array && a[player] ? a[player].shown || a[player].hidden : a)).join(' ')}`.trim();
+      } else if (action.log !== false) {
+        entry[userId] = `${name} : ${action.prompt} ${args.map(a => (a instanceof Array && a[player] ? a[player].shown || a[player].hidden : a)).join(' ')}`.trim();
       }
       return entry;
     }, {});
