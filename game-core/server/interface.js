@@ -538,6 +538,7 @@ class GameInterface {
   async processAction(player, sequence, action, ...args) {
     if (this.phase !== 'ready') throw Error(`Received action ${action} before ready`);
     console.log(`received action (p=${player}, #${sequence} =? #${this.sequence}, ${action}, ${args})`);
+    const start = Date.now();
 
     if (this.sequence !== sequence) {
       if (sequence <= this.lastReplaySequence) {
@@ -555,6 +556,7 @@ class GameInterface {
         sequence: this.sequence,
         action: [action, ...normalizedArgs],
         messages: result && result.log,
+        start,
         timestamp: Date.now(),
       };
       this.sequence++;
