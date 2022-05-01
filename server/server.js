@@ -469,7 +469,7 @@ module.exports = ({
       await publish('locks');
     };
 
-    const releaseLock = async (key) => {
+    const releaseLock = async key => {
       await db.ElementLock.destroy({ where: { sessionId: session.id, userId: sessionUser.userId, element: key } });
       locks = locks.filter((lock) => lock.key !== key);
       await publish('locks');

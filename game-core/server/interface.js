@@ -256,6 +256,9 @@ class GameInterface {
       if (value.slice && value.slice(0, 4) === '$el(') {
         return this.doc.pieceAt(value.slice(4, -1));
       }
+      if (value.slice && value.slice(0, 6) === '$uuid(') {
+        return this.doc.find(`[uuid="${value.slice(6, -1)}"]`);
+      }
       return JSON.parse(value);
     } catch (e) {
       console.error('unable to deserialize', value);
@@ -263,8 +266,16 @@ class GameInterface {
     }
   }
 
+  normalize(value) {
+    if (value instanceof Array) return value.map(v => this.normalize(v));
+    if (value.slice && value.slice(0, 6) === '$uuid(') {
+      return this.deserialize(value).branch();
+    }
+    return value;
+  }
+
   getPlayerViews() {
-    return [...this.#players.entries()].reduce((views, [index, [userId, name]]) => {
+    return [...this.#players.entries()].reduce((views, [index, [userId]]) => {
       views[userId] = this.getPlayerView(index + 1);
       return views;
     }, {});
@@ -285,6 +296,9 @@ class GameInterface {
       });
 
       playerView.findNodes('.mine').forEach(n => n.classList.add('mine'));
+      playerView.findNodes('[player]:not(.mine)').forEach(n => (
+        n.setAttribute('player-after-me', (parseInt(n.attributes.player.value, 10) - this.currentPlayer + this.players.length) % this.players.length)
+      ));
 
       return this.currentActions.reduce((drags, action) => {
         if (this.#actions[action].drag) {
@@ -533,12 +547,13 @@ class GameInterface {
     }
 
     try {
-      const result = await this.actionQueue.processAction({ player, action, args });
+      const normalizedArgs = this.normalize(args);
+      const result = await this.actionQueue.processAction({ player, action, args: normalizedArgs });
       const actionResult = {
         type: 'ok',
         player,
         sequence: this.sequence,
-        action: [action, ...args],
+        action: [action, ...normalizedArgs],
         messages: result && result.log,
         timestamp: Date.now(),
       };

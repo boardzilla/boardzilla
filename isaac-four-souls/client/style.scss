@@ -121,10 +121,10 @@
     &.mine {
       top: 510px;
     }
-    &:not(.mine):nth-child(2) {
+    &[player-after-me="2"] {
       left: 700px;
     }
-    &:not(.mine):nth-child(3) {
+    &[player-after-me="3"] {
       left: 700px;
       top: 510px;
     }

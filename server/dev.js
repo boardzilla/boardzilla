@@ -57,7 +57,7 @@ async function build() {
     let resolved = false;
     webpack(serverConfig, async () => {
       if (resolved) {
-        await db.SessionAction.destroy({});
+        await db.SessionAction.destroy({ truncate: true });
         return emitter.emit('update');
       }
       resolved = true;

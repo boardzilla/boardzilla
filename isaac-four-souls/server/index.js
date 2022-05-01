@@ -6,7 +6,7 @@ game.setPlayers({
   max: 4,
 });
 
-const findCards = type => Object.entries(cards).filter((c) => c[1].type === type);
+const findCards = type => Object.entries(cards).filter(c => c[1].type === type);
 
 const addCards = (pieces, deck) => {
   pieces.forEach(([id, card]) => {
@@ -28,28 +28,28 @@ game.setupPlayerMat(mat => {
 });
 
 game.setupBoard(board => {
-  const charactersDeck = board.addSpace('#characters', 'deck');
+  const charactersDeck = board.addSpace('#characters', 'stack', { class: 'deck' });
   addAllCards('character', charactersDeck);
   charactersDeck.shuffle();
-  const eternalsDeck = board.addSpace('#eternals', 'deck');
+  const eternalsDeck = board.addSpace('#eternals', 'stack', { class: 'deck' });
   addAllCards('eternal', eternalsDeck);
   eternalsDeck.shuffle();
 
-  const lootDeck = board.addSpace('#loot', 'deck');
+  const lootDeck = board.addSpace('#loot', 'stack', { class: 'deck' });
   addAllCards('loot', lootDeck);
   lootDeck.shuffle();
-  board.addSpace('#loot-discard', 'deck');
+  board.addSpace('#loot-discard', 'stack', { class: 'deck' });
 
-  const treasureDeck = board.addSpace('#treasure', 'deck');
+  const treasureDeck = board.addSpace('#treasure', 'stack', { class: 'deck' });
   addAllCards('treasure', treasureDeck);
   treasureDeck.shuffle();
-  board.addSpace('#treasure-discard', 'deck');
+  board.addSpace('#treasure-discard', 'stack', { class: 'deck' });
   board.addSpace('#shop', 'area', { spreadX: 80 });
 
-  const monsterDeck = board.addSpace('#monsters', 'deck');
+  const monsterDeck = board.addSpace('#monsters', 'stack', { class: 'deck' });
   addAllCards('monster', monsterDeck);
   monsterDeck.shuffle();
-  board.addSpace('#monsters-discard', 'deck');
+  board.addSpace('#monsters-discard', 'stack', { class: 'deck' });
   const dungeon = board.addSpace('#dungeon', 'area', { spreadX: 80 });
   dungeon.addComponent('counter', { display: 'hp', initialValue: 1, max: 8, left: 20, top: 100 });
 
@@ -57,7 +57,7 @@ game.setupBoard(board => {
 });
 
 game.afterMove(
-  '#hand card, deck card',
+  '#hand card, .deck card',
   card => card.set({ active: false, flipped: false }),
 );
 
@@ -76,21 +76,21 @@ game.defineActions({
     prompt: 'Tap',
     log: '$0 tapped $1',
     key: 'x',
-    action: (card) => card.set('active', true),
+    action: card => card.set('active', true),
   },
   deactivate: {
     prompt: 'Untap',
     log: '$0 untapped $1',
     select: '.mine #tableau card[active]:not([flipped])',
     key: 'x',
-    action: (card) => card.set('active', false),
+    action: card => card.set('active', false),
   },
   deactivateAll: {
     prompt: 'Untap all',
     log: '$0 untapped all cards',
     select: '.mine #tableau card[active]:not([flipped])',
     key: 'l',
-    action: (card) => card.parent().findAll('card[active]').forEach((c) => c.set('active', false)),
+    action: card => card.parent().findAll('card[active]').forEach(c => c.set('active', false)),
   },
   play: {
     prompt: 'Play onto board',
@@ -102,13 +102,13 @@ game.defineActions({
   draw: {
     prompt: 'Draw',
     log: '$0 drew $1',
-    drag: 'deck card, #loot-discard card',
+    drag: '.deck card, #loot-discard card',
     key: 'd',
     onto: '.mine #hand',
   },
   drawMultiple: {
     prompt: 'Draw multiple',
-    select: 'deck',
+    select: '.deck',
     key: 'm',
     log: '$0 drew $2 $1',
     next: {
@@ -128,11 +128,11 @@ game.defineActions({
   drawOne: {
     prompt: 'Draw specific card',
     log: '$0 drew $2 out of the deck',
-    select: 'deck',
+    select: '.deck',
     key: 'i',
     next: {
       prompt: 'Select card',
-      select: (deck) => deck.findAll('card').map((c) => c.get('name')),
+      select: deck => deck.findAll('card').map(c => c.get('name')),
       action: (deck, name) => deck.find(`card[name="${name}"]`).move('.mine #hand'),
     },
   },
@@ -162,7 +162,7 @@ game.defineActions({
     log: '$0 put $1 on the bottom of the deck',
     key: 'b',
     select: '.mine card[type="loot"]',
-    action: (card) => card.moveToBottom('#loot'),
+    action: card => card.moveToBottom('#loot'),
   },
   intoShop: {
     prompt: 'Put into shop',
@@ -190,13 +190,13 @@ game.defineActions({
     log: '$0 put $1 on the bottom of the deck',
     key: 'b',
     select: '#treasure-discard card, #shop card, .mine card[type="treasure"]',
-    action: (card) => card.moveToBottom('#treasure'),
+    action: card => card.moveToBottom('#treasure'),
   },
   intoDungeon: {
     prompt: 'Put into dungeon',
     log: false,
     key: 's',
-    drag: '#monsters card, #monsters-discard card, .mine card[type="monster"]',
+    drag: '#monsters card, #monsters-discard card, .mine card[type="monster"], .mine card[type="loot"], #board card[type="loot"]',
     onto: '#dungeon',
   },
   takeMonster: {
@@ -225,7 +225,7 @@ game.defineActions({
     log: '$0 put $1 in the bottom of the deck',
     key: 'b',
     select: '#board card[type="monster"], .mine card[type="monster"]',
-    action: (card) => card.moveToBottom('#monsters'),
+    action: card => card.moveToBottom('#monsters'),
   },
   intoMonsterDeckAt: {
     prompt: 'Put nth card down in deck',
@@ -283,13 +283,13 @@ game.defineActions({
     prompt: 'Add counter',
     key: 'c',
     select: '.mine card:empty, #board card:empty',
-    action: (card) => card.addComponent('counter', { max: 99 }),
+    action: card => card.addComponent('counter', { max: 99 }),
   },
   removeCounter: {
     prompt: 'Remove counter',
     key: 'c',
     select: '.mine card:not(:empty), #board card:not(:empty)',
-    action: (card) => card.find('counter').destroy(),
+    action: card => card.find('counter').destroy(),
   },
   intoCharDeckTop: {
     prompt: 'Put back in deck',
@@ -314,14 +314,14 @@ game.defineActions({
     onto: '.mine #hand',
   },
   shuffle: {
-    select: 'deck',
+    select: '.deck',
     prompt: 'Shuffle',
-    action: (deck) => deck.shuffle(),
+    action: deck => deck.shuffle(),
   },
   flip: {
     select: '.mine card',
     prompt: 'Flip',
-    action: (card) => card.set('flipped', !card.get('flipped')),
+    action: card => card.set('flipped', !card.get('flipped')),
   },
 });
 
@@ -361,7 +361,7 @@ game.play(async () => {
 
   console.log('G starting while-true loop');
   while (true) { // eslint-disable-line no-constant-condition
-    await game.anyPlayerPlay(game.getAllActions().filter((a) => !startingActions.includes(a)));
+    await game.anyPlayerPlay(game.getAllActions().filter(a => !startingActions.includes(a)));
   }
 });
 

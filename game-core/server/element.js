@@ -1,5 +1,7 @@
-const gameElements = [];
+const crypto = require('crypto');
 const { times } = require('./utils');
+
+const gameElements = [];
 
 class GameElement {
   constructor(node, caller = {}) {
@@ -8,6 +10,10 @@ class GameElement {
     this.game = caller.game;
     this.id = node.id; // TODO reserved id's? game, board...
     this.type = node.nodeName.toLowerCase();
+  }
+
+  assignUUID() {
+    this.set('uuid', crypto.randomUUID());
   }
 
   enhanceQuery(q) {
@@ -58,7 +64,7 @@ class GameElement {
         this.node.removeAttribute(name);
       }
     } else {
-      this.node.setAttribute(name, escape(value));
+      this.node.setAttribute(name, escape(value)); // TODO reserved attributes class, className, id, style...
     }
   }
 
@@ -138,7 +144,7 @@ class GameElement {
       branch.unshift(Array.from(node.parentNode.childNodes).indexOf(node) + 1);
       node = node.parentNode;
     }
-    return branch;
+    return `$el(${branch.join('-')})`;
   }
 
   root() {
@@ -213,7 +219,9 @@ class GameElement {
       }
     }
     this.node.appendChild(el);
-    return this.wrap(this.node.lastChild);
+    const gameElement = this.wrap(this.node.lastChild);
+    if (GameElement.isSpaceNode(this.node) && !this.node.classList.contains('stack')) gameElement.assignUUID();
+    return gameElement;
   }
 
   findOpenPosition() {
@@ -243,7 +251,8 @@ class GameElement {
 
   // return string representation, e.g. "$el(2-1-3)"
   serialize() {
-    return `$el(${this.branch().join('-')})`;
+    if (this.get('uuid')) return `$uuid(${this.get('uuid')})`;
+    return this.branch();
   }
 
   // return element from branch

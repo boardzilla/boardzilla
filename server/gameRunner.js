@@ -126,6 +126,9 @@ class GameRunner {
 
     const vm = new NodeVM({
       console: 'inherit',
+      require: {
+        builtin: ['crypto'],
+      },
     });
     const gameVersion = await session.getGameVersion();
     const game = await gameVersion.getGame();
