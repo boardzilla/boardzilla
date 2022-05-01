@@ -251,6 +251,7 @@ export default class Page extends Component {
   }
 
   gameAction(action, ...args) {
+    const start = Date.now();
     console.log('gameAction', action, ...args);
     this.send(
       'action', {
@@ -262,6 +263,8 @@ export default class Page extends Component {
     let zoomPiece = this.state.zoomPiece;
     this.waitForReply(actionId, action, reply => {
       if (reply.type === 'ok') {
+        const end = Date.now();
+        console.log('gameAction', action, args, reply.start - start, reply.end - start, end - start);
         if (zoomPiece === this.state.zoomPiece) this.setState({ zoomPiece: null });
         this.setState({action: null, args: [], choices: null, prompt: null, actions: null, filter: '' });
       } else if (reply.type === 'incomplete') {
