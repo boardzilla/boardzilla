@@ -53,6 +53,7 @@ class GameInterface {
     this.drags = {};
     this.currentActions = [];
     this.promptMessage = null;
+    this.childNodesCache = {};
     this.builtinActions = { // TODO this interface still needs work. Needs to look more like #actions? e.g. How set permissions?
       setCounter: (key, value) => {
         const counter = this.doc.find(`counter#${key}`);
@@ -77,6 +78,15 @@ class GameInterface {
         return null;
       },
     };
+  }
+
+  childNodes(node) {
+    if (!node.id) return node.childNodes;
+    let cache = this.childNodesCache[node.id];
+    if (cache) return cache;
+    cache = node.childNodes;
+    this.childNodesCache[node.id] = cache;
+    return cache;
   }
 
   /**
@@ -282,6 +292,7 @@ class GameInterface {
   }
 
   getPlayerView(player) {
+    const start = Date.now();
     const playerView = this.doc.clone();
 
     const allowedDrags = this.inScopeAsPlayer(player, () => {
@@ -300,7 +311,7 @@ class GameInterface {
         n.setAttribute('player-after-me', (parseInt(n.attributes.player.value, 10) - this.currentPlayer + this.players.length) % this.players.length)
       ));
 
-      return this.currentActions.reduce((drags, action) => {
+      const view = this.currentActions.reduce((drags, action) => {
         if (this.#actions[action].drag) {
           drags[action] = {
             pieces: this.serialize(this.doc.findAll(this.#actions[action].drag)),
@@ -309,6 +320,8 @@ class GameInterface {
         }
         return drags;
       }, {});
+      console.log('-------------------- getPlayerView', Date.now() - start);
+      return view;
     });
 
     return {
@@ -550,6 +563,7 @@ class GameInterface {
     try {
       const normalizedArgs = this.normalize(args);
       const result = await this.actionQueue.processAction({ player, action, args: normalizedArgs });
+      this.childNodesCache = {};
       const actionResult = {
         type: 'ok',
         player,

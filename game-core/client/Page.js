@@ -264,7 +264,7 @@ export default class Page extends Component {
     this.waitForReply(actionId, action, reply => {
       if (reply.type === 'ok') {
         const end = Date.now();
-        console.log('gameAction', action, args, reply.start - start, reply.end - start, end - start);
+        console.log('gameAction', action, args, reply.start - start, reply.end - start, reply.reply - start, end - start);
         if (zoomPiece === this.state.zoomPiece) this.setState({ zoomPiece: null });
         this.setState({action: null, args: [], choices: null, prompt: null, actions: null, filter: '' });
       } else if (reply.type === 'incomplete') {

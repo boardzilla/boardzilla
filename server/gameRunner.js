@@ -148,7 +148,7 @@ class GameRunner {
           const playerViews = gameInstance.getPlayerViews();
           return await Promise.all(Object.entries(playerViews).map(([userId, view]) => (
             handle.publishEvent({ type: 'state', userId: parseInt(userId, 10), payload: view })
-          )));
+          ));
         };
 
         const publishLogs = async (actions, userIds) => {
@@ -192,7 +192,7 @@ class GameRunner {
           case 'start':
             await gameInstance.processPlayerStart();
             await session.update({ state: 'running' });
-            await publishPlayerViews();
+            publishPlayerViews();
             break;
           case 'action':
             {
@@ -212,7 +212,7 @@ class GameRunner {
                   });
                   publishPlayerViews();
                   publishLogs([action]);
-                  out = { type: 'ok', start: response.start, end: response.timestamp, payload: response.action };
+                  out = { type: 'ok', start: response.start, end: response.timestamp, reply: Date.now(), payload: response.action };
                   break;
                 case 'incomplete':
                 case 'error':
@@ -225,11 +225,11 @@ class GameRunner {
             break;
           case 'refresh':
             publishLogs(await session.getActions(), [parsedMessage.payload.userId]);
-            await publishPlayerViews();
+            publishPlayerViews();
             break;
           case 'refreshAll':
             publishLogs(await session.getActions());
-            await publishPlayerViews();
+            publishPlayerViews();
             break;
           case 'reset':
             await actionsChannel.purgeQueue(actionQueueName);

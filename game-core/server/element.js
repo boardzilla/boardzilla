@@ -34,20 +34,17 @@ class GameElement {
     gameElements[index] = { className, test };
   }
 
-  attributes() {
-    return Array.from(this.node.attributes)
-      .filter(attr => attr.name !== 'class' && attr.name !== 'id')
-      .reduce((attrs, attr) => Object.assign(attrs, { [attr.name]: unescape(!attr.value || Number.isNaN(Number(attr.value)) ? attr.value : Number(attr.value)) }), {});
-  }
-
   /**
    * get attribute on this element
    */
   get(name) {
+    const attr = this.node.attributes[name];
+    if (!attr) return undefined;
+    const value = unescape(!attr.value || Number.isNaN(Number(attr.value)) ? attr.value : Number(attr.value));
     try {
-      return JSON.parse(this.attributes()[name]);
+      return JSON.parse(value);
     } catch (e) {
-      return this.attributes()[name];
+      return value;
     }
   }
 
@@ -138,13 +135,13 @@ class GameElement {
 
   // return full path to element, e.g. "2-1-3"
   branch() {
-    const branch = [];
+    const branches = [];
     let { node } = this;
     while (node.parentNode && node.parentNode.parentNode) {
-      branch.unshift(Array.from(node.parentNode.childNodes).indexOf(node) + 1);
+      branches.unshift(Array.prototype.indexOf.call(this.game.childNodes(node.parentNode), node) + 1);
       node = node.parentNode;
     }
-    return `$el(${branch.join('-')})`;
+    return `$el(${branches.join('-')})`;
   }
 
   root() {
@@ -220,7 +217,7 @@ class GameElement {
     }
     this.node.appendChild(el);
     const gameElement = this.wrap(this.node.lastChild);
-    if (GameElement.isSpaceNode(this.node) && !this.node.classList.contains('stack')) gameElement.assignUUID();
+    if (GameElement.isPieceNode(this.node.lastChild) && GameElement.isSpaceNode(this.node) && this.type !== 'stack') gameElement.assignUUID();
     return gameElement;
   }
 
