@@ -1,4 +1,4 @@
-const { DOMParser } = require('linkedom/cached');
+const { DOMParser } = require('linkedom');
 const GameElement = require('./element');
 const Space = require('./space');
 
