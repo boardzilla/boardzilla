@@ -1,5 +1,6 @@
-const crypto = require('crypto');
+const { customAlphabet } = require('nanoid/non-secure');
 const { times } = require('./utils');
+const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 10);
 
 const gameElements = [];
 
@@ -13,7 +14,7 @@ class GameElement {
   }
 
   assignUUID() {
-    this.set('uuid', crypto.randomUUID());
+    this.set('uuid', nanoid());
   }
 
   enhanceQuery(q) {

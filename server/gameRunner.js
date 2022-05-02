@@ -126,9 +126,6 @@ class GameRunner {
 
     const vm = new NodeVM({
       console: 'inherit',
-      require: {
-        builtin: ['crypto'],
-      },
     });
     const gameVersion = await session.getGameVersion();
     const game = await gameVersion.getGame();
@@ -148,7 +145,7 @@ class GameRunner {
           const playerViews = gameInstance.getPlayerViews();
           return await Promise.all(Object.entries(playerViews).map(([userId, view]) => (
             handle.publishEvent({ type: 'state', userId: parseInt(userId, 10), payload: view })
-          ));
+          )));
         };
 
         const publishLogs = async (actions, userIds) => {
