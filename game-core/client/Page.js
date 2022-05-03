@@ -27,11 +27,13 @@ import './style.scss';
 const DRAG_TOLERANCE = 1;
 const PING_INTERVAL = 7500;
 const IDLE_WAIT = 10000;
+const IDLE_OUT = 20 * 60 * 1000;
 const IS_MOBILE_PORTRAIT = !!(window.matchMedia("(orientation: portrait)").matches && window.TouchEvent);
 let SIDEBAR_WIDTH = 320;
 let mouse = {};
 let actionId = 1;
 let boardXml;
+let idleTimeout;
 
 export default class Page extends Component {
   constructor(props) {
@@ -75,7 +77,7 @@ export default class Page extends Component {
   componentDidMount() {
     window.addEventListener('beforeunload', this.componentCleanup);
     this.webSocket = new ReconnectingWebSocket((location.protocol == 'http:' ? 'ws://' : 'wss://') + document.location.host + '/sessions/' + this.props.session);
-    this.webSocket.onopen = () => this.setState({connected: true});
+    this.webSocket.onopen = () => this.setState({connected: true}, () => this.manageIdle());
     this.webSocket.onclose = () => this.setState({connected: false});
     this.webSocket.onmessage = e => {
       const { type, payload } = JSON.parse(e.data);
@@ -188,12 +190,14 @@ export default class Page extends Component {
         while (el.classList && !el.classList.contains("space") && el.parentNode) el = el.parentNode;
         this.setState({dragOver: keyFromEl(el)});
       }
+      this.manageIdle();
     });
     document.addEventListener('touchend', () => {
       this.setState({ touchMoving: false });
     });
     document.addEventListener('mousemove', e => {
       mouse = {x: e.clientX, y: e.clientY};
+      this.manageIdle();
     });
     document.addEventListener('keydown', e => {
       if (e.key == "z") {
@@ -243,6 +247,23 @@ export default class Page extends Component {
   componentWillUnmount() {
     this.componentCleanup();
     window.removeEventListener('beforeunload', this.componentCleanup);
+  }
+
+  idleOut() {
+    this.setState({ connected: false });
+  }
+
+  wakeUp() {
+    window.location.reload();
+  }
+
+  manageIdle() {
+    if (this.state.connected) {
+      if (idleTimeout) clearTimeout(idleTimeout);
+      idleTimeout = setTimeout(() => this.idleOut(), IDLE_OUT);
+    } else {
+      if (idleTimeout) this.wakeUp();
+    }
   }
 
   send(action, payload) {
