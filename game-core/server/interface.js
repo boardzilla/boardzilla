@@ -292,8 +292,10 @@ class GameInterface {
   }
 
   getPlayerView(player) {
-    const start = Date.now();
+    console.time('getPlayerView');
     const playerView = this.doc.clone();
+    console.log('getPlayerView:doc.clone');
+    console.timeLog('getPlayerView');
 
     const allowedDrags = this.inScopeAsPlayer(player, () => {
       this.hiddenElements.forEach(([selector, attrs]) => {
@@ -305,6 +307,8 @@ class GameInterface {
           }
         });
       });
+      console.log('getPlayerView:hidden');
+      console.timeLog('getPlayerView');
 
       playerView.findNodes('.mine').forEach(n => n.classList.add('mine'));
       playerView.findNodes('[player]:not(.mine)').forEach(n => (
@@ -320,9 +324,14 @@ class GameInterface {
         }
         return drags;
       }, {});
-      console.log('-------------------- getPlayerView', Date.now() - start);
+      console.log('getPlayerView:allowedDrags');
+      console.timeLog('getPlayerView');
       return view;
     });
+
+    const allowedActions = this.choicesFromActions(player);
+    console.log('getPlayerView:allowedActions');
+    console.timeEnd('getPlayerView');
 
     return {
       variables: this.shownVariables(),
@@ -332,7 +341,7 @@ class GameInterface {
       sequence: this.sequence,
       doc: playerView.node.outerHTML,
       allowedMove: this.allowedMoveElements,
-      allowedActions: this.choicesFromActions(player),
+      allowedActions,
       allowedDrags,
       prompt: this.promptMessage,
     };
@@ -413,6 +422,7 @@ class GameInterface {
   choicesFromActions(player) {
     if (this.currentPlayer !== undefined && player !== this.currentPlayer) return {};
     return this.currentActions.reduce((choices, action) => {
+      //console.time('choicesFromActions:' + action);
       const { key } = this.builtinActions[action] || this.#actions[action];
       try {
         const { prompt } = this.testAction(action, player);
@@ -427,6 +437,7 @@ class GameInterface {
           throw e;
         }
       }
+      //console.timeEnd('choicesFromActions:'+action);
       return choices;
     }, {});
   }
