@@ -4,20 +4,19 @@ import Draggable from 'react-draggable';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import {
   throttle,
-  findEl,
-  elementByKey,
-  parentKey,
-  zoneKey,
-  choiceHasKey,
-  keyFromChoice,
-  choiceFromKey,
-  keyAtPoint,
-  zoneForPoint,
+  gameDom,
+  elByChoice,
+  parentEl,
+  parentChoice,
+  zoneChoice,
+  isEl,
+  choiceAtPoint,
+  zoneInfoForPoint,
   xmlToNode,
-  branch,
-  keyFromEl,
+  choiceByEl,
   isFlipped,
-  pieceAt
+  xmlNodeByChoice,
+  choiceForXmlNode,
 } from './utils';
 import Counter from './Counter';
 import Die from './Die';
@@ -93,15 +92,15 @@ export default class Page extends Component {
             }));
             if (this.state.zoomPiece) {
               let zoomPiece = this.state.zoomPiece;
-              const zoomEl = pieceAt(boardXml, zoomPiece);
+              const zoomEl = xmlNodeByChoice(boardXml, zoomPiece);
               if (!zoomEl || zoomEl.id != this.state.zoomId) { // piece went away, remove actions that may no longer apply
-                const newEl = findEl('#' + this.state.zoomId);
+                const newEl = gameDom.getElementById(this.state.zoomId);
                 if (newEl) {
-                  zoomPiece = keyFromEl(newEl);
+                  zoomPiece = choiceByEl(newEl);
                   this.setState({ zoomPiece });
                 }
               }
-              this.setState({actions: this.actionsFor(choiceFromKey(zoomPiece))});
+              this.setState({actions: this.actionsFor(zoomPiece)});
             }
             document.getElementsByTagName('body')[0].dataset.players = this.state.data.players && this.state.data.players.length;
           }
@@ -113,28 +112,31 @@ export default class Page extends Component {
           if (payload) {
             let {key, x, y, start, end, endFlip} = payload;
             if (start) {
-              const startZone = elementByKey(start);
-              const endZone = elementByKey(end);
-              const startRect = startZone.getBoundingClientRect();
-              const endRect = endZone.getBoundingClientRect();
-              const parentRect = elementByKey(parentKey(key)).getBoundingClientRect();
-              const keyRect = elementByKey(key).getBoundingClientRect();
-              const startFlip = isFlipped(startZone);
-              if (startFlip) {
-                x -= endRect.right - startRect.right;
-                y -= endRect.bottom - startRect.bottom;
-              } else {
-                x += endRect.left - startRect.left;
-                y += endRect.top - startRect.top;
-              }
-
-              if (endFlip ^ (startFlip ^ isFlipped(endZone))) { // endzones were flipped respective to each other
+              const startZone = elByChoice(start);
+              const endZone = elByChoice(end);
+              const el = elByChoice(key);
+              if (startZone && endZone && el) {
+                const startRect = startZone.getBoundingClientRect();
+                const endRect = endZone.getBoundingClientRect();
+                const parentRect = elByChoice(parentEl(el)).getBoundingClientRect();
+                const keyRect = el.getBoundingClientRect();
+                const startFlip = isFlipped(startZone);
                 if (startFlip) {
-                  x = parentRect.right * 2 - keyRect.width - endRect.right - x - endRect.left;
-                  y = parentRect.bottom * 2 - keyRect.height - endRect.bottom - y - endRect.top;
+                  x -= endRect.right - startRect.right;
+                  y -= endRect.bottom - startRect.bottom;
                 } else {
-                  x = - parentRect.left * 2 - keyRect.width + endRect.right - x + endRect.left;
-                  y = - parentRect.top * 2 - keyRect.height + endRect.bottom - y + endRect.top;
+                  x += endRect.left - startRect.left;
+                  y += endRect.top - startRect.top;
+                }
+
+                if (endFlip ^ (startFlip ^ isFlipped(endZone))) { // endzones were flipped respective to each other
+                  if (startFlip) {
+                    x = parentRect.right * 2 - keyRect.width - endRect.right - x - endRect.left;
+                    y = parentRect.bottom * 2 - keyRect.height - endRect.bottom - y - endRect.top;
+                  } else {
+                    x = - parentRect.left * 2 - keyRect.width + endRect.right - x + endRect.left;
+                    y = - parentRect.top * 2 - keyRect.height + endRect.bottom - y + endRect.top;
+                  }
                 }
               }
             }
@@ -186,7 +188,7 @@ export default class Page extends Component {
       if (!this.state.touchMoving) this.setState({ touchMoving: true });
       if (el && this.state.dragging) {
         while (el.classList && !el.classList.contains("space") && el.parentNode) el = el.parentNode;
-        this.setState({dragOver: keyFromEl(el)});
+        this.setState({dragOver: choiceByEl(el)});
       }
     });
     document.addEventListener('touchend', () => {
@@ -197,25 +199,23 @@ export default class Page extends Component {
     });
     document.addEventListener('keydown', e => {
       if (e.key == "z") {
-        const zoomKey = keyAtPoint(mouse.x, mouse.y, el => el.matches('.piece:not(.component)'));
-        zoomKey && this.handleClick(choiceFromKey(zoomKey), e);
+        const zoomKey = choiceAtPoint(mouse.x, mouse.y, el => el.matches('.piece:not(.component)'));
+        zoomKey && this.handleClick(zoomKey, e);
       }
       if (e.key == "Escape") this.cancel();
     });
     document.addEventListener('keyup', e => {
       if (this.state.choices) {
         if (e.key == 'Enter') {
-          const choices = this.state.choices.filter(choice => !choiceHasKey(choice) && choice.toLowerCase().includes(this.state.filter.toLowerCase()));
+          const choices = this.state.choices.filter(choice => !isEl(choice) && choice.toLowerCase().includes(this.state.filter.toLowerCase()));
           if (choices.length == 1) {
             this.gameAction(this.state.action, ...this.state.args, choices[0]);
           }
         }
       } else {
-        let key = this.state.zoomPiece || (mouse.x != undefined && keyAtPoint(mouse.x, mouse.y));
-        if (key) {
-          const choice = choiceFromKey(key);
+        let choice = this.state.zoomPiece || (mouse.x != undefined && choiceAtPoint(mouse.x, mouse.y));
+        if (choice) {
           const action = Object.entries(this.state.actions || this.actionsFor(choice)).find(([_, a]) => a.key && a.key.toLowerCase() == e.key);
-          console.log('zoom on key', choice, this.actionsFor(choice), action, this.state.args);
           if (action) this.gameAction(action[0], ...this.state.args, action[1].choice);
         }
       }
@@ -251,6 +251,7 @@ export default class Page extends Component {
   }
 
   gameAction(action, ...args) {
+    const start = Date.now();
     console.log('gameAction', action, ...args);
     this.send(
       'action', {
@@ -262,6 +263,8 @@ export default class Page extends Component {
     let zoomPiece = this.state.zoomPiece;
     this.waitForReply(actionId, action, reply => {
       if (reply.type === 'ok') {
+        const end = Date.now();
+        console.log('gameAction', action, args, reply.start - start, reply.end - start, reply.reply - start, end - start);
         if (zoomPiece === this.state.zoomPiece) this.setState({ zoomPiece: null });
         this.setState({action: null, args: [], choices: null, prompt: null, actions: null, filter: '' });
       } else if (reply.type === 'incomplete') {
@@ -294,14 +297,14 @@ export default class Page extends Component {
     return this.state.data.players && this.state.data.players.findIndex(p => p[0] == this.props.userId) + 1;
   }
 
-  setPieceAt(key, attributes) {
-    const el = boardXml.querySelector(
-      key.split('-').reduce((path, index) => `${path} > *:nth-child(${index})`, 'game')
-    );
+  setPieceAt(choice, attributes) {
+    const el = xmlNodeByChoice(boardXml, choice);
+    console.log('setPieceAt', choice, el);
     if (!el) return;
     for (const attr in attributes) {
       el.setAttribute(attr, attributes[attr]);
     }
+    console.log('setPieceAt', el, el.attributes);
     this.setState(state => ({data: Object.assign({}, state.data, {doc: boardXml.outerHTML})}));
   }
 
@@ -316,20 +319,20 @@ export default class Page extends Component {
   dragging(key, x, y, event) {
     if (!this.state.dragging) {
       this.send('requestLock', {key});
-      this.setState({dragging: {key, x, y, zone: zoneKey(key)}, dragOver: parentKey(key)});
+      this.setState({dragging: {key, x, y, zone: zoneChoice(key)}, dragOver: parentChoice(key)});
       // set piece to uncontrolled
       this.updatePosition(key);
     }
     const absX = event.touches ? event.touches[0].clientX : event.clientX;
     const absY = event.touches ? event.touches[0].clientY : event.clientY;
-    const zone = zoneForPoint(absX, absY);
+    const zone = zoneInfoForPoint(absX, absY);
     const dragData = {key, x, y};
     // crossing zones so add the zone translation
-    if (zone && keyFromEl(zone.el) != this.state.dragging.zone) {
-      const startZone = elementByKey(this.state.dragging.zone);
+    if (zone && zone.el != this.state.dragging.zone) {
+      const startZone = this.state.dragging.zone;
       const endZone = zone.el;
-      dragData.start = keyFromEl(startZone);
-      dragData.end = keyFromEl(endZone);
+      dragData.start = choiceByEl(startZone);
+      dragData.end = choiceByEl(endZone);
       dragData.endFlip = isFlipped(startZone) ^ isFlipped(endZone);
       if (isFlipped(startZone)) {
         dragData.x -= startZone.getBoundingClientRect().right - endZone.getBoundingClientRect().right;
@@ -342,61 +345,67 @@ export default class Page extends Component {
     throttle(() => this.send('drag', dragData));
   }
 
-  stopDrag(key, x, y, event) {
+  stopDrag(choice, x, y, event) {
     const {dragging, dragOver} = this.state;
     this.setState({dragging: null, dragOver: null});
-    if (dragging && dragging.key === key && Math.abs(dragging.x - x) + Math.abs(dragging.y - y) > DRAG_TOLERANCE) {
-      const dragAction = this.allowedDragSpaces(key)[dragOver];
+    if (dragging && dragging.key === choice && Math.abs(dragging.x - x) + Math.abs(dragging.y - y) > DRAG_TOLERANCE) {
+      const dragAction = this.allowedDragSpaces(choice)[dragOver];
       if (dragAction) {
-        const ontoXY = elementByKey(dragOver).getBoundingClientRect();
-        const elXY = elementByKey(key).getBoundingClientRect();
-        const translation = isFlipped(elementByKey(dragOver)) ?
+        const ontoXY = elByChoice(dragOver).getBoundingClientRect();
+        const elXY = elByChoice(choice).getBoundingClientRect();
+        const translation = isFlipped(elByChoice(dragOver)) ?
                             {x: ontoXY.right - elXY.right, y: ontoXY.bottom - elXY.bottom} :
                             {x: elXY.x - ontoXY.x, y: elXY.y - ontoXY.y};
-        this.gameAction(dragAction, choiceFromKey(key), choiceFromKey(dragOver), translation.x, translation.y);
+        this.gameAction(dragAction, choice, dragOver, translation.x, translation.y);
         // optimistically update the location to avoid flicker
-        this.setPieceAt(key, {x, y, moved: true});
+        this.setPieceAt(choice, {x, y, moved: true});
         this.setState({ zoomPiece: null });
-      } else if (dragOver === parentKey(key)) {
-        this.gameAction('moveElement', choiceFromKey(key), x, y);
+      } else if (dragOver === parentChoice(choice)) {
+        this.gameAction('moveElement', choice, x, y);
         // optimistically update the location to avoid flicker
-        this.setPieceAt(key, {x, y});
+        this.setPieceAt(choice, {x, y, moved: true});
         this.setState({ zoomPiece: null });
       } else {
         // invalid drag - put it back
-        this.setPieceAt(key, {x: dragging.x, y: dragging.y});
-        this.send('drag', {key});
+        this.setPieceAt(choice, {x: dragging.x, y: dragging.y});
+        this.send('drag', {key: choice});
       }
-      this.send('releaseLock', {key});
+      this.send('releaseLock', {key: choice});
       event.stopPropagation();
     } else {
       if (window.TouchEvent && event instanceof window.TouchEvent) {
-        this.handleClick(choiceFromKey(key), event);
+        this.handleClick(choice, event);
       }
     }
   }
 
   handleClick(choice, event) {
-    if (this.state.prompt) {
-      this.setState({action: null, args: [], prompt: null, choices: null});
-    }
-    let zooming = false;
-    if (choiceHasKey(choice) && elementByKey(keyFromChoice(choice)).classList.contains('piece') && !elementByKey(keyFromChoice(choice)).classList.contains('component')) {
-      this.zoomOnPiece(elementByKey(keyFromChoice(choice)));
+    if (this.state.choices && this.state.choices instanceof Array && this.state.choices.includes(choice)) {
+      this.gameAction(this.state.action, ...this.state.args, choice);
       event.stopPropagation();
-      zooming = true;
-    }
+    } else {
+      if (this.state.prompt) {
+        this.setState({action: null, args: [], prompt: null, choices: null});
+      }
+      let zooming = false;
+      if (isEl(choice) && elByChoice(choice).classList.contains('piece') && !elByChoice(choice).classList.contains('component')) {
+        this.zoomOnPiece(elByChoice(choice));
+        event.stopPropagation();
+        zooming = true;
+      }
 
-    const actions = this.actionsFor(choice);
-    this.setState({dragging: null});
-    if (Object.keys(actions).length == 1) {
-      this.gameAction(Object.keys(actions)[0], ...this.state.args, choice);
-      event.stopPropagation();
-    } else if (Object.keys(actions).length > 1) {
-      this.setState({actions});
-      event.stopPropagation();
-    } else if (!zooming && Object.keys(this.state.replies).length === 0) {
-      this.cancel();
+      const actions = this.actionsFor(choice);
+      this.setState({dragging: null});
+      // if (Object.keys(actions).length == 1) {
+      //   this.gameAction(Object.keys(actions)[0], ...this.state.args, choice);
+      //   event.stopPropagation();
+      // } else
+      if (Object.keys(actions).length > 1) {
+        this.setState({actions});
+        event.stopPropagation();
+      } else if (!zooming && Object.keys(this.state.replies).length === 0) {
+        this.cancel();
+      }
     }
   }
 
@@ -406,7 +415,7 @@ export default class Page extends Component {
 
   zoomOnPiece(element) {
     this.setState({
-      zoomPiece: keyFromEl(element),
+      zoomPiece: choiceByEl(element),
       zoomId: element.id,
       zoomOriginalSize: {
         height: element.offsetHeight,
@@ -419,12 +428,12 @@ export default class Page extends Component {
   actionsFor(choice) {
     if (!this.state.data.allowedActions) return [];
     return Object.entries(this.state.data.allowedActions).reduce((actions, [action, {choices, prompt, key}]) => {
-      let node = choice;
-      while (keyFromChoice(node)) {
-        if (choices && choices.includes(node)) {
-          actions[action] = {choice: node, prompt, key};
+      let anotherChoice = choice;
+      while (anotherChoice) {
+        if (choices && choices.includes(anotherChoice)) {
+          actions[action] = {choice: anotherChoice, prompt, key};
         }
-        node = choiceFromKey(parentKey(keyFromChoice(node)));
+        anotherChoice = parentChoice(anotherChoice);
       }
       return actions;
     }, {});
@@ -434,7 +443,7 @@ export default class Page extends Component {
   nonBoardActions() {
     if (!this.state.data.allowedActions) return [];
     return Object.entries(this.state.data.allowedActions).reduce((actions, [action, {choices, prompt}]) => {
-      if (!choices || choices.find(choice => !choiceHasKey(choice))) {
+      if (!choices || choices.find(choice => !isEl(choice))) {
         actions[action] = prompt;
       }
       return actions;
@@ -446,13 +455,13 @@ export default class Page extends Component {
   }
 
   isAllowedDrag(key) {
-    return Object.values(this.state.data.allowedDrags).some(drag => drag.pieces.includes(choiceFromKey(key)));
+    return Object.values(this.state.data.allowedDrags).some(drag => drag.pieces.includes(key));
   }
 
   allowedDragSpaces(key) {
     return Object.entries(this.state.data.allowedDrags).reduce((dragSpaces, [action, {pieces, spaces}]) => {
-      if (pieces.includes(choiceFromKey(key))) {
-        spaces.forEach(space => dragSpaces[keyFromChoice(space)] = action);
+      if (pieces.includes(key)) {
+        spaces.forEach(space => dragSpaces[space] = action);
       }
       return dragSpaces;
     }, {});
@@ -478,14 +487,10 @@ export default class Page extends Component {
   }
 
   renderBoard(board) {
-    let otherPlayers = 0;
     return (
       <div id="game">
-        {[...new Set([
-          ...board.querySelectorAll('.player-mat.mine ~ #player-mat'),
-          ...board.querySelectorAll('.player-mat:not(.mine)')
-        ])].map(
-          mat => this.renderGameElement(mat, otherPlayers++<2)
+        {[...board.querySelectorAll('.player-mat:not(.mine)')].map(
+          mat => this.renderGameElement(mat, mat.attributes['player-after-me'].value != '3')
         )}
         {this.renderGameElement(board.querySelector('#board'))}
         {this.renderGameElement(board.querySelector(`.player-mat.mine`))}
@@ -496,15 +501,16 @@ export default class Page extends Component {
   renderGameElement(node, flipped, parentFlipped, frozen) {
     if (!node || !node.attributes) return null;
     const attributes = Array.from(node.attributes).
-                             filter(attr => attr.name !== 'class' && attr.name !== 'id').
+                             filter(attr => attr.name !== 'class' && attr.name !== 'id' && attr.name !== 'uuid').
                              reduce((attrs, attr) => Object.assign(attrs, { [attr.name.toLowerCase()]: !attr.value || isNaN(attr.value) ? attr.value : +attr.value }), {});
 
     const type = node.nodeName.toLowerCase();
-    const key = branch(node).join('-');
+    const key = choiceForXmlNode(node);
 
     const props = {
       key,
       "data-key": key,
+      "data-parent": choiceForXmlNode(node.parentNode),
       ...attributes,
       className: classNames(type, node.className),
     };
@@ -514,28 +520,28 @@ export default class Page extends Component {
     let position, wrappedStyle = {};
 
     if (!frozen) {
-      props.onClick = e => this.handleClick(choiceFromKey(key), e);
+      props.onClick = e => this.handleClick(key, e);
       props.onContextMenu = e => {
         e.preventDefault();
-        this.handleClick(choiceFromKey(key), e);
+        this.handleClick(key, e);
       };
       props.className = classNames(type, node.className, {
         flipped,
         "hilited": (
-          (this.state.dragging && key==this.state.dragOver && (
+          (this.state.dragging && key == this.state.dragOver && (
             this.allowedDragSpaces(this.state.dragging.key)[key] ||
-              this.state.dragOver==parentKey(this.state.dragging.key))
+              this.state.dragOver == parentChoice(this.state.dragging.key))
           ) ||
-          (this.state.choices instanceof Array && this.state.choices.includes(choiceFromKey(key)))
+          (this.state.choices instanceof Array && this.state.choices.includes(key))
         )
       });
       if (node.classList.contains('space')) {
         props.onMouseEnter = () => this.setState({dragOver: key});
-        props.onMouseLeave = () => this.setState({dragOver: keyAtPoint(mouse.x, mouse.y, el => el.classList.contains('space'))});
+        props.onMouseLeave = () => this.setState({dragOver: choiceAtPoint(mouse.x, mouse.y, el => el.classList.contains('space'))});
       }
       if (externallyControlled && this.state.positions[key]) {
         position = this.state.positions[key];
-      } else if (node.parentNode.nodeName == 'deck' && !attributes.moved) {
+      } else if (node.parentNode.nodeName == 'stack' && !attributes.moved) {
         position = {x: 0, y: 0};
       } else {
         const x = attributes.x;
@@ -565,7 +571,7 @@ export default class Page extends Component {
     }
 
     let contents;
-    if (node.nodeName == 'deck' && node.childNodes.length) {
+    if (node.nodeName == 'stack' && node.childNodes.length) {
       contents = Array.from(node.childNodes).slice(-2).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
     } else {
       contents = Array.from(node.childNodes).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
@@ -608,7 +614,7 @@ export default class Page extends Component {
         key={key}
         className={classNames({
           'positioned-piece': node.classList.contains('piece') && !frozen,
-          "external-dragging": externallyControlled
+          "external-dragging": externallyControlled || props.moved
         })}
         style={wrappedStyle}
       >
@@ -617,7 +623,7 @@ export default class Page extends Component {
     );
 
     if (draggable) {
-      props.onTouchEnd = e => this.handleClick(choiceFromKey(key), e);
+      props.onTouchEnd = e => this.handleClick(key, e);
       return (
         <Draggable
           disabled={externallyControlled}
@@ -636,20 +642,20 @@ export default class Page extends Component {
   }
 
   render() {
-    const textChoices = this.state.choices instanceof Array && this.state.choices.filter(choice => !choiceHasKey(choice));
+    const textChoices = this.state.choices instanceof Array && this.state.choices.filter(choice => !isEl(choice));
     const nonBoardActions = this.nonBoardActions();
 
     let messagesPane = 'hidden', zoomScale, actions = this.state.actions;
-    const zoomEl = this.state.zoomPiece && boardXml && pieceAt(boardXml, this.state.zoomPiece);
+    const zoomXmlNode = this.state.zoomPiece && boardXml && xmlNodeByChoice(boardXml, this.state.zoomPiece);
 
     if (!this.state.dragging && !this.state.touchMoving) {
       if (this.state.help) {
         messagesPane = 'help';
       } else if (this.state.choices) {
         messagesPane = 'choices';
-      } else if (actions && actions.length || zoomEl) {
+      } else if (actions && actions.length || zoomXmlNode) {
         messagesPane = 'actions';
-        if (zoomEl) {
+        if (zoomXmlNode) {
           zoomScale = SIDEBAR_WIDTH / this.state.zoomOriginalSize.width * (this.state.bigZoom ? 2 : 1);
         }
       } else if (this.state.data) {
@@ -694,14 +700,14 @@ export default class Page extends Component {
 
           {messagesPane == 'actions' &&
            <div id="actionContainer">
-             {zoomEl &&
+             {zoomXmlNode &&
               <div
                 id="zoomPiece"
                 onClick={() => this.setState({ bigZoom: IS_MOBILE_PORTRAIT && !this.state.bigZoom })}
                 style={{width: SIDEBAR_WIDTH, height: zoomScale * this.state.zoomOriginalSize.height}}
               >
                 <div className="scaler" style={{width: this.state.zoomOriginalSize.width, height: this.state.zoomOriginalSize.height, transform: `scale(${zoomScale})`}}>
-                  {this.renderGameElement(zoomEl, false, false, true)}
+                  {this.renderGameElement(zoomXmlNode, false, false, true)}
                 </div>
               </div>
              }

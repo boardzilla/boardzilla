@@ -49,6 +49,7 @@ class Space extends GameElement {
         position = space.node.childElementCount - position;
       }
       space.node.insertBefore(piece.node, space.node.children[position]);
+      if (GameElement.isPieceNode(piece.node) && this.type !== 'stack') piece.assignUUID();
     });
     this.game.processAfterMoves(movables);
     return movables;

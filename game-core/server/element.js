@@ -1,5 +1,8 @@
-const gameElements = [];
+const { customAlphabet } = require('nanoid/non-secure');
 const { times } = require('./utils');
+const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 10);
+
+const gameElements = [];
 
 class GameElement {
   constructor(node, caller = {}) {
@@ -8,6 +11,10 @@ class GameElement {
     this.game = caller.game;
     this.id = node.id; // TODO reserved id's? game, board...
     this.type = node.nodeName.toLowerCase();
+  }
+
+  assignUUID() {
+    this.set('uuid', nanoid());
   }
 
   enhanceQuery(q) {
@@ -28,20 +35,17 @@ class GameElement {
     gameElements[index] = { className, test };
   }
 
-  attributes() {
-    return Array.from(this.node.attributes)
-      .filter(attr => attr.name !== 'class' && attr.name !== 'id')
-      .reduce((attrs, attr) => Object.assign(attrs, { [attr.name]: unescape(!attr.value || Number.isNaN(Number(attr.value)) ? attr.value : Number(attr.value)) }), {});
-  }
-
   /**
    * get attribute on this element
    */
   get(name) {
+    const attr = this.node.attributes[name];
+    if (!attr) return undefined;
+    const value = unescape(!attr.value || Number.isNaN(Number(attr.value)) ? attr.value : Number(attr.value));
     try {
-      return JSON.parse(this.attributes()[name]);
+      return JSON.parse(value);
     } catch (e) {
-      return this.attributes()[name];
+      return value;
     }
   }
 
@@ -58,7 +62,7 @@ class GameElement {
         this.node.removeAttribute(name);
       }
     } else {
-      this.node.setAttribute(name, escape(value));
+      this.node.setAttribute(name, escape(value)); // TODO reserved attributes class, className, id, style...
     }
   }
 
@@ -132,13 +136,13 @@ class GameElement {
 
   // return full path to element, e.g. "2-1-3"
   branch() {
-    const branch = [];
+    const branches = [];
     let { node } = this;
     while (node.parentNode && node.parentNode.parentNode) {
-      branch.unshift(Array.from(node.parentNode.childNodes).indexOf(node) + 1);
+      branches.unshift(Array.prototype.indexOf.call(this.game.childNodes(node.parentNode), node) + 1);
       node = node.parentNode;
     }
-    return branch;
+    return `$el(${branches.join('-')})`;
   }
 
   root() {
@@ -213,7 +217,9 @@ class GameElement {
       }
     }
     this.node.appendChild(el);
-    return this.wrap(this.node.lastChild);
+    const gameElement = this.wrap(this.node.lastChild);
+    if (GameElement.isPieceNode(this.node.lastChild) && GameElement.isSpaceNode(this.node) && this.type !== 'stack') gameElement.assignUUID();
+    return gameElement;
   }
 
   findOpenPosition() {
@@ -243,7 +249,8 @@ class GameElement {
 
   // return string representation, e.g. "$el(2-1-3)"
   serialize() {
-    return `$el(${this.branch().join('-')})`;
+    if (this.get('uuid')) return `$uuid(${this.get('uuid')})`;
+    return this.branch();
   }
 
   // return element from branch

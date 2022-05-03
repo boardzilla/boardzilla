@@ -7,50 +7,50 @@ export const throttle = fn => {
   throttled = true;
 };
 
-export const findEl = q => document.querySelector(`#game ${q}`);
+export const gameDom = () => document.querySelector('#game');
 
-export const elementByKey = key => findEl(`[data-key="${key}"]`);
+export const elByChoice = c => gameDom().querySelector(`[data-key="${c}"]`);
 
-export const parentKey = key => key.split('-').slice(0, -1).join('-');
+export const choiceByEl = el => el && el.dataset && el.dataset.key;
 
-export const zoneKey = key => key.split('-').slice(0, 2).join('-');
+export const parentEl = el => el && el.dataset && el.dataset.parent;
 
-export const choiceHasKey = choice => choice && choice.slice(0, 4) == '$el(';
+export const parentChoice = c => parentEl(elByChoice(c));
 
-export const keyFromChoice = choice => choice.slice(4, -1);
+export const zoneChoice = c => nearestChoiceByEl(elByChoice(c), el => el.parentNode.id == 'game');
 
-export const choiceFromKey = key => `$el(${key})`;
+export const isEl = choice => choice && (choice.slice(0, 6) == '$uuid(' || choice.slice(0, 4) == '$el(');
 
-export const keyAtPoint = (x, y, condition) => keyFromEl(elAtPoint(x, y, condition));
+export const choiceAtPoint = (x, y, condition) => choiceByEl(elAtPoint(x, y, condition));
 
-export const elAtPoint = (x, y, condition) => findFirstEl(document.elementFromPoint(x, y), condition);
+export const elAtPoint = (x, y, condition) => nearestChoiceByEl(document.elementFromPoint(x, y), condition);
 
-export const findFirstEl = (el, condition) => {
+export const nearestChoiceByEl = (el, condition) => {
   if (!el || !el.parentNode) return;
-  return el.dataset.key && (!condition || condition(el)) ? el : findFirstEl(el.parentNode, condition);
+  return choiceByEl(el) && (!condition || condition(el)) ? el : nearestChoiceByEl(el.parentNode, condition);
 };
 
-export const keyFromEl = el => (el && el.dataset ? el.dataset.key : (el));
-
-export const zoneForPoint = (x, y) => {
+export const zoneInfoForPoint = (x, y) => {
   const el = elAtPoint(x, y, el => el.parentNode.id == 'game');
   if (el) return { el, x: x - el.getBoundingClientRect().x, y: y - el.getBoundingClientRect().y };
 };
 
 export const xmlToNode = xml => new DOMParser().parseFromString(xml, 'text/xml').firstChild;
 
-export const branch = node => {
+export const choiceForXmlNode = node => {
+  if (node.attributes.uuid) return `$uuid(${node.attributes.uuid.value})`;
   const branch = [];
   while (node.parentNode && node.parentNode.parentNode) {
     branch.unshift(Array.from(node.parentNode.childNodes).indexOf(node) + 1);
     node = node.parentNode;
   }
-  return branch;
+  return branch.length ? `$el(${branch.join('-')})` : null;
 };
 
 export const isFlipped = el => el.matches('.flipped, .flipped *');
 
-export const pieceAt = (doc, key) => {
-  const query = `game > ${key.split('-').map((index) => `*:nth-child(${index})`).join(' > ')}`;
+export const xmlNodeByChoice = (doc, choice) => {
+  if (choice.slice(0, 6) === '$uuid(') return doc.querySelector(`[uuid="${choice.slice(6, -1)}"]`);
+  const query = `game > ${choice.slice(4,-1).split('-').map((index) => `*:nth-child(${index})`).join(' > ')}`;
   return doc.querySelector(query.replace(/#(\d)/g, '#\\3$1 '));
 };

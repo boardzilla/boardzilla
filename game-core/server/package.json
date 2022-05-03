@@ -5,6 +5,7 @@
   "license": "MIT",
   "dependencies": {
     "linkedom": "^0.14.5",
+    "nanoid": "^3.3.3",
     "random-seed": "^0.3.0"
   },
   "devDependencies": {

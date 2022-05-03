@@ -1,3 +1,5 @@
+this is not working. its going to reserialize every server reload. needs to be deterministic?
+
 container
  zone - fixed size
   space - area, deck, spread?
@@ -5,7 +7,14 @@ container
  zone
  zone
 
+- action metrics
+- game cleaning and idling
+- moveEl changes to deal with stack change???
+X give all
+- isaac rules draw before start?
+X addPlayer? order
 - builtins overhaul, get closer to isolated and importable?
+- loot->monster
 X cancel removes the correct record
 - debug pane
 - idle out

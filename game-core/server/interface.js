@@ -53,6 +53,7 @@ class GameInterface {
     this.drags = {};
     this.currentActions = [];
     this.promptMessage = null;
+    this.childNodesCache = {};
     this.builtinActions = { // TODO this interface still needs work. Needs to look more like #actions? e.g. How set permissions?
       setCounter: (key, value) => {
         const counter = this.doc.find(`counter#${key}`);
@@ -77,6 +78,15 @@ class GameInterface {
         return null;
       },
     };
+  }
+
+  childNodes(node) {
+    if (!node.id) return node.childNodes;
+    let cache = this.childNodesCache[node.id];
+    if (cache) return cache;
+    cache = node.childNodes;
+    this.childNodesCache[node.id] = cache;
+    return cache;
   }
 
   /**
@@ -256,6 +266,9 @@ class GameInterface {
       if (value.slice && value.slice(0, 4) === '$el(') {
         return this.doc.pieceAt(value.slice(4, -1));
       }
+      if (value.slice && value.slice(0, 6) === '$uuid(') {
+        return this.doc.find(`[uuid="${value.slice(6, -1)}"]`);
+      }
       return JSON.parse(value);
     } catch (e) {
       console.error('unable to deserialize', value);
@@ -263,14 +276,23 @@ class GameInterface {
     }
   }
 
+  normalize(value) {
+    if (value instanceof Array) return value.map(v => this.normalize(v));
+    if (value.slice && value.slice(0, 6) === '$uuid(') {
+      return this.deserialize(value).branch();
+    }
+    return value;
+  }
+
   getPlayerViews() {
-    return [...this.#players.entries()].reduce((views, [index, [userId, name]]) => {
+    return [...this.#players.entries()].reduce((views, [index, [userId]]) => {
       views[userId] = this.getPlayerView(index + 1);
       return views;
     }, {});
   }
 
   getPlayerView(player) {
+    const start = Date.now();
     const playerView = this.doc.clone();
 
     const allowedDrags = this.inScopeAsPlayer(player, () => {
@@ -285,8 +307,11 @@ class GameInterface {
       });
 
       playerView.findNodes('.mine').forEach(n => n.classList.add('mine'));
+      playerView.findNodes('[player]:not(.mine)').forEach(n => (
+        n.setAttribute('player-after-me', (parseInt(n.attributes.player.value, 10) - this.currentPlayer + this.players.length) % this.players.length)
+      ));
 
-      return this.currentActions.reduce((drags, action) => {
+      const view = this.currentActions.reduce((drags, action) => {
         if (this.#actions[action].drag) {
           drags[action] = {
             pieces: this.serialize(this.doc.findAll(this.#actions[action].drag)),
@@ -295,6 +320,8 @@ class GameInterface {
         }
         return drags;
       }, {});
+      console.log('-------------------- getPlayerView', Date.now() - start);
+      return view;
     });
 
     return {
@@ -524,6 +551,7 @@ class GameInterface {
   async processAction(player, sequence, action, ...args) {
     if (this.phase !== 'ready') throw Error(`Received action ${action} before ready`);
     console.log(`received action (p=${player}, #${sequence} =? #${this.sequence}, ${action}, ${args})`);
+    const start = Date.now();
 
     if (this.sequence !== sequence) {
       if (sequence <= this.lastReplaySequence) {
@@ -533,13 +561,16 @@ class GameInterface {
     }
 
     try {
-      const result = await this.actionQueue.processAction({ player, action, args });
+      const normalizedArgs = this.normalize(args);
+      const result = await this.actionQueue.processAction({ player, action, args: normalizedArgs });
+      this.childNodesCache = {};
       const actionResult = {
         type: 'ok',
         player,
         sequence: this.sequence,
-        action: [action, ...args],
+        action: [action, ...normalizedArgs],
         messages: result && result.log,
+        start,
         timestamp: Date.now(),
       };
       this.sequence++;
