@@ -7,7 +7,7 @@ boolbase@^1.0.0:
   resolved "https://registry.yarnpkg.com/boolbase/-/boolbase-1.0.0.tgz#68dff5fbe60c51eb37725ea9e3ed310dcc1e776e"
   integrity sha1-aN/1++YMUes3cl6p4+0xDcwed24=
 
-css-select@^4.2.1:
+css-select@^4.3.0:
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/css-select/-/css-select-4.3.0.tgz#db7129b2846662fd8628cfc496abb2b59e41529b"
   integrity sha512-wPpOYtnsVontu2mODhA19JrqWxNsfdatRKd64kmpRbQgh1KtItko5sTnEpPdpSaJszTOhEMlF/RPz28qj4HqhQ==
@@ -92,12 +92,11 @@ json-stringify-safe@^5.0.1:
   resolved "https://registry.yarnpkg.com/json-stringify-safe/-/json-stringify-safe-5.0.1.tgz#1296a2d58fd45f19a0f6ce01d65701e2c735b6eb"
   integrity sha1-Epai1Y/UXxmg9s4B1lcB4sc1tus=
 
-linkedom@^0.14.5:
-  version "0.14.5"
-  resolved "https://registry.yarnpkg.com/linkedom/-/linkedom-0.14.5.tgz#b5ac554649203745ec99d1cc2d33d213de8804f9"
-  integrity sha512-E2n33a7e3qJ2jFzv6ZIaHnQYKcM1Ay/qYIvi5TrUiVpIa1i3maFLaOutPIdZYNFjfrTV4vjGo9fUwiEsasontQ==
+"linkedom@git+https://github.com/aghull/linkedom.git#uncache-attr-changes":
+  version "0.14.7"
+  resolved "git+https://github.com/aghull/linkedom.git#7290f5308b367738655d0f6097ff8f269f3ce4bc"
   dependencies:
-    css-select "^4.2.1"
+    css-select "^4.3.0"
     cssom "^0.5.0"
     html-escaper "^3.0.3"
     htmlparser2 "^7.2.0"
