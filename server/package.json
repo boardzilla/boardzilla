@@ -7,7 +7,8 @@
     "start:prod": "NODE_ENV=production node run.js",
     "test": "NODE_ENV=test npm run test:build:fixture && ./node_modules/mocha/bin/mocha --exit",
     "test:build:fixture": "webpack -c test/fixtures/numberGuesser/webpack.config.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "cleanup": "node cleanup.js"
   },
   "author": "",
   "license": "ISC",
