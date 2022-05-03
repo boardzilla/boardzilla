@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import classNames from 'classnames';
 import Draggable from 'react-draggable';
+import { ResizableBox } from 'react-resizable';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import {
   throttle,
@@ -641,12 +642,13 @@ export default class Page extends Component {
 
   renderDebug() {
     return (
-      <Draggable>
-        <div id="debug">
+      <Draggable handle=".handle" >
+        <ResizableBox width={700} height={350} id="debug">
+          <div className="handle">Debug Panel</div>
           <pre>
             <DebugLine xml={boardXml} nest={0}/>
           </pre>
-        </div>
+        </ResizableBox>
       </Draggable>
     );      
   }
