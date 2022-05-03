@@ -5,7 +5,14 @@ container
  zone
  zone
 
+- action metrics
+- game cleaning and idling
+X moveEl changes to deal with stack change???
+X give all
+- isaac rules draw before start?
+X addPlayer? order
 - builtins overhaul, get closer to isolated and importable?
+X loot->monster
 X cancel removes the correct record
 - debug pane
 - idle out
