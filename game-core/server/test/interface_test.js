@@ -4,7 +4,7 @@
 const assert = require('assert');
 const chai = require('chai');
 const spies = require('chai-spies');
-const { DOMParser } = require('linkedom');
+const { DOMParser } = require('linkedom/cached');
 const Interface = require('../interface');
 
 chai.use(spies);

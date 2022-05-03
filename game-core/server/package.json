@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "linkedom": "^0.14.5",
+    "linkedom": "git+https://github.com/aghull/linkedom.git#uncache-attr-changes",
     "nanoid": "^3.3.3",
     "random-seed": "^0.3.0"
   },
