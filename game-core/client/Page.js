@@ -760,7 +760,7 @@ export default class Page extends Component {
                <a className="expander" onClick={() => this.toggleLogExpand()}>{this.state.expandLogs ? '▼' : '▲'}</a>
                <ul className={classNames({ expanded: this.state.expandLogs })}>
                  {Object.entries(this.state.logs)
-                  .sort((a, b) => a[1].timestamp > b[1].timestamp ? 1 : -1)
+                  .sort((a, b) => a[1].timestamp === b[1].timestamp ? (parseInt(a[0], 10) > parseInt(b[0], 10) ? 1 : -1) : (a[1].timestamp > b[1].timestamp ? 1 : -1))
                   .map(([k, {message}]) => <li key={k} dangerouslySetInnerHTML={{__html: message}}/>)
                  }
                </ul>
