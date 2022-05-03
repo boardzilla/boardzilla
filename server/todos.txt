@@ -20,7 +20,7 @@ X log???
   X each action creates a log{seq: [0: 'action', 1: 'action'...]...}
   X state broadcast with new log entry and merged into state
   X need a full refresh?
-  - complete log messages
+  X complete log messages
 X clean up interface
   X put startup into state?
   X scope as current player
