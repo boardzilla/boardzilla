@@ -150,7 +150,7 @@ class GameRunner {
 
         const publishLogs = async (actions, userIds) => {
           if (!userIds) userIds = gameInstance.players.map(p => p[0]);
-          await Promise.all(actions.filter(m => m.messages).map(({ messages, createdAt, sequence }) => {
+          await Promise.all(actions.filter(m => m.messages).flatMap(({ messages, createdAt, sequence }) => {
             return userIds.map(userId => {
               return handle.publishEvent({
                 type: 'log',
