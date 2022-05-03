@@ -139,7 +139,7 @@ class GameElement {
     const branches = [];
     let { node } = this;
     while (node.parentNode && node.parentNode.parentNode) {
-      branches.unshift(Array.prototype.indexOf.call(this.game.childNodes(node.parentNode), node) + 1);
+      branches.unshift(Array.prototype.indexOf.call(node.parentNode.childNodes, node) + 1);
       node = node.parentNode;
     }
     return `$el(${branches.join('-')})`;

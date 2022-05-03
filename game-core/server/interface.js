@@ -53,7 +53,6 @@ class GameInterface {
     this.drags = {};
     this.currentActions = [];
     this.promptMessage = null;
-    this.childNodesCache = {};
     this.builtinActions = { // TODO this interface still needs work. Needs to look more like #actions? e.g. How set permissions?
       setCounter: (key, value) => {
         const counter = this.doc.find(`counter#${key}`);
@@ -78,15 +77,6 @@ class GameInterface {
         return null;
       },
     };
-  }
-
-  childNodes(node) {
-    if (!node.id) return node.childNodes;
-    let cache = this.childNodesCache[node.id];
-    if (cache) return cache;
-    cache = node.childNodes;
-    this.childNodesCache[node.id] = cache;
-    return cache;
   }
 
   /**
@@ -574,7 +564,6 @@ class GameInterface {
     try {
       const normalizedArgs = this.normalize(args);
       const result = await this.actionQueue.processAction({ player, action, args: normalizedArgs });
-      this.childNodesCache = {};
       const actionResult = {
         type: 'ok',
         player,
