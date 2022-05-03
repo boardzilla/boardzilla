@@ -3,7 +3,6 @@ import classNames from 'classnames';
 import Draggable from 'react-draggable';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import {
-  elementByKey,
   throttle,
   gameDom,
   elByChoice,
@@ -287,7 +286,7 @@ export default class Page extends Component {
     this.webSocket.send(JSON.stringify({type: action, payload}));
   }
 
-  gameAction(action, args, echo) {
+  gameAction(action, args=[]) {
     const start = Date.now();
     console.log('gameAction', action, ...args);
     this.send(
@@ -391,7 +390,7 @@ export default class Page extends Component {
         const translation = isFlipped(elByChoice(dragOver)) ?
                             {x: ontoXY.right - elXY.right, y: ontoXY.bottom - elXY.bottom} :
                             {x: elXY.x - ontoXY.x, y: elXY.y - ontoXY.y};
-        this.gameAction(dragAction, [choiceFromKey(key), choiceFromKey(dragOver), translation.x, translation.y]);
+        this.gameAction(dragAction, [choice, dragOver, translation.x, translation.y]);
         // optimistically update the location to avoid flicker
         this.setPieceAt(choice, {x, y, moved: true});
         this.setState({ zoomPiece: null });
@@ -416,7 +415,7 @@ export default class Page extends Component {
 
   handleClick(choice, event) {
     if (this.state.choices && this.state.choices instanceof Array && this.state.choices.includes(choice)) {
-      this.gameAction(this.state.action, ...this.state.args, choice);
+      this.gameAction(this.state.action, this.state.args, choice);
       event.stopPropagation();
     } else {
       if (this.state.prompt) {
@@ -431,10 +430,6 @@ export default class Page extends Component {
 
       const actions = this.actionsFor(choice);
       this.setState({dragging: null});
-      // if (Object.keys(actions).length == 1) {
-      //   this.gameAction(Object.keys(actions)[0], ...this.state.args, choice);
-      //   event.stopPropagation();
-      // } else
       if (Object.keys(actions).length > 1) {
         this.setState({actions});
         event.stopPropagation();
