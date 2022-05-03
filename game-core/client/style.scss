@@ -336,6 +336,7 @@ div.nametag {
   position: relative;
   img {
     filter: drop-shadow(5px 5px 5px #222);
+    will-change: filter;
   }
 }
 
