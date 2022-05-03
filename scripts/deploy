@@ -15,6 +15,8 @@ for game in $(cat GAMES); do
 	rm -rf "$game/server/node_modules"
 done
 
+rm ./game-core/server/node_modules/.bin/nanoid
+
 eb deploy $1
 
 ./scripts/install
