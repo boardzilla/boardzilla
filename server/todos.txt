@@ -7,8 +7,9 @@ container
  zone
  zone
 
+- spread space
 - action metrics
-- game cleaning and idling
+X game cleaning and idling
 X moveEl changes to deal with stack change???
 X give all
 - isaac rules draw before start?
@@ -27,7 +28,6 @@ X clean up interface
   X put startup into state?
   X scope as current player
 - email taken flash error
-- spread space
 X mobile events
 X ..mobile layout
 - bonus souls at start and replaceable

@@ -299,12 +299,10 @@ export default class Page extends Component {
 
   setPieceAt(choice, attributes) {
     const el = xmlNodeByChoice(boardXml, choice);
-    console.log('setPieceAt', choice, el);
     if (!el) return;
     for (const attr in attributes) {
       el.setAttribute(attr, attributes[attr]);
     }
-    console.log('setPieceAt', el, el.attributes);
     this.setState(state => ({data: Object.assign({}, state.data, {doc: boardXml.outerHTML})}));
   }
 
