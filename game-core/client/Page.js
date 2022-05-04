@@ -3,6 +3,7 @@ import classNames from 'classnames';
 import Draggable from 'react-draggable';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import {
+  elementByKey,
   throttle,
   gameDom,
   elByChoice,
@@ -42,6 +43,7 @@ export default class Page extends Component {
       prompt: null, // current prompt
       choices: null, // current choices (array, "text" or {min, max})
       data: {}, // complete server state
+      changes: {}, // set of changes to get to current state
       input: '',
       filter: '', // user input to filter available choices
       chatMessage: '', // user input to chat box
@@ -81,10 +83,22 @@ export default class Page extends Component {
       console.log("Received", type, payload);
       switch(type) {
         case "state":
+          const changes = {};
           if (payload) {
             boardXml = xmlToNode(payload.doc);
+            if (payload.sequence > this.state.data.sequence) {
+              payload.changes.forEach(([oldId, newId]) => {
+                const oldEl = elByChoice(oldId);
+                if (oldEl) {
+                  const { x, y } = oldEl.getBoundingClientRect();
+                  console.log('oldEl', oldId, x, y);
+                  changes[newId] = {x, y};
+                }
+              });
+            }
             this.setState(state => ({
               data: payload,
+              changes,
               logs: Object.keys(state.logs).reduce((logs, sequence) => {
                 if (payload.sequence <= parseInt(sequence, 10)) delete logs[sequence];
                 return logs;
@@ -209,14 +223,14 @@ export default class Page extends Component {
         if (e.key == 'Enter') {
           const choices = this.state.choices.filter(choice => !isEl(choice) && choice.toLowerCase().includes(this.state.filter.toLowerCase()));
           if (choices.length == 1) {
-            this.gameAction(this.state.action, ...this.state.args, choices[0]);
+            this.gameAction(this.state.action, [...this.state.args, choices[0]], true);
           }
         }
       } else {
         let choice = this.state.zoomPiece || (mouse.x != undefined && choiceAtPoint(mouse.x, mouse.y));
         if (choice) {
           const action = Object.entries(this.state.actions || this.actionsFor(choice)).find(([_, a]) => a.key && a.key.toLowerCase() == e.key);
-          if (action) this.gameAction(action[0], ...this.state.args, action[1].choice);
+          if (action) this.gameAction(action[0], [...this.state.args, action[1].choice], true);
         }
       }
     });
@@ -240,6 +254,29 @@ export default class Page extends Component {
     setInterval(() => this.send('ping'), PING_INTERVAL);
   }
 
+  componentDidUpdate() {
+    if (Object.keys(this.state.changes).length) {
+      Object.entries(this.state.changes).forEach(([id, {x: oldX, y: oldY}]) => {
+        console.log('animating', id)
+        const el = elByChoice(id);
+        if (el && el.parentNode && el.parentNode.style) {
+          const {x, y} = el.getBoundingClientRect();
+          const style = el.parentNode.style;
+          const oldCss = style.cssText;
+          const transform = oldCss.match(/translate\((\d+)[^\d]*(\d+)/);
+          if (transform) {
+            const [_, tx, ty] = transform;
+            const flipped = el.matches('.flipped *, .flipped');
+            style.cssText = `transform: translate(${(flipped ? -1 : 1) * (oldX - x) + parseInt(tx, 10)}px, ${(flipped ? -1 : 1) * (oldY - y) + parseInt(ty, 10)}px); transition: unset; display: block`;
+            console.log('animating from to', style.cssText, oldCss)
+            setTimeout(() => style.cssText = oldCss, 0);
+          }
+        }
+      })
+      this.setState({ changes: {} });
+    }
+  }
+
   componentWillUnmount() {
     this.componentCleanup();
     window.removeEventListener('beforeunload', this.componentCleanup);
@@ -250,7 +287,7 @@ export default class Page extends Component {
     this.webSocket.send(JSON.stringify({type: action, payload}));
   }
 
-  gameAction(action, ...args) {
+  gameAction(action, args, echo) {
     const start = Date.now();
     console.log('gameAction', action, ...args);
     this.send(
@@ -354,12 +391,12 @@ export default class Page extends Component {
         const translation = isFlipped(elByChoice(dragOver)) ?
                             {x: ontoXY.right - elXY.right, y: ontoXY.bottom - elXY.bottom} :
                             {x: elXY.x - ontoXY.x, y: elXY.y - ontoXY.y};
-        this.gameAction(dragAction, choice, dragOver, translation.x, translation.y);
+        this.gameAction(dragAction, [choiceFromKey(key), choiceFromKey(dragOver), translation.x, translation.y]);
         // optimistically update the location to avoid flicker
         this.setPieceAt(choice, {x, y, moved: true});
         this.setState({ zoomPiece: null });
       } else if (dragOver === parentChoice(choice)) {
-        this.gameAction('moveElement', choice, x, y);
+        this.gameAction('moveElement', [choice, x, y]);
         // optimistically update the location to avoid flicker
         this.setPieceAt(choice, {x, y, moved: true});
         this.setState({ zoomPiece: null });
@@ -600,25 +637,29 @@ export default class Page extends Component {
       wrappedStyle.pointerEvents = "none";
     }
 
-    const draggable = !frozen && (this.isAllowedMove(node) || this.isAllowedDrag(key)) && (this.state.zoomPiece == key || !IS_MOBILE_PORTRAIT);
+    let draggable = !frozen && (this.isAllowedMove(node) || this.isAllowedDrag(key)) && (this.state.zoomPiece == key || !IS_MOBILE_PORTRAIT);
 
     if (position && (position.x != undefined && position.x != 0 || position.y == undefined && position.y != 0) && !frozen && !draggable) {
       wrappedStyle.transform = `translate(${position.x}px, ${position.y}px)`;
     }
 
+    if (this.state.changes[key]) wrappedStyle.display = 'hidden'; // temporarily hide while animation starts
+
     contents = <div {...props}>{contents}</div>;
-    if (position) contents = (
-      <div
-        key={key}
-        className={classNames({
-          'positioned-piece': node.classList.contains('piece') && !frozen,
-          "external-dragging": externallyControlled || props.moved
-        })}
-        style={wrappedStyle}
-      >
-        {contents}
-      </div>
-    );
+    if (position && node.classList.contains('piece') || externallyControlled || props.moved || Object.keys(wrappedStyle).length) {
+      contents = (
+        <div
+          key={key}
+          className={classNames({
+            'positioned-piece': node.classList.contains('piece') && !frozen,
+            "external-dragging": externallyControlled || props.moved
+          })}
+          style={wrappedStyle}
+        >
+          {contents}
+        </div>
+      );
+    }
 
     if (draggable) {
       props.onTouchEnd = e => this.handleClick(key, e);
@@ -689,7 +730,7 @@ export default class Page extends Component {
              {textChoices && (
                <div>
                  {Array.from(new Set(textChoices.filter(choice => choice.toLowerCase().includes(this.state.filter.toLowerCase())))).sort().map(choice => (
-                   <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, choice)}>{JSON.parse(choice)}</button>
+                   <button key={choice} onClick={() => this.gameAction(this.state.action, [...this.state.args, choice], true)}>{JSON.parse(choice)}</button>
                  ))}
                </div>
              )}
@@ -712,7 +753,7 @@ export default class Page extends Component {
              {!this.state.bigZoom &&
               <div id="actions" style={IS_MOBILE_PORTRAIT ? {width: SIDEBAR_WIDTH - 30} : {}}>
                 {actions && Object.entries(actions).map(([a, {choice, prompt}]) => (
-                  <button key={a} onClick={e => {this.gameAction(a, ...this.state.args, choice); e.stopPropagation()}}>{showKeybind(prompt)}</button>
+                  <button key={a} onClick={e => {this.gameAction(a, [...this.state.args, choice], true); e.stopPropagation()}}>{showKeybind(prompt)}</button>
                 ))}
               </div>
              }

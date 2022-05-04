@@ -53,6 +53,7 @@ class GameInterface {
     this.drags = {};
     this.currentActions = [];
     this.promptMessage = null;
+    this.changeset = []; // list of changes this action [[old-id, new-id],...]
     this.builtinActions = { // TODO this interface still needs work. Needs to look more like #actions? e.g. How set permissions?
       setCounter: (key, value) => {
         const counter = this.doc.find(`counter#${key}`);
@@ -330,6 +331,7 @@ class GameInterface {
       currentPlayer: this.currentPlayer,
       sequence: this.sequence,
       doc: playerView.node.outerHTML,
+      changes: this.changeset,
       allowedMove: this.allowedMoveElements,
       allowedActions,
       allowedDrags,
@@ -357,6 +359,7 @@ class GameInterface {
     if (!(allowedActions instanceof Array)) throw Error('called a play action without a list of actions');
     this.currentActions = allowedActions;
     this.currentPlayer = allowedPlayer;
+
     const allAllowedActions = [...allowedActions, ...this.alwaysAllowedPlays, 'moveElement'];
 
     const completedAction = await this.actionQueue.waitForMatchingAction(({ player, action }) => {
@@ -553,6 +556,7 @@ class GameInterface {
     if (this.phase !== 'ready') throw Error(`Received action ${action} before ready`);
     console.log(`received action (p=${player}, #${sequence} =? #${this.sequence}, ${action}, ${args})`);
     const start = Date.now();
+    this.changeset = [];
 
     if (this.sequence !== sequence) {
       if (sequence <= this.lastReplaySequence) {
