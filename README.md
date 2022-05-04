@@ -11,7 +11,9 @@ Tic-tac-toe
 
 ## Development
 
-To set up development, run `./scripts/init`. This will do the initial installation of packages and initialize the databases.
+To develop Boardzilla you'll need to have Postgres and RabbitMQ installed. If you're on Mac with Homebrew, you can do this by running: `brew install postgresql rabbitmq`.
+
+To set up development, run `./scripts/setup`. This will do the initial installation of packages and initialize the development and test databases.
 
 Once you have done this you can run a game by running `GAME=game-name ./scripts/dev`. For instance, to run Four Souls, run `GAME=isaac-four-souls ./scripts/dev`.
 
