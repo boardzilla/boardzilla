@@ -84,17 +84,17 @@ export default class Page extends Component {
         case "state":
           const changes = {};
           if (payload) {
-            boardXml = xmlToNode(payload.doc);
             if (payload.sequence > this.state.data.sequence) {
               payload.changes.forEach(([oldId, newId]) => {
-                const oldEl = elByChoice(oldId);
+                let oldEl = elByChoice(oldId);
+                if (!oldEl) oldEl = elByChoice(choiceForXmlNode(xmlNodeByChoice(boardXml, oldId).parentNode));
                 if (oldEl) {
                   const { x, y } = oldEl.getBoundingClientRect();
-                  console.log('oldEl', oldId, x, y);
                   changes[newId] = {x, y};
                 }
               });
             }
+            boardXml = xmlToNode(payload.doc);
             this.setState(state => ({
               data: payload,
               changes,
@@ -256,7 +256,6 @@ export default class Page extends Component {
   componentDidUpdate() {
     if (Object.keys(this.state.changes).length) {
       Object.entries(this.state.changes).forEach(([id, {x: oldX, y: oldY}]) => {
-        console.log('animating', id)
         const el = elByChoice(id);
         if (el && el.parentNode && el.parentNode.style) {
           const {x, y} = el.getBoundingClientRect();
@@ -267,7 +266,6 @@ export default class Page extends Component {
             const [_, tx, ty] = transform;
             const flipped = el.matches('.flipped *, .flipped');
             style.cssText = `transform: translate(${(flipped ? -1 : 1) * (oldX - x) + parseInt(tx, 10)}px, ${(flipped ? -1 : 1) * (oldY - y) + parseInt(ty, 10)}px); transition: unset; display: block`;
-            console.log('animating from to', style.cssText, oldCss)
             setTimeout(() => style.cssText = oldCss, 0);
           }
         }
