@@ -1,5 +1,6 @@
 const { customAlphabet } = require('nanoid/non-secure');
 const { times } = require('./utils');
+
 const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 10);
 
 const gameElements = [];

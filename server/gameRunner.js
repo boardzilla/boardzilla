@@ -1,10 +1,10 @@
 const { nanoid } = require('nanoid');
-const log = require('./log');
 const { NodeVM } = require('vm2');
 const EventEmitter = require('events');
 const path = require('path');
 const Sentry = require('@sentry/node');
 const amqp = require('amqplib');
+const log = require('./log');
 const db = require('./models');
 
 class GameRunner {
@@ -150,19 +150,15 @@ class GameRunner {
 
         const publishLogs = async (actions, userIds) => {
           if (!userIds) userIds = gameInstance.players.map(p => p[0]);
-          await Promise.all(actions.filter(m => m.messages).flatMap(({ messages, createdAt, sequence }) => {
-            return userIds.map(userId => {
-              return handle.publishEvent({
-                type: 'log',
-                userId,
-                payload: {
-                  sequence,
-                  timestamp: Date.parse(createdAt),
-                  message: typeof messages === 'string' ? messages : messages[userId],
-                },
-              });
-            });
-          }));
+          await Promise.all(actions.filter(m => m.messages).flatMap(({ messages, createdAt, sequence }) => userIds.map(userId => handle.publishEvent({
+            type: 'log',
+            userId,
+            payload: {
+              sequence,
+              timestamp: Date.parse(createdAt),
+              message: typeof messages === 'string' ? messages : messages[userId],
+            },
+          }))));
         };
 
         if (!gameInstance) {
