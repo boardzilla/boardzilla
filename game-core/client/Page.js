@@ -222,14 +222,14 @@ export default class Page extends Component {
         if (e.key == 'Enter') {
           const choices = this.state.choices.filter(choice => !isEl(choice) && choice.toLowerCase().includes(this.state.filter.toLowerCase()));
           if (choices.length == 1) {
-            this.gameAction(this.state.action, [...this.state.args, choices[0]], true);
+            this.gameAction(this.state.action, ...this.state.args, choices[0]);
           }
         }
       } else {
         let choice = this.state.zoomPiece || (mouse.x != undefined && choiceAtPoint(mouse.x, mouse.y));
         if (choice) {
           const action = Object.entries(this.state.actions || this.actionsFor(choice)).find(([_, a]) => a.key && a.key.toLowerCase() == e.key);
-          if (action) this.gameAction(action[0], [...this.state.args, action[1].choice], true);
+          if (action) this.gameAction(action[0], ...this.state.args, action[1].choice);
         }
       }
     });
@@ -284,7 +284,7 @@ export default class Page extends Component {
     this.webSocket.send(JSON.stringify({type: action, payload}));
   }
 
-  gameAction(action, args=[]) {
+  gameAction(action, ...args) {
     const start = Date.now();
     console.log('gameAction', action, ...args);
     this.send(
@@ -388,12 +388,12 @@ export default class Page extends Component {
         const translation = isFlipped(elByChoice(dragOver)) ?
                             {x: ontoXY.right - elXY.right, y: ontoXY.bottom - elXY.bottom} :
                             {x: elXY.x - ontoXY.x, y: elXY.y - ontoXY.y};
-        this.gameAction(dragAction, [choice, dragOver, translation.x, translation.y]);
+        this.gameAction(dragAction, choice, dragOver, translation.x, translation.y);
         // optimistically update the location to avoid flicker
         this.setPieceAt(choice, {x, y, moved: true});
         this.setState({ zoomPiece: null });
       } else if (dragOver === parentChoice(choice)) {
-        this.gameAction('moveElement', [choice, x, y]);
+        this.gameAction('moveElement', choice, x, y);
         // optimistically update the location to avoid flicker
         this.setPieceAt(choice, {x, y, moved: true});
         this.setState({ zoomPiece: null });
@@ -413,7 +413,7 @@ export default class Page extends Component {
 
   handleClick(choice, event) {
     if (this.state.choices && this.state.choices instanceof Array && this.state.choices.includes(choice)) {
-      this.gameAction(this.state.action, this.state.args, choice);
+      this.gameAction(this.state.action, ...this.state.args, choice);
       event.stopPropagation();
     } else {
       if (this.state.prompt) {
@@ -630,7 +630,7 @@ export default class Page extends Component {
       wrappedStyle.pointerEvents = "none";
     }
 
-    let draggable = !frozen && (this.isAllowedMove(node) || this.isAllowedDrag(key)) && (this.state.zoomPiece == key || !IS_MOBILE_PORTRAIT);
+    const draggable = !frozen && (this.isAllowedMove(node) || this.isAllowedDrag(key)) && (this.state.zoomPiece == key || !IS_MOBILE_PORTRAIT);
 
     if (position && (position.x != undefined && position.x != 0 || position.y == undefined && position.y != 0) && !frozen && !draggable) {
       wrappedStyle.transform = `translate(${position.x}px, ${position.y}px)`;
@@ -723,7 +723,7 @@ export default class Page extends Component {
              {textChoices && (
                <div>
                  {Array.from(new Set(textChoices.filter(choice => choice.toLowerCase().includes(this.state.filter.toLowerCase())))).sort().map(choice => (
-                   <button key={choice} onClick={() => this.gameAction(this.state.action, [...this.state.args, choice], true)}>{JSON.parse(choice)}</button>
+                   <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, choice)}>{JSON.parse(choice)}</button>
                  ))}
                </div>
              )}
@@ -746,7 +746,7 @@ export default class Page extends Component {
              {!this.state.bigZoom &&
               <div id="actions" style={IS_MOBILE_PORTRAIT ? {width: SIDEBAR_WIDTH - 30} : {}}>
                 {actions && Object.entries(actions).map(([a, {choice, prompt}]) => (
-                  <button key={a} onClick={e => {this.gameAction(a, [...this.state.args, choice], true); e.stopPropagation()}}>{showKeybind(prompt)}</button>
+                  <button key={a} onClick={e => {this.gameAction(a, ...this.state.args, choice); e.stopPropagation()}}>{showKeybind(prompt)}</button>
                 ))}
               </div>
              }
