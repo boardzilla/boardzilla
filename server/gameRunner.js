@@ -66,11 +66,11 @@ class GameRunner {
     await eventChannel.assertExchange(eventExchangeName, 'direct');
     await eventChannel.assertExchange(eventFanoutExchangeName, 'fanout');
     await eventChannel.bindExchange(eventFanoutExchangeName, eventExchangeName, sessionIdKey);
-    const playerEventQueue = await eventChannel.assertQueue('', { exclusive: true });
+    const playerEventQueue = await eventChannel.assertQueue('', { exclusive: true, autoDelete: true });
     await eventChannel.bindQueue(playerEventQueue.queue, eventFanoutExchangeName, '');
 
     // response stuff
-    const responseQueue = await responseChannel.assertQueue('', { exclusive: true });
+    const responseQueue = await responseChannel.assertQueue('', { exclusive: true, autoDelete: true });
 
     handle.stop = async () => {
       try {
