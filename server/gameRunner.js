@@ -73,15 +73,43 @@ class GameRunner {
     const responseQueue = await responseChannel.assertQueue('', { exclusive: true });
 
     handle.stop = async () => {
-      await actionsChannel.cancel(actionConsumerTag);
-      await eventChannel.cancel(eventConsumerTag);
+      try {
+        await actionsChannel.cancel(actionConsumerTag);
+      } catch (e) {
+        console.log('error while cancelling actions consumer');
+      }
+      try {
+        await eventChannel.cancel(eventConsumerTag);
+      } catch (e) {
+        console.log('error while cancelling event consumer');
+      }
       // ensure there will be a message for the next game runner to pick up
-      handle.publishAction({ type: 'noop' });
-      await eventChannel.close();
-      await actionsChannel.close();
-      await responseChannel.close();
-      await actionPublishChannel.close();
-      await eventPublishChannel.close();
+      handle.publishAction({ type: 'noop' }).catch(e => console.log('error while publishing noop'));
+      try {
+        await eventChannel.close();
+      } catch (e) {
+        console.log('error while closing event channel');
+      }
+      try {
+        await actionsChannel.close();
+      } catch (e) {
+        console.log('error while closing actions channel');
+      }
+      try {
+        await responseChannel.close();
+      } catch (e) {
+        console.log('error while closing response channel');
+      }
+      try {
+        await actionPublishChannel.close();
+      } catch (e) {
+        console.log('error while closing action publish channel');
+      }
+      try {
+        await eventPublishChannel.close();
+      } catch (e) {
+        console.log('error while closing event publish channel');
+      }
       this.handles.delete(handle);
     };
     handle.listen = (cb) => {
@@ -276,13 +304,26 @@ class GameRunner {
 
   async setupConnection() {
     if (this.conn !== null) return;
-    this.conn = await amqp.connect(this.rabbitmqUrl);
+    let count = 0;
+    while (this.conn === null) {
+      try {
+        this.conn = await amqp.connect(this.rabbitmqUrl);
+      } catch (e) {
+        console.log('error while connecting', e);
+        count++;
+        const delay = Math.min(30000, 100 * 2 ** count);
+        console.log('error while connecting, delaying', delay, e);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
     this.conn.on('error', (e) => {
+      console.log('error in amqp connection!', e);
       for (const h of this.handles) {
         h.emit('error', e);
       }
     });
     this.conn.on('close', (e) => {
+      this.conn = null;
       for (const h of this.handles) {
         h.emit('finished');
       }

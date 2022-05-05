@@ -422,8 +422,12 @@ module.exports = ({
     const sendWS = (type, payload) => ws.send(JSON.stringify({ type, payload }));
     const publish = async (type, payload) => sessionRunner.publishEvent({ type, payload });
     const queue = async (type, payload) => {
-      const response = await sessionRunner.publishAction({ type, payload });
-      sendWS('response', { id: payload.id, response });
+      try {
+        const response = await sessionRunner.publishAction({ type, payload });
+        sendWS('response', { id: payload.id, response });
+      } catch (e) {
+        console.log('error while queuing', e);
+      }
     };
     const publishChat = async chat => {
       await publish('chat', {
