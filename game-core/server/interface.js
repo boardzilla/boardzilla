@@ -412,7 +412,7 @@ class GameInterface {
   choicesFromActions(player) {
     if (this.currentPlayer !== undefined && player !== this.currentPlayer) return {};
     return this.currentActions.reduce((choices, action) => {
-      //console.time('choicesFromActions:' + action);
+      // console.time('choicesFromActions:' + action);
       const { key } = this.builtinActions[action] || this.#actions[action];
       try {
         const { prompt } = this.testAction(action, player);
@@ -427,7 +427,7 @@ class GameInterface {
           throw e;
         }
       }
-      //console.timeEnd('choicesFromActions:'+action);
+      // console.timeEnd('choicesFromActions:'+action);
       return choices;
     }, {});
   }

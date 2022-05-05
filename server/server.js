@@ -1,4 +1,3 @@
-const log = require('./log');
 const url = require('url');
 const WebSocket = require('ws');
 const express = require('express');
@@ -11,6 +10,7 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 const Sentry = require('@sentry/node');
 const Tracing = require('@sentry/tracing');
+const log = require('./log');
 
 const db = require('./models');
 const GameRunner = require('./gameRunner');
@@ -26,7 +26,7 @@ module.exports = ({
   const app = express();
 
   if (process.env.NODE_ENV === 'production') {
-    log.setLevel("info");
+    log.setLevel('info');
     Sentry.init({
       dsn: process.env.SENTRY_DSN,
       integrations: [
@@ -42,7 +42,7 @@ module.exports = ({
       tracesSampleRate: 1.0,
     });
   } else {
-    log.setLevel("debug");
+    log.setLevel('debug');
   }
 
   const server = http.createServer(app);
