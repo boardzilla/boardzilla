@@ -1,4 +1,9 @@
-this is not working. its going to reserialize every server reload. needs to be deterministic?
+hide and update as draggable to get the x,y
+capture x,y
+set delta x,y and show with no transition
+set old x,y and transition
+draggable again
+
 
 container
  zone - fixed size
@@ -9,7 +14,14 @@ container
 
 - spread space
 - action metrics
+- unstyled defaults?
 X game cleaning and idling
+- movement echo???
+  - send last pos (zone,x,y)
+  - translate zxy->zxy and apply transform
+- animate activate, or flip?
+- multi-select
+- numerical action type
 X moveEl changes to deal with stack change???
 X give all
 - isaac rules draw before start?
@@ -17,8 +29,8 @@ X addPlayer? order
 - builtins overhaul, get closer to isolated and importable?
 X loot->monster
 X cancel removes the correct record
-- debug pane
-- idle out
+- ..debug pane
+X idle out
 X log???
   X each action creates a log{seq: [0: 'action', 1: 'action'...]...}
   X state broadcast with new log entry and merged into state
@@ -35,9 +47,6 @@ X ..mobile layout
 X addPlayers multiple
 X counter
 - mouse tracking
-- movement echo???
-  - send last pos (zone,x,y)
-  - translate zxy->zxy and apply transform
 X put into deck at spot n
 X reorder dungeon
 X monster counter under middle decks and left align
@@ -69,7 +78,6 @@ X multiple actions (ctx menu)
 X hidden attributes, exclude space/piece, x/y
 X composite actions (hilite intermediates)
 X drag-and-drop....?
-- numerical action type
 X undo/reset
 X kb shortcuts?
 X .mine class on client

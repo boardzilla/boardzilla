@@ -48,8 +48,10 @@ class Space extends GameElement {
       } else {
         position = space.node.childElementCount - position;
       }
+      const previousId = piece.serialize();
       space.node.insertBefore(piece.node, space.node.children[position]);
-      if (GameElement.isPieceNode(piece.node) && this.type !== 'stack') piece.assignUUID();
+      if (GameElement.isPieceNode(piece.node) && space.type !== 'stack') piece.assignUUID();
+      this.game.changeset.push([previousId, piece.serialize()]);
     });
     this.game.processAfterMoves(movables);
     return movables;

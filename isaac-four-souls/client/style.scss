@@ -177,6 +177,7 @@
   .card {
     width: 73.33px;
     height: 100px;
+    transition: transform .2s;
     &[active=true] {
       transform: rotate(90deg);
     }

@@ -42,6 +42,7 @@ export default class Page extends Component {
       prompt: null, // current prompt
       choices: null, // current choices (array, "text" or {min, max})
       data: {}, // complete server state
+      changes: {}, // set of changes to get to current state
       input: '',
       filter: '', // user input to filter available choices
       chatMessage: '', // user input to chat box
@@ -81,10 +82,22 @@ export default class Page extends Component {
       console.log("Received", type, payload);
       switch(type) {
         case "state":
+          const changes = {};
           if (payload) {
+            if (payload.sequence > this.state.data.sequence) {
+              payload.changes.forEach(([oldId, newId]) => {
+                let oldEl = elByChoice(oldId);
+                if (!oldEl) oldEl = elByChoice(choiceForXmlNode(xmlNodeByChoice(boardXml, oldId).parentNode));
+                if (oldEl) {
+                  const { x, y } = oldEl.getBoundingClientRect();
+                  changes[newId] = {x, y};
+                }
+              });
+            }
             boardXml = xmlToNode(payload.doc);
             this.setState(state => ({
               data: payload,
+              changes,
               logs: Object.keys(state.logs).reduce((logs, sequence) => {
                 if (payload.sequence <= parseInt(sequence, 10)) delete logs[sequence];
                 return logs;
@@ -238,6 +251,27 @@ export default class Page extends Component {
 
     this.send('refresh');
     setInterval(() => this.send('ping'), PING_INTERVAL);
+  }
+
+  componentDidUpdate() {
+    if (Object.keys(this.state.changes).length) {
+      Object.entries(this.state.changes).forEach(([id, {x: oldX, y: oldY}]) => {
+        const el = elByChoice(id);
+        if (el && el.parentNode && el.parentNode.style) {
+          const {x, y} = el.getBoundingClientRect();
+          const style = el.parentNode.style;
+          const oldCss = style.cssText;
+          const transform = oldCss.match(/translate\((\d+)[^\d]*(\d+)/);
+          if (transform) {
+            const [_, tx, ty] = transform;
+            const flipped = el.matches('.flipped *, .flipped');
+            style.cssText = `transform: translate(${(flipped ? -1 : 1) * (oldX - x) + parseInt(tx, 10)}px, ${(flipped ? -1 : 1) * (oldY - y) + parseInt(ty, 10)}px); transition: unset; display: block`;
+            setTimeout(() => style.cssText = oldCss, 0);
+          }
+        }
+      })
+      this.setState({ changes: {} });
+    }
   }
 
   componentWillUnmount() {
@@ -394,10 +428,6 @@ export default class Page extends Component {
 
       const actions = this.actionsFor(choice);
       this.setState({dragging: null});
-      // if (Object.keys(actions).length == 1) {
-      //   this.gameAction(Object.keys(actions)[0], ...this.state.args, choice);
-      //   event.stopPropagation();
-      // } else
       if (Object.keys(actions).length > 1) {
         this.setState({actions});
         event.stopPropagation();
@@ -606,19 +636,23 @@ export default class Page extends Component {
       wrappedStyle.transform = `translate(${position.x}px, ${position.y}px)`;
     }
 
+    if (this.state.changes[key]) wrappedStyle.display = 'hidden'; // temporarily hide while animation starts
+
     contents = <div {...props}>{contents}</div>;
-    if (position) contents = (
-      <div
-        key={key}
-        className={classNames({
-          'positioned-piece': node.classList.contains('piece') && !frozen,
-          "external-dragging": externallyControlled || props.moved
-        })}
-        style={wrappedStyle}
-      >
-        {contents}
-      </div>
-    );
+    if (position && node.classList.contains('piece') || externallyControlled || props.moved || Object.keys(wrappedStyle).length) {
+      contents = (
+        <div
+          key={key}
+          className={classNames({
+            'positioned-piece': node.classList.contains('piece') && !frozen,
+            "external-dragging": externallyControlled || props.moved
+          })}
+          style={wrappedStyle}
+        >
+          {contents}
+        </div>
+      );
+    }
 
     if (draggable) {
       props.onTouchEnd = e => this.handleClick(key, e);

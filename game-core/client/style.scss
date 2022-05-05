@@ -210,6 +210,10 @@ button {
   }
   .positioned-piece {
     position: absolute;
+    transition: transform .2s;
+    &.react-draggable-dragging, &.external-dragging {
+      transition: unset;
+    }
   }
   img {
     user-drag: none;
