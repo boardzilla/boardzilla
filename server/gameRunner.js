@@ -245,6 +245,14 @@ class GameRunner {
             }
             break;
           case 'refresh':
+          case 'updatePlayers':
+            {
+              const sessionUsers = await session.getSessionUsers({ include: 'User' });
+              sessionUsers.forEach(sessionUser => gameInstance.addPlayer(sessionUser.User.id, sessionUser.User.name, sessionUser.color));
+            }
+            await publishLogs(await session.getActions());
+            await publishPlayerViews();
+            break;
             publishLogs(await session.getActions(), [parsedMessage.payload.userId]);
             publishPlayerViews();
             break;
@@ -298,7 +306,6 @@ class GameRunner {
     }, { noAck: false, consumerTag: actionConsumerTag });
 
     this.handles.add(handle);
-    handle.publishAction({ type: 'refreshAll' });
     return handle;
   }
 

@@ -550,6 +550,8 @@ module.exports = ({
     });
 
     (await session.getChats()).forEach(publishChat);
+    sessionRunner.publishAction({ type: session.state === 'initial' ? 'updatePlayers' : 'refreshAll' });
+
     return null;
   };
   wss.on('connection', onWssConnection);
