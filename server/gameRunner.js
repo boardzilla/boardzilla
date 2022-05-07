@@ -194,7 +194,7 @@ class GameRunner {
           gameInstance = vm.run(serverBuffer.Body.toString());
           gameInstance.initialize(session.seed);
           await session.reload();
-          const sessionUsers = await session.getSessionUsers({ include: 'User' });
+          const sessionUsers = await session.getSessionUsers({ include: 'User', order: ['position'] });
           gameInstance.addPlayers(sessionUsers.map(su => ({
             id: su.User.id,
             name: su.User.name,
