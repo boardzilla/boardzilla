@@ -93,7 +93,7 @@ async function run() {
     serverDigest: 'build',
   });
   const session = await db.Session.create({ creatorId: players[0].id, gameVersionId: gameVersion.id, seed: 0 });
-  await Promise.all(players.map((player) => db.SessionUser.create({ sessionId: session.id, userId: player.id, color: colors[player.id] })));
+  await Promise.all(players.map((player, i) => db.SessionUser.create({ sessionId: session.id, userId: player.id, color: colors[player.id], position: i })));
   const buildHandle = await build();
   const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
   const secretKey = process.env.SECRET_KEY || 'some secret';

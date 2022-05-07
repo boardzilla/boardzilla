@@ -318,7 +318,7 @@ module.exports = ({
     const game = await db.Game.findByPk(req.body.gameId);
     const gameVersion = req.body.beta ? await game.latestVersion() : await game.latestStableVersion();
     const session = await db.Session.create({ gameVersionId: gameVersion.id, creatorId: req.user.id, seed: String(Math.random()) });
-    await db.SessionUser.create({ userId: req.user.id, sessionId: session.id, color: 'red' });
+    await db.SessionUser.create({ userId: req.user.id, sessionId: session.id, color: 'red', position: 0 });
     if (req.is('json')) {
       res.json({ id: session.id });
     } else {
@@ -352,13 +352,23 @@ module.exports = ({
   app.post('/user-sessions/:id', async (req, res) => {
     if (!req.user) return unauthorized(req, res, 'permission denied');
     const existingColors = (await db.SessionUser.findAll({ where: { sessionId: req.params.id } })).map(u => u.color);
+    if (existingColors.length == 4) return unauthorized(req, res, 'permission denied');
+
     const newColor = ['red', 'green', 'blue', 'purple'].find(c => !existingColors.includes(c));
-    const userSession = await db.SessionUser.create({ userId: req.user.id, sessionId: req.params.id, color: newColor });
-    if (req.is('json')) {
-      res.json({ id: userSession.id });
-    } else {
-      res.redirect(`/sessions/${req.params.id}`);
-    }
+    await db.sequelize.query(`INSERT into "SessionUsers" ("sessionId", "userId", "color", "position", "createdAt", "updatedAt")
+    SELECT "sessionId", "userId", "color", "position", "createdAt", "updatedAt"
+    FROM (
+      SELECT :sessionId, :userId, :color, max(su.position) + 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+      FROM "SessionUsers" su
+      WHERE "sessionId" = :sessionId
+      GROUP BY "sessionId"
+      LIMIT 1
+    ) s ("sessionId", "userId", "color", "position", "createdAt", "updatedAt") `, { replacements: {
+      sessionId: parseInt(req.params.id),
+      userId: req.user.id,
+      color: newColor,
+    } });
+    res.redirect(`/sessions/${req.params.id}`);
   });
 
   if (devMode) {
@@ -550,6 +560,8 @@ module.exports = ({
     });
 
     (await session.getChats()).forEach(publishChat);
+    sessionRunner.publishAction({ type: session.state === 'initial' ? 'updatePlayers' : 'refreshAll' });
+
     return null;
   };
   wss.on('connection', onWssConnection);

@@ -194,8 +194,12 @@ class GameRunner {
           gameInstance = vm.run(serverBuffer.Body.toString());
           gameInstance.initialize(session.seed);
           await session.reload();
-          const sessionUsers = await session.getSessionUsers({ include: 'User' });
-          sessionUsers.forEach(sessionUser => gameInstance.addPlayer(sessionUser.User.id, sessionUser.User.name, sessionUser.color));
+          const sessionUsers = await session.getSessionUsers({ include: 'User', order: ['position'] });
+          gameInstance.addPlayers(sessionUsers.map(su => ({
+            id: su.User.id,
+            name: su.User.name,
+            color: su.color,
+          })));
           gameInstance.startProcessing().then(() => log.debug('game is finished!'));
 
           if (session.state === 'running') {
@@ -244,13 +248,25 @@ class GameRunner {
               }
             }
             break;
-          case 'refresh':
-            publishLogs(await session.getActions(), [parsedMessage.payload.userId]);
+          case 'updatePlayers':
+            {
+              const sessionUsers = await session.getSessionUsers({ include: 'User', order: ['position'] });
+              gameInstance.addPlayers(sessionUsers.map(su => ({
+                id: su.User.id,
+                name: su.User.name,
+                color: su.color,
+              })));
+            }
             publishPlayerViews();
+            publishLogs(await session.getActions());
+            break;
+          case 'refresh':
+            publishPlayerViews();
+            publishLogs(await session.getActions(), [parsedMessage.payload.userId]);
             break;
           case 'refreshAll':
-            publishLogs(await session.getActions());
             publishPlayerViews();
+            publishLogs(await session.getActions());
             break;
           case 'reset':
             await actionsChannel.purgeQueue(actionQueueName);
@@ -298,7 +314,6 @@ class GameRunner {
     }, { noAck: false, consumerTag: actionConsumerTag });
 
     this.handles.add(handle);
-    handle.publishAction({ type: 'refreshAll' });
     return handle;
   }
 
