@@ -257,16 +257,16 @@ class GameRunner {
                 color: su.color,
               })));
             }
-            await publishLogs(await session.getActions());
-            await publishPlayerViews();
+            publishPlayerViews();
+            publishLogs(await session.getActions());
             break;
           case 'refresh':
-            publishLogs(await session.getActions(), [parsedMessage.payload.userId]);
             publishPlayerViews();
+            publishLogs(await session.getActions(), [parsedMessage.payload.userId]);
             break;
           case 'refreshAll':
-            publishLogs(await session.getActions());
             publishPlayerViews();
+            publishLogs(await session.getActions());
             break;
           case 'reset':
             await actionsChannel.purgeQueue(actionQueueName);
