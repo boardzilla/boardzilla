@@ -225,7 +225,6 @@ button {
     transition: transform .2s;
     &.no-transition {
       transition: unset;
-      outline: 1px solid red;
     }
     &.react-draggable-dragging, &.external-dragging {
       transition: unset;
