@@ -98,7 +98,7 @@
       left: 415px;
       top: 115px;
       height: 100px;
-      width: 200px;
+      width: 167px;
       [data-players="3"] &, [data-players="4"] & {
         left: 615px;
       }
@@ -139,6 +139,8 @@
       width: 100%;
       position: absolute;
       top: 170px;
+      padding: 8px 0;
+      box-sizing: border-box;
     }
   }
 

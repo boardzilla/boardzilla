@@ -1,10 +1,3 @@
-hide and update as draggable to get the x,y
-capture x,y
-set delta x,y and show with no transition
-set old x,y and transition
-draggable again
-
-
 container
  zone - fixed size
   space - area, deck, spread?
@@ -12,19 +5,29 @@ container
  zone
  zone
 
-- spread space
+- sidebar and scaling
+- rooms
+- auto-eternal
+- isaac rules draw before start? clicker
+- bonus souls at start and replaceable
+- repeat alt eternals, bone
+X splay space
+- custom cards
+- undo/reset refresh
+- changelog
+- spec mode
+- invite locks?
 - action metrics
-- unstyled defaults?
+- unstyled defaults? and new game
 X game cleaning and idling
-- movement echo???
+X movement echo???
   - send last pos (zone,x,y)
   - translate zxy->zxy and apply transform
-- animate activate, or flip?
+X animate activate, or flip?
 - multi-select
 - numerical action type
 X moveEl changes to deal with stack change???
 X give all
-- isaac rules draw before start?
 X addPlayer? order
 - builtins overhaul, get closer to isolated and importable?
 X loot->monster
@@ -42,8 +45,6 @@ X clean up interface
 - email taken flash error
 X mobile events
 X ..mobile layout
-- bonus souls at start and replaceable
-- rooms
 X addPlayers multiple
 X counter
 - mouse tracking

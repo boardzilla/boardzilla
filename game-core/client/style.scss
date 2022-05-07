@@ -202,15 +202,31 @@ button {
     &.flipped {
       transform: scale(-1);
     }
-    &.deck {
+    &.stack {
       & > :not(:last-child) {
         margin: 2px 0 0 2px;
+      }
+    }
+    &.splay {
+      display: grid;
+      > .positioned-piece {
+        position: relative;
+        > .piece, > .space {
+          position: absolute;
+        }
+      }
+      &[direction="rtl"] {
+        direction: rtl;
       }
     }
   }
   .positioned-piece {
     position: absolute;
     transition: transform .2s;
+    &.no-transition {
+      transition: unset;
+      outline: 1px solid red;
+    }
     &.react-draggable-dragging, &.external-dragging {
       transition: unset;
     }

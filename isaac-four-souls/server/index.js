@@ -20,7 +20,7 @@ const addAllCards = (type, deck) => addCards(findCards(type), deck);
 
 game.setupPlayerMat(mat => {
   const tableau = mat.addSpace('#tableau', 'area', { spreadX: 80 });
-  mat.addSpace('#hand', 'area', { spreadX: 80 });
+  mat.addSpace('#hand', 'splay', { columns: 12 });
   tableau.addComponent('counter', { name: 'health', display: 'hp', initialValue: 2, max: 5, bottom: 10 });
   tableau.addComponent('counter', { name: 'attack', display: 'attack', initialValue: 1, max: 8, left: 120, bottom: 10 });
   tableau.addComponent('counter', { name: 'coins', display: 'coin', initialValue: 3, max: 50, right: 10, bottom: 10 });
@@ -44,16 +44,16 @@ game.setupBoard(board => {
   addAllCards('treasure', treasureDeck);
   treasureDeck.shuffle();
   board.addSpace('#treasure-discard', 'stack', { class: 'deck' });
-  board.addSpace('#shop', 'area', { spreadX: 80 });
+  board.addSpace('#shop', 'splay', { columns: 3, rows: 2 });
 
   const monsterDeck = board.addSpace('#monsters', 'stack', { class: 'deck' });
   addAllCards('monster', monsterDeck);
   monsterDeck.shuffle();
   board.addSpace('#monsters-discard', 'stack', { class: 'deck' });
-  const dungeon = board.addSpace('#dungeon', 'area', { spreadX: 80 });
+  const dungeon = board.addSpace('#dungeon', 'area', { spreadX: 110 });
   dungeon.addComponent('counter', { display: 'hp', initialValue: 1, max: 8, left: 20, top: 100 });
 
-  board.addSpace('#bonus-souls', 'area', { spreadX: 47 });
+  board.addSpace('#bonus-souls', 'splay', { columns: 3 });
 });
 
 game.afterMove(
@@ -140,7 +140,7 @@ game.defineActions({
     prompt: 'Discard',
     log: '$0 discarded $1',
     key: 'f',
-    drag: '#loot card:last-child, .mine card[type="loot"]',
+    drag: '#loot card:last-child, .mine card[type="loot"], #dungeon card[type="loot"]',
     onto: '#loot-discard',
   },
   playLoot: {

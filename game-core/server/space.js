@@ -29,6 +29,14 @@ class Space extends GameElement {
     if (!space) throw new Error(`No space found "${to}"`);
     let movables = this.pieces(pieces);
     if (num !== undefined) movables = movables.slice(-num);
+    if (!movables.length) return [];
+    if (position < 0) {
+      position = -1 - position;
+    } else {
+      position = space.node.childElementCount - position;
+    }
+    position = Math.min(Math.max(position, 0), space.node.childElementCount);
+    let outOfGrid = false;
     movables.forEach(piece => {
       piece.set('x');
       piece.set('y');
@@ -43,17 +51,26 @@ class Space extends GameElement {
           piece.set('y', pos.y);
         }
       }
-      if (position < 0) {
-        position = -1 - position;
-      } else {
-        position = space.node.childElementCount - position;
-      }
+      outOfGrid = outOfGrid || (piece.parent().type === 'splay' && piece.parent());
       const previousId = piece.serialize();
+      if (GameElement.isPieceNode(piece.node) && !piece.hasParent(space) && space.type !== 'stack') piece.assignUUID();
+      piece.node.remove();
       space.node.insertBefore(piece.node, space.node.children[position]);
-      if (GameElement.isPieceNode(piece.node) && space.type !== 'stack') piece.assignUUID();
       this.game.changeset.push([previousId, piece.serialize()]);
     });
     this.game.processAfterMoves(movables);
+    if (space.type === 'splay') {
+      Array.from(space.node.children).forEach(c => {
+        const nextId = this.wrap(c).serialize();
+        if (!this.game.changeset.find(cs => cs[1] === nextId)) this.game.changeset.push([nextId, nextId]);
+      });
+    }
+    if (outOfGrid && outOfGrid.node !== space.node) {
+      Array.from(outOfGrid.node.children).forEach(c => {
+        const nextId = this.wrap(c).serialize();
+        if (!this.game.changeset.find(cs => cs[1] === nextId)) this.game.changeset.push([nextId, nextId]);
+      });
+    }
     return movables;
   }
 

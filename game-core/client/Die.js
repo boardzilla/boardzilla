@@ -8,7 +8,7 @@ export default function Die({id, number, rolls, faces, gameAction}) {
   const roll = () => {
     const rolling = setInterval(() => setOverride(Math.floor(Math.random() * faces + 1)), 100);
     setTimeout(() => {clearInterval(rolling); setOverride(null)}, 1000);
-    gameAction('rollDie', `"${id}"`);
+    gameAction('rollDie', id);
   };
 
   const shakeIt = (f=100) => setShake({x: (Math.random() - .5) * f, y: (Math.random() - .5) * f})
@@ -22,7 +22,7 @@ export default function Die({id, number, rolls, faces, gameAction}) {
   }
 
   const rollD6 = () => {
-    gameAction('rollDie', `"${id}"`);
+    gameAction('rollDie', id);
     setRolls2(rolls2 + 1);
     shakeSequence()
   };

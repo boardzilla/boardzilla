@@ -17,6 +17,8 @@ import {
   isFlipped,
   xmlNodeByChoice,
   choiceForXmlNode,
+  currentGridPosition,
+  deserialize,
 } from './utils';
 import Counter from './Counter';
 import Die from './Die';
@@ -220,7 +222,7 @@ export default class Page extends Component {
     document.addEventListener('keyup', e => {
       if (this.state.choices) {
         if (e.key == 'Enter') {
-          const choices = this.state.choices.filter(choice => !isEl(choice) && choice.toLowerCase().includes(this.state.filter.toLowerCase()));
+          const choices = this.state.choices.filter(choice => !isEl(choice) && String(choice).toLowerCase().includes(this.state.filter.toLowerCase()));
           if (choices.length == 1) {
             this.gameAction(this.state.action, ...this.state.args, choices[0]);
           }
@@ -258,16 +260,19 @@ export default class Page extends Component {
       Object.entries(this.state.changes).forEach(([id, {x: oldX, y: oldY}]) => {
         const el = elByChoice(id);
         if (el && el.parentNode && el.parentNode.style) {
+          el.parentNode.classList.add('no-transition');
           const {x, y} = el.getBoundingClientRect();
           const style = el.parentNode.style;
           const oldCss = style.cssText;
-          const transform = oldCss.match(/translate\((\d+)[^\d]*(\d+)/);
-          if (transform) {
-            const [_, tx, ty] = transform;
-            const flipped = el.matches('.flipped *, .flipped');
-            style.cssText = `transform: translate(${(flipped ? -1 : 1) * (oldX - x) + parseInt(tx, 10)}px, ${(flipped ? -1 : 1) * (oldY - y) + parseInt(ty, 10)}px); transition: unset; display: block`;
-            setTimeout(() => style.cssText = oldCss, 0);
-          }
+          let [_, tx, ty] = [0, 0, 0];
+          const transform = oldCss.match(/translate\((-?[\d.]+)[^\d]*(-?[\d.]+)/);
+          if (transform) [_, tx, ty] = transform;
+          const flipped = el.matches('.flipped *, .flipped');
+          style.cssText = `transform: translate(${(flipped ? -1 : 1) * (oldX - x) + parseInt(tx, 10)}px, ${(flipped ? -1 : 1) * (oldY - y) + parseInt(ty, 10)}px); display: block`;
+          setTimeout(() => {
+            el.parentNode.classList.remove('no-transition');
+            style.cssText = oldCss;
+          }, 0);
         }
       })
       this.setState({ changes: {} });
@@ -291,7 +296,7 @@ export default class Page extends Component {
       'action', {
         id: actionId,
         sequence: this.state.data.sequence,
-        action: [action, ...args]
+        action: [action, ...args.map(a => /\$\w+\(.*\)/.test(a) ? a : JSON.stringify(a))]
       },
     );
     let zoomPiece = this.state.zoomPiece;
@@ -302,7 +307,7 @@ export default class Page extends Component {
         if (zoomPiece === this.state.zoomPiece) this.setState({ zoomPiece: null });
         this.setState({action: null, args: [], choices: null, prompt: null, actions: null, filter: '' });
       } else if (reply.type === 'incomplete') {
-        this.setState({ action, args, prompt: reply.prompt, choices: reply.choices, zoomPiece: null, filter: '' });
+        this.setState({ action, args, prompt: reply.prompt, choices: deserialize(reply.choices), zoomPiece: null, filter: '' });
       } else if (reply.type === 'error') {
         this.setState({action: null, args: [], choices: null, prompt: null, actions: null, filter: '' });
         console.error(reply);
@@ -382,18 +387,28 @@ export default class Page extends Component {
     this.setState({dragging: null, dragOver: null});
     if (dragging && dragging.key === choice && Math.abs(dragging.x - x) + Math.abs(dragging.y - y) > DRAG_TOLERANCE) {
       const dragAction = this.allowedDragSpaces(choice)[dragOver];
+      const parent = elByChoice(dragOver);
+      const el = elByChoice(choice);
+      const ontoXY = parent.getBoundingClientRect();
+      const elXY = el.getBoundingClientRect();
       if (dragAction) {
-        const ontoXY = elByChoice(dragOver).getBoundingClientRect();
-        const elXY = elByChoice(choice).getBoundingClientRect();
-        const translation = isFlipped(elByChoice(dragOver)) ?
-                            {x: ontoXY.right - elXY.right, y: ontoXY.bottom - elXY.bottom} :
-                            {x: elXY.x - ontoXY.x, y: elXY.y - ontoXY.y};
-        this.gameAction(dragAction, choice, dragOver, translation.x, translation.y);
+        if (parent.classList.contains('splay')) {
+          this.gameAction(dragAction, choice, dragOver, {pos: currentGridPosition(el, parent, elXY.x, elXY.y)});
+        } else {
+          const translation = isFlipped(parent) ?
+                              {x: ontoXY.right - elXY.right, y: ontoXY.bottom - elXY.bottom} :
+                              {x: elXY.x - ontoXY.x, y: elXY.y - ontoXY.y};
+          this.gameAction(dragAction, choice, dragOver, translation);
+        }
         // optimistically update the location to avoid flicker
         this.setPieceAt(choice, {x, y, moved: true});
         this.setState({ zoomPiece: null });
       } else if (dragOver === parentChoice(choice)) {
-        this.gameAction('moveElement', choice, x, y);
+        if (parent.classList.contains('splay')) {
+          this.gameAction('moveElement', choice, {pos: currentGridPosition(el, parent, elXY.x, elXY.y)});
+        } else {
+          this.gameAction('moveElement', choice, {x, y});
+        }
         // optimistically update the location to avoid flicker
         this.setPieceAt(choice, {x, y, moved: true});
         this.setState({ zoomPiece: null });
@@ -546,6 +561,7 @@ export default class Page extends Component {
 
     const externallyControlled = this.state.locks[key] && this.state.locks[key] !== this.props.userId;
     let position, wrappedStyle = {};
+    const gridItem = node.parentNode.nodeName === 'splay';
 
     if (!frozen) {
       props.onClick = e => this.handleClick(key, e);
@@ -569,7 +585,7 @@ export default class Page extends Component {
       }
       if (externallyControlled && this.state.positions[key]) {
         position = this.state.positions[key];
-      } else if (node.parentNode.nodeName == 'stack' && !attributes.moved) {
+      } else if ((node.parentNode.nodeName == 'stack' || gridItem) && !attributes.moved) {
         position = {x: 0, y: 0};
       } else {
         const x = attributes.x;
@@ -598,11 +614,18 @@ export default class Page extends Component {
       }
     }
 
+    if (node.nodeName === 'splay') {
+      props.style = {
+        gridTemplateColumns: `repeat(${Math.max(props.columns || 1, Math.ceil(node.childElementCount / (props.rows || 1))) - 1}, 1fr) 73px`,
+        gridTemplateRows: `repeat(${props.rows || 1}, 1fr)`,
+      };
+    }
+
     let contents;
-    if (node.nodeName == 'stack' && node.childNodes.length) {
-      contents = Array.from(node.childNodes).slice(-2).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
+    if (node.nodeName === 'stack' && node.childElementCount) {
+      contents = Array.from(node.children).slice(-2).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
     } else {
-      contents = Array.from(node.childNodes).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
+      contents = Array.from(node.children).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
     }
     if (node.classList.contains('player-mat')) {
       const player = attributes.player && this.state.data.players[attributes.player - 1];
@@ -645,7 +668,7 @@ export default class Page extends Component {
           key={key}
           className={classNames({
             'positioned-piece': node.classList.contains('piece') && !frozen,
-            "external-dragging": externallyControlled || props.moved
+            "external-dragging": externallyControlled || props.moved,
           })}
           style={wrappedStyle}
         >
@@ -722,7 +745,7 @@ export default class Page extends Component {
              {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus={!IS_MOBILE_PORTRAIT} onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
              {textChoices && (
                <div>
-                 {Array.from(new Set(textChoices.filter(choice => choice.toLowerCase().includes(this.state.filter.toLowerCase())))).sort().map(choice => (
+                 {Array.from(new Set(textChoices.filter(choice => String(choice).toLowerCase().includes(this.state.filter.toLowerCase())))).sort().map(choice => (
                    <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, choice)}>{JSON.parse(choice)}</button>
                  ))}
                </div>
