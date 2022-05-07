@@ -9,7 +9,7 @@ export default function Counter({id, display, value, min, max, moves, gameAction
     if (max > 0 && newValue > max) newValue = max;
     setOverride(newValue); // very optimistic update. can't detect if any error yet
     setMoves2(Math.max(moves, moves2) + 1);
-    gameAction('setCounter', `"${id}"`, newValue);
+    gameAction('setCounter', id, newValue);
   };
 
   return (

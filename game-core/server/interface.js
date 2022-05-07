@@ -508,10 +508,13 @@ class GameInterface {
       this.chooseAction(
         this.doc.findAll(spaceSelector),
         promptOnto || prompt,
-        (piece, space, x, y) => {
-          piece.move(space);
-          if (x !== undefined) piece.set('x', x);
-          if (y !== undefined) piece.set('y', y);
+        (piece, space, positioning) => {
+          if (positioning && positioning.pos !== undefined) {
+            piece.move(space, -1 - positioning.pos);
+          } else {
+            piece.move(space);
+            if (positioning && positioning.x !== undefined) piece.set(positioning);
+          }
           if (action) {
             action(piece, space);
           }
@@ -661,12 +664,15 @@ class GameInterface {
     this.currentPlayer = (this.currentPlayer % this.#players.length) + 1;
   }
 
-  moveElement(el, x, y) {
+  moveElement(el, positioning) {
     if (el.matches(this.allowedMoveElements)) {
       // preserve any initial positioning
-      el.moveToTop();
-      el.set('x', x);
-      el.set('y', y);
+      if (positioning.pos !== undefined) {
+        el.move(null, -1 - positioning.pos);
+      } else {
+        el.moveToTop();
+        el.set({ x: positioning.x, y: positioning.y });
+      }
     } else {
       throw new Error(`Illegal moveElement ${el.node.outerHTML}, ${this.allowedMoveElements}`);
     }

@@ -19,7 +19,7 @@ export const parentChoice = c => parentEl(elByChoice(c));
 
 export const zoneChoice = c => nearestChoiceByEl(elByChoice(c), el => el.parentNode.id == 'game');
 
-export const isEl = choice => choice && (choice.slice(0, 6) == '$uuid(' || choice.slice(0, 4) == '$el(');
+export const isEl = choice => choice && choice.slice && (choice.slice(0, 6) == '$uuid(' || choice.slice(0, 4) == '$el(');
 
 export const choiceAtPoint = (x, y, condition) => choiceByEl(elAtPoint(x, y, condition));
 
@@ -53,4 +53,25 @@ export const xmlNodeByChoice = (doc, choice) => {
   if (choice.slice(0, 6) === '$uuid(') return doc.querySelector(`[uuid="${choice.slice(6, -1)}"]`);
   const query = `game > ${choice.slice(4,-1).split('-').map((index) => `*:nth-child(${index})`).join(' > ')}`;
   return doc.querySelector(query.replace(/#(\d)/g, '#\\3$1 '));
+};
+
+export const currentGridPosition = (el, parent, x, y) => {
+  const tc = window.getComputedStyle(parent).gridTemplateColumns.split(' ');
+  const tr = window.getComputedStyle(parent).gridTemplateRows.split(' ');
+  const { left, top } = parent.getBoundingClientRect();
+  const width = parseInt(tc[0].slice(0, -2), 10);
+  const height = parseInt(tr[0].slice(0, -2), 10);
+  const columns = tc.length;
+  const rows = tr.length;
+  let col = Math.min(Math.max(Math.round((x - left) / width), 0), columns);
+  if (parent.getAttribute('direction') === 'rtl') col = columns - col - 1;
+  return col + Math.min(Math.max(Math.round((y - top) / height), 0), rows) * columns;
+}
+
+export const deserialize = value => {
+  if (value instanceof Array) return value.map(deserialize);
+  if (value.slice && (value.slice(0, 4) === '$el(' || value.slice(0, 6) === '$uuid(')) {
+    return value;
+  }
+  return JSON.parse(value);
 };
