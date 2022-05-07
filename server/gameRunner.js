@@ -195,7 +195,11 @@ class GameRunner {
           gameInstance.initialize(session.seed);
           await session.reload();
           const sessionUsers = await session.getSessionUsers({ include: 'User' });
-          sessionUsers.forEach(sessionUser => gameInstance.addPlayer(sessionUser.User.id, sessionUser.User.name, sessionUser.color));
+          gameInstance.addPlayers(sessionUsers.map(su => ({
+            id: su.User.id,
+            name: su.User.name,
+            color: su.color,
+          })));
           gameInstance.startProcessing().then(() => log.debug('game is finished!'));
 
           if (session.state === 'running') {
@@ -244,15 +248,19 @@ class GameRunner {
               }
             }
             break;
-          case 'refresh':
           case 'updatePlayers':
             {
-              const sessionUsers = await session.getSessionUsers({ include: 'User' });
-              sessionUsers.forEach(sessionUser => gameInstance.addPlayer(sessionUser.User.id, sessionUser.User.name, sessionUser.color));
+              const sessionUsers = await session.getSessionUsers({ include: 'User', order: ['position'] });
+              gameInstance.addPlayers(sessionUsers.map(su => ({
+                id: su.User.id,
+                name: su.User.name,
+                color: su.color,
+              })));
             }
             await publishLogs(await session.getActions());
             await publishPlayerViews();
             break;
+          case 'refresh':
             publishLogs(await session.getActions(), [parsedMessage.payload.userId]);
             publishPlayerViews();
             break;
