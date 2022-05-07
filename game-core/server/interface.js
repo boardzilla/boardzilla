@@ -597,7 +597,7 @@ class GameInterface {
         entry[userId] = action.log.replace(/\$(\d+)/g, sub => {
           if (sub[1] === '0') return name;
           const namedArg = args[parseInt(sub[1], 10) - 1];
-          if (namedArg && namedArg[player]) return namedArg[player].shown || namedArg[player].hidden;
+          if (namedArg instanceof Array && namedArg[player]) return namedArg[player].shown || namedArg[player].hidden;
           return namedArg;
         });
       } else if (action.log !== false) {
