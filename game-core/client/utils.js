@@ -7,7 +7,7 @@ export const throttle = fn => {
   throttled = true;
 };
 
-export const gameDom = () => document.querySelector('#game');
+export const gameDom = () => document.querySelector('#game-dom');
 
 export const elByChoice = c => gameDom().querySelector(`[data-key="${c}"]`);
 
@@ -17,7 +17,7 @@ export const parentEl = el => el && el.dataset && el.dataset.parent;
 
 export const parentChoice = c => parentEl(elByChoice(c));
 
-export const zoneChoice = c => nearestChoiceByEl(elByChoice(c), el => el.parentNode.id == 'game');
+export const zoneChoice = c => nearestChoiceByEl(elByChoice(c), el => el.parentNode.id == 'game-dom');
 
 export const isEl = choice => choice && choice.slice && (choice.slice(0, 6) == '$uuid(' || choice.slice(0, 4) == '$el(');
 
@@ -31,7 +31,7 @@ export const nearestChoiceByEl = (el, condition) => {
 };
 
 export const zoneInfoForPoint = (x, y) => {
-  const el = elAtPoint(x, y, el => el.parentNode.id == 'game');
+  const el = elAtPoint(x, y, el => el.parentNode.id == 'game-dom');
   if (el) return { el, x: x - el.getBoundingClientRect().x, y: y - el.getBoundingClientRect().y };
 };
 

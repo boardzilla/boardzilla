@@ -1,12 +1,15 @@
 body {
   margin: 0;
   padding: 0;
-  min-width: fit-content;
   max-width: unset;
+  overflow: hidden;
 }
+
 .navbar {
-  max-width: 800px;
-  margin: 0 auto;
+  position: fixed;
+  width: 100%;
+  box-sizing: border-box;
+  height: 38px;
 }
 
 button {
@@ -20,26 +23,24 @@ button {
 
 #container {
   position: relative;
-  margin: 40px auto;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
-  min-height: 100vh;
-  min-width: 100vw;
+  height: 100vh;
+  width: 100vw;
   #layout {
     grid-area: game;
     position: relative;
     width: fit-content;
-    justify-self: center;
+    #play-area {
+      transform-origin: top left;
+    }
   }
   #messages {
-    position: fixed;
     z-index: 200;
-    background: #e8e4e0;
+    position: relative;
+    background: #989490;
     padding: 10px;
-    box-shadow: 0 0px 5px black;
-    border-radius: 10px 0 0 10px;
-    overflow-y: scroll;
     color: black;
     box-sizing: border-box;
     &.hidden {
@@ -124,24 +125,12 @@ button {
     #log {
       background: black;
       color: #efc;
-      border-radius: 2px;
       position: relative;
-      .expander {
-        text-decoration: none;
-        color: white;
-        cursor: pointer;
-        position: absolute;
-        right: 14px;
-        top: 2px;
-      }
       ul {
         padding: 2px;
         margin: 4px 0 0 3px;
-        overflow-y: scroll;
-        max-height: 2.8em;
-        &.expanded {
-          max-height: 400px;
-        }
+        position: absolute;
+        bottom: 0;
         li {
           margin: 0;
           padding: 0 6px 0 25px;
@@ -271,14 +260,31 @@ div.nametag {
   #container {
     display: grid;
     grid-template-columns: auto 380px;
-    grid-template-rows: 1fr;
-    grid-template-areas: "game messages";
+    grid-template-rows: 38px auto;
+    grid-template-areas:
+        "navbar navbar"
+        "game messages";
+    #play-area {
+      position: relative;
+      grid-area: game;
+      overflow: auto;
+      #scaled-play-area {
+        width: 1000px;
+        height: 100%;
+        position: absolute;
+        left: 10px;
+        transform-origin: top left;
+      }
+    }
     #messages {
       grid-area: messages;
-      right: 0;
-      top: 0;
-      margin-top: 45px;
-      max-height: 85%;
+      display: grid;
+      grid-template-rows: min-content min-content minmax(60vh,min-content) minmax(20vh, auto) min-content;
+      min-height: 0;
+      #choices {
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
     }
   }
 }
