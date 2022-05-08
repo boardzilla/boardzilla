@@ -28,7 +28,7 @@ import './style.scss';
 const DRAG_TOLERANCE = 1;
 const PING_INTERVAL = 7500;
 const IDLE_WAIT = 10000;
-const IS_MOBILE_PORTRAIT = !!(window.matchMedia("(orientation: portrait)").matches && window.TouchEvent);
+const IS_MOBILE_PORTRAIT = false; // !!(window.matchMedia("(orientation: portrait)").matches && window.TouchEvent);
 let SIDEBAR_WIDTH = 320;
 let mouse = {};
 let actionId = 1;
@@ -251,11 +251,13 @@ export default class Page extends Component {
       resize();
     } else {
       window.addEventListener('resize', () => {
-        const playArea = document.getElementById('scaled-play-area');
-        const container = document.getElementById('container');
-        const playWidth = parseFloat(window.getComputedStyle(container).gridTemplateColumns.match(/([-\d.]+)/)[1], 10);
-        console.log(playWidth, playArea.offsetWidth);
-        if (playArea) this.setState({ playAreaScale: (playWidth - 20) / playArea.offsetWidth });
+        const playArea = document.getElementById('play-area');
+        const scaledPlayArea = document.getElementById('scaled-play-area');
+        console.log(playArea.offsetHeight, scaledPlayArea.offsetHeight);
+        if (playArea) this.setState({ playAreaScale: Math.min(
+          (playArea.offsetWidth - 20) / scaledPlayArea.offsetWidth,
+          playArea.offsetHeight / scaledPlayArea.offsetHeight
+        )});
       });
     }
     this.send('refresh');
@@ -282,7 +284,7 @@ export default class Page extends Component {
             style.cssText = oldCss;
           }, 0);
         }
-      })
+      });
       this.setState({ changes: {} });
     }
   }
@@ -401,7 +403,7 @@ export default class Page extends Component {
       const elXY = el.getBoundingClientRect();
       if (dragAction) {
         if (parent.classList.contains('splay')) {
-          this.gameAction(dragAction, choice, dragOver, {pos: currentGridPosition(el, parent, elXY.x, elXY.y)});
+          this.gameAction(dragAction, choice, dragOver, {pos: currentGridPosition(el, parent, elXY.x, elXY.y, this.state.playAreaScale, isFlipped(parent))});
         } else {
           const translation = isFlipped(parent) ?
                               {x: ontoXY.right - elXY.right, y: ontoXY.bottom - elXY.bottom} :
@@ -411,9 +413,9 @@ export default class Page extends Component {
         // optimistically update the location to avoid flicker
         this.setPieceAt(choice, {x, y, moved: true});
         this.setState({ zoomPiece: null });
-      } else if (dragOver === parentChoice(choice)) {
+      } else if (dragOver === parentChoice(choice) && this.isAllowedMove(xmlNodeByChoice(boardXml, choice))) {
         if (parent.classList.contains('splay')) {
-          this.gameAction('moveElement', choice, {pos: currentGridPosition(el, parent, elXY.x, elXY.y)});
+          this.gameAction('moveElement', choice, {pos: currentGridPosition(el, parent, elXY.x, elXY.y, this.state.playAreaScale, isFlipped(parent))});
         } else {
           this.gameAction('moveElement', choice, {x, y});
         }
@@ -690,7 +692,7 @@ export default class Page extends Component {
           onStop={(e, data) => this.stopDrag(key, data.x, data.y, e)}
           key={key}
           position={position || {x:0, y:0}}
-          scale={parentFlipped ? -1 : 1}
+          scale={(parentFlipped ? -1 : 1) * this.state.playAreaScale}
         >
           {contents}
         </Draggable>
@@ -707,7 +709,7 @@ export default class Page extends Component {
     let messagesPane = 'hidden', zoomScale, actions = this.state.actions;
     const zoomXmlNode = this.state.zoomPiece && boardXml && xmlNodeByChoice(boardXml, this.state.zoomPiece);
 
-    if (!this.state.dragging && !this.state.touchMoving) {
+    if (!IS_MOBILE_PORTRAIT || (!this.state.dragging && !this.state.touchMoving)) {
       if (this.state.help) {
         messagesPane = 'help';
       } else if (this.state.choices) {
@@ -738,7 +740,7 @@ export default class Page extends Component {
     return (
       <>
         <div id="play-area">
-          <div id="scaled-play-area" style={{ transform: `scale(${this.state.playAreaScale})` }}>
+          <div id="scaled-play-area" style={{ transform: `translate(-50%, -50%) scale(${this.state.playAreaScale})` }}>
             {this.props.background}
 
             {this.state.data.phase === 'ready' && boardXml && this.renderBoard(boardXml)}
@@ -820,8 +822,8 @@ export default class Page extends Component {
 
              </span>
             }
+            {messagesPane == 'standard' || messagesPane == 'setup' || <button className="fab cancel" onClick={() => this.cancel()}>✕</button>}
           </div>
-          {messagesPane == 'standard' || messagesPane == 'setup' || <button className="fab cancel" onClick={() => this.cancel()}>✕</button>}
           {!this.state.bigZoom &&
            <>
              <div key="log" id="log">
@@ -835,7 +837,7 @@ export default class Page extends Component {
              <div key="chat" id="chat">
                <form onSubmit={e => this.chat(e)}>
                  <label>💬</label>
-                 <input placeholder="Send message" value={this.state.chatMessage} onChange={e => this.setState({chatMessage: e.target.value})} />
+                 <input placeholder="Send message" value={this.state.chatMessage} onKeyUp={e => e.stopPropagation()} onChange={e => this.setState({chatMessage: e.target.value})} />
                </form>
              </div>
            </>

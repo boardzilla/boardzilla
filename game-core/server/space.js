@@ -54,7 +54,6 @@ class Space extends GameElement {
       outOfGrid = outOfGrid || (piece.parent().type === 'splay' && piece.parent());
       const previousId = piece.serialize();
       if (GameElement.isPieceNode(piece.node) && !piece.hasParent(space) && space.type !== 'stack') piece.assignUUID();
-      piece.node.remove();
       space.node.insertBefore(piece.node, space.node.children[position]);
       this.game.changeset.push([previousId, piece.serialize()]);
     });

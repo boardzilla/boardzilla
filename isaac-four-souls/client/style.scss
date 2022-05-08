@@ -1,6 +1,6 @@
 .table {
-  width: 980px;
-  height: 540px;
+  width: 1380px;
+  height: 560px;
   top: 120px;
   left: 0;
   position: absolute;
@@ -11,101 +11,138 @@
   border-color: #960 #640 #430 #850;
   border-style: solid;
   [data-players="3"] &, [data-players="4"] & {
-    width: 1380px;
+    width: 1980px;
     background-size: 100% 110%;
+  }
+}
+#scaled-play-area {
+  width: 1400px;
+  height: 840px;
+  [data-players="3"] &, [data-players="4"] & {
+    width: 2000px;
   }
 }
 
 #container {
   #layout {
-    width: 1000px;
+    width: 1400px;
     [data-players="3"] &, [data-players="4"] & {
-      width: 1400px;
+      width: 2000px;
     }
   }
   #board {
     position: absolute;
     left: 0;
     top: 290px;
-    height: 220px;
-    width: 1000px;
+    height: 240px;
+    width: 100%;
     #characters {
       position: absolute;
       left: 320px;
-      top: 64px;
+      top: 74px;
       z-index: 20;
     }
     #eternals {
       position: absolute;
       right: 320px;
-      top: 64px;
+      top: 74px;
       z-index: 20;
     }
     #shop {
       position: absolute;
       width: 300px;
-      height: 200px;
-      left: 100px;
+      height: 220px;
+      left: 110px;
       top: 12px;
       z-index: 10;
     }
     #treasure {
       position: absolute;
-      left: 10px;
+      left: 20px;
       top: 12px;
     }
     #treasure-discard {
       position: absolute;
-      left: 10px;
-      top: 115px;
+      left: 20px;
+      top: 135px;
     }
     #dungeon {
       position: absolute;
       width: 300px;
-      height: 200px;
-      right: 100px;
+      height: 220px;
+      right: 110px;
       top: 12px;
       z-index: 10;
     }
     #monsters {
       position: absolute;
-      right: 5px;
+      right: 20px;
       top: 12px;
     }
     #monsters-discard {
       position: absolute;
-      right: 5px;
-      top: 115px;
+      right: 20px;
+      top: 135px;
     }
     #loot {
       position: absolute;
-      left: 415px;
+      left: 565px;
       top: 12px;
       [data-players="3"] &, [data-players="4"] & {
-        left: 615px;
+        left: 865px;
       }
     }
     #loot-discard {
       position: absolute;
-      left: 509px;
+      left: 659px;
       top: 12px;
       [data-players="3"] &, [data-players="4"] & {
-        left: 709px;
+        left: 959px;
       }
     }
     #bonus-souls {
       position: absolute;
-      left: 415px;
-      top: 115px;
+      left: 565px;
+      top: 135px;
       height: 100px;
       width: 167px;
       [data-players="3"] &, [data-players="4"] & {
-        left: 615px;
+        left: 865px;
       }
     }
     .deck {
-      width: 80px;
+      width: 74px;
       height: 100px;
+    }
+    #room {
+      position: absolute;
+      left: 750px;
+      top: 0px;
+      width: 100px;
+      height: 74px;
+      [data-players="3"] &, [data-players="4"] & {
+        left: 1050px;
+      }
+    }
+    #rooms {
+      position: absolute;
+      left: 750px;
+      top: 81px;
+      width: 100px;
+      height: 74px;
+      [data-players="3"] &, [data-players="4"] & {
+        left: 1050px;
+      }
+    }
+    #room-discard {
+      position: absolute;
+      left: 750px;
+      bottom: 0px;
+      width: 100px;
+      height: 74px;
+      [data-players="3"] &, [data-players="4"] & {
+        left: 1050px;
+      }
     }
   }
 
@@ -114,19 +151,19 @@
     left: 0;
     top: 0;
     height: 290px;
-    width: 1000px;
+    width: 1400px;
     [data-players="3"] &, [data-players="4"] & {
-      width: 700px;
+      width: 1000px;
     }
     &.mine {
-      top: 510px;
+      top: 530px;
     }
     &[player-after-me="2"] {
-      left: 700px;
+      left: 1000px;
     }
     &[player-after-me="3"] {
-      left: 700px;
-      top: 510px;
+      left: 1000px;
+      top: 530px;
     }
     #tableau {
       height: 170px;
@@ -183,9 +220,12 @@
     &[active=true] {
       transform: rotate(90deg);
     }
+    &[type="room"] {
+      height: 73.33px;
+      width: 100px;
+    }
     img {
       display: block;
-      height: 100px;
       border-radius: 7px;
     }
     .counter {

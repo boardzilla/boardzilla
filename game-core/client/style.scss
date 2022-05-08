@@ -126,10 +126,13 @@ button {
       background: black;
       color: #efc;
       position: relative;
+      display: flex;
+      flex-flow: column nowrap;
+      justify-content: flex-end;
+      overflow-y: auto;
       ul {
         padding: 2px;
         margin: 4px 0 0 3px;
-        position: absolute;
         bottom: 0;
         li {
           margin: 0;
@@ -259,7 +262,7 @@ div.nametag {
 @media(orientation: landscape) {
   #container {
     display: grid;
-    grid-template-columns: auto 380px;
+    grid-template-columns: auto 340px;
     grid-template-rows: 38px auto;
     grid-template-areas:
         "navbar navbar"
@@ -269,17 +272,15 @@ div.nametag {
       grid-area: game;
       overflow: auto;
       #scaled-play-area {
-        width: 1000px;
-        height: 100%;
         position: absolute;
-        left: 10px;
-        transform-origin: top left;
+        left: 50%;
+        top: 50%;
       }
     }
     #messages {
       grid-area: messages;
       display: grid;
-      grid-template-rows: min-content min-content minmax(60vh,min-content) minmax(20vh, auto) min-content;
+      grid-template-rows: auto auto minmax(0, auto) minmax(40px, 1fr) auto;
       min-height: 0;
       #choices {
         overflow-y: auto;
@@ -343,6 +344,7 @@ div.nametag {
 
 #zoomPiece {
   position: relative;
+  margin-bottom: 8px;
   .scaler {
     transform-origin: top left;
   }

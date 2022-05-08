@@ -55,17 +55,23 @@ export const xmlNodeByChoice = (doc, choice) => {
   return doc.querySelector(query.replace(/#(\d)/g, '#\\3$1 '));
 };
 
-export const currentGridPosition = (el, parent, x, y) => {
+export const currentGridPosition = (el, parent, x, y, scale, flipped) => {
   const tc = window.getComputedStyle(parent).gridTemplateColumns.split(' ');
   const tr = window.getComputedStyle(parent).gridTemplateRows.split(' ');
-  const { left, top } = parent.getBoundingClientRect();
-  const width = parseInt(tc[0].slice(0, -2), 10);
-  const height = parseInt(tr[0].slice(0, -2), 10);
+  let { left, top } = parent.getBoundingClientRect();
+  const width = parseFloat(tc[0].slice(0, -2), 10) * scale;
+  const height = parseFloat(tr[0].slice(0, -2), 10) * scale;
+  if (flipped) {
+    left -= width - parseFloat(tc[tc.length - 1].slice(0, -2), 10) * scale
+    top -= height - parseFloat(tr[tr.length - 1].slice(0, -2), 10) * scale
+  }
   const columns = tc.length;
   const rows = tr.length;
-  let col = Math.min(Math.max(Math.round((x - left) / width), 0), columns);
-  if (parent.getAttribute('direction') === 'rtl') col = columns - col - 1;
-  return col + Math.min(Math.max(Math.round((y - top) / height), 0), rows) * columns;
+  let col = Math.min(Math.max(Math.floor((x - left) / width), 0), columns);
+  if ((parent.getAttribute('direction') === 'rtl') ^ flipped) col = columns - col - 1;
+  let row = Math.min(Math.max(Math.floor((y - top) / height), 0), rows);
+  if (flipped) row = rows - row - 1;
+  return col + row * columns;
 }
 
 export const deserialize = value => {

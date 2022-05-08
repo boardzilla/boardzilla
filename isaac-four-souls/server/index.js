@@ -20,11 +20,11 @@ const addAllCards = (type, deck) => addCards(findCards(type), deck);
 
 game.setupPlayerMat(mat => {
   const tableau = mat.addSpace('#tableau', 'area', { spreadX: 80 });
-  mat.addSpace('#hand', 'splay', { columns: 12 });
-  tableau.addComponent('counter', { name: 'health', display: 'hp', initialValue: 2, max: 5, bottom: 10 });
-  tableau.addComponent('counter', { name: 'attack', display: 'attack', initialValue: 1, max: 8, left: 120, bottom: 10 });
-  tableau.addComponent('counter', { name: 'coins', display: 'coin', initialValue: 3, max: 50, right: 10, bottom: 10 });
-  tableau.addComponent('die', { faces: 6, right: 40, top: 10 });
+  mat.addSpace('#hand', 'splay', { columns: 16 });
+  tableau.addComponent('counter', { name: 'health', display: 'hp', initialValue: 2, max: 5, left: 20, bottom: 20 });
+  tableau.addComponent('counter', { name: 'attack', display: 'attack', initialValue: 1, max: 8, left: 140, bottom: 20 });
+  tableau.addComponent('counter', { name: 'coins', display: 'coin', initialValue: 3, max: 50, right: 20, bottom: 20 });
+  tableau.addComponent('die', { faces: 6, right: 40, top: 20 });
 });
 
 game.setupBoard(board => {
@@ -51,9 +51,14 @@ game.setupBoard(board => {
   monsterDeck.shuffle();
   board.addSpace('#monsters-discard', 'stack', { class: 'deck' });
   const dungeon = board.addSpace('#dungeon', 'area', { spreadX: 110 });
-  dungeon.addComponent('counter', { display: 'hp', initialValue: 1, max: 8, left: 20, top: 100 });
+  dungeon.addComponent('counter', { display: 'hp', initialValue: 1, max: 8, right: 20, top: 100 });
 
   board.addSpace('#bonus-souls', 'splay', { columns: 3 });
+
+  const roomDeck = board.addSpace('#rooms', 'stack', { class: 'deck' });
+  board.addSpace('#room', 'stack', { class: 'deck' });
+  board.addSpace('#room-discard', 'stack', { class: 'deck' });
+  addAllCards('room', roomDeck);
 });
 
 game.afterMove(
@@ -62,7 +67,7 @@ game.afterMove(
 );
 
 game.hideBoard(
-  'card[flipped], .player-mat:not(.mine) #hand card, #loot card, #treasure card, #monsters card, #characters card, #eternals card',
+  'card[flipped], .player-mat:not(.mine) #hand card, #loot card, #treasure card, #monsters card, #characters card, #eternals card, #rooms card',
   ['front', 'name', 'edition', 'p3'],
 );
 
@@ -252,6 +257,27 @@ game.defineActions({
     key: 'f',
     drag: ".mine card[type='bonus']",
     onto: '#bonus-souls',
+  },
+  playRoom: {
+    prompt: 'Play',
+    log: '$0 played $1',
+    key: 'f',
+    drag: '#rooms card:last-child, .mine card[type="room"]',
+    onto: '#room',
+  },
+  discardRoom: {
+    prompt: 'Discard',
+    log: '$0 discarded $1',
+    key: 'f',
+    drag: '#rooms card:last-child, #room card:last-child, .mine card[type="room"]',
+    onto: '#room-discard',
+  },
+  inRoomDeck: {
+    prompt: 'Put back in deck',
+    log: '$0 put $1 back into deck',
+    key: 'f',
+    drag: '#room-discard card:last-child, #room card:last-child, .mine card[type="room"]',
+    onto: '#rooms',
   },
   giveCard: {
     prompt: 'Give to player',
