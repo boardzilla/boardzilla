@@ -516,14 +516,16 @@ module.exports = ({
       sendWS('error', {});
     };
 
-    sessionRunner.once('error', (error) => {
+    sessionRunner.once('error', async (error) => {
+      await sessionRunner.stop();
       log.error('error starting session!', error);
       return ws.close(1011); // internal error
     });
 
-    sessionRunner.once('finished', () => {
-      log.error('closing session!');
-      return ws.close(1011); // internal error
+    sessionRunner.once('finished', async () => {
+      await sessionRunner.stop();
+      sendWS('reload', {});
+      return ws.close();
     });
 
     ws.on('message', async (data) => {
