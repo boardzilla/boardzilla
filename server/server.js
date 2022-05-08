@@ -1,5 +1,7 @@
 const url = require('url');
+const needle = require('needle');
 const WebSocket = require('ws');
+const errorhandler = require('errorhandler');
 const express = require('express');
 const http = require('http');
 const bodyParser = require('body-parser');
@@ -24,8 +26,9 @@ module.exports = ({
   }
 
   const app = express();
+  const production = process.env.NODE_ENV === 'production';
 
-  if (process.env.NODE_ENV === 'production') {
+  if (production) {
     log.setLevel('info');
     Sentry.init({
       dsn: process.env.SENTRY_DSN,
@@ -235,6 +238,44 @@ module.exports = ({
     if (!req.user) return unauthorized(req, res, 'permission denied');
     const games = await db.Game.findAll({ attributes: ['name', [Sequelize.fn('max', Sequelize.col('id')), 'maxId']], group: ['name'], raw: true });
     res.render('sessions-new', { games });
+  });
+
+  app.get('/admin/games', async (req, res) => {
+    if (!req.user && req.user.role !== 'admin') return unauthorized(req, res, 'permission denied');
+    const games = await db.Game.findAll();
+    res.render('admin/games', { games });
+  });
+
+  app.get('/admin/games/:id', async (req, res) => {
+    if (!req.user && req.user.role !== 'admin') return unauthorized(req, res, 'permission denied');
+    const game = await db.Game.findByPk(req.params.id);
+    const versions = await game.getGameVersions({limit: 20, order: [['id', 'desc']]});
+    res.render('admin/game', { game, versions });
+  });
+
+  app.get('/admin/games/:id/versions/:version_id/edit', async (req, res) => {
+    if (!req.user && req.user.role !== 'admin') return unauthorized(req, res, 'permission denied');
+    const game = await db.Game.findByPk(req.params.id);
+    const gameVersion = await db.GameVersion.findOne({where: {gameId: req.params.id, id: req.params.version_id}});
+    res.render('admin/note-edit', { game, gameVersion });
+  });
+
+  app.post('/admin/games/:id/versions/:version_id', async (req, res) => {
+    if (!req.user && req.user.role !== 'admin') return unauthorized(req, res, 'permission denied');
+    const gameVersion = await db.GameVersion.findOne({where: {gameId: req.params.id, id: req.params.version_id}});
+    gameVersion.notes = req.body.notes;
+    await gameVersion.save();
+    res.redirect(`/admin/games/${req.params.id}`);
+  });
+
+  app.post('/admin/games/:id/versions/:version_id/announce', async (req, res) => {
+    if (!req.user && req.user.role !== 'admin') return unauthorized(req, res, 'permission denied');
+    const game = await db.Game.findByPk(req.params.id);
+
+    const gameVersion = await db.GameVersion.findOne({where: {gameId: req.params.id, id: req.params.version_id}});
+    const content = `**${game.name}** has a new version available in _${gameVersion.beta ? "beta" : "release"}_ channel!\n\n${gameVersion.notes}`;
+    await needle('post', process.env.DISCORD_RELEASE_WEBHOOK, { content });
+    res.redirect(`/admin/games/${req.params.id}`);
   });
 
   app.put('/publish', async (req, res) => {
@@ -568,7 +609,11 @@ module.exports = ({
   };
   wss.on('connection', onWssConnection);
 
-  app.use(Sentry.Handlers.errorHandler());
+  if (production) {
+    app.use(Sentry.Handlers.errorHandler());
+  } else {
+    app.use(errorhandler())
+  }
   // Optional fallthrough error handler
   app.use((err, req, res, next) => {
     // The error id is attached to `res.sentry` to be returned

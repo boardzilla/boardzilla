@@ -1,0 +1,10 @@
+<%- include('../partials/header') %>
+
+<h2>Note for <%= game.name%>: <%= gameVersion.id %></h2>
+<form method="POST" action="/admin/games/<%= game.id %>/versions/<%= gameVersion.id %>">
+  <label for="notes">Note</label>
+  <textarea name="notes"><%= gameVersion.notes %></textarea>
+  <input type="submit" value="Save">
+</form>
+
+<%- include('../partials/footer') %>
