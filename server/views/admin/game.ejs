@@ -1,0 +1,45 @@
+<%- include('../partials/header') %>
+
+<h1><%=game.name%></h1>
+
+<table>
+	<thead>
+	<tr>
+		<td>ID</td>
+		<td>Type</td>
+		<td>Client</td>
+		<td>Server</td>
+		<td>Actions</td>
+	</tr>
+	</thead>
+	<tbody>
+<% versions.forEach(version => { %>
+	<tr>
+		<td><%= version.id %></td>
+		<td><%= version.beta ? "Beta" : "Release" %></td>
+		<td><%= version.clientDigest %></td>
+		<td><%= version.serverDigest %></td>
+		<td>
+			<form action="/admin/games/<%=game.id%>/versions/<%=version.id%>/edit" method="GET">
+				<input type="submit" value="Edit notes">
+			</form>
+
+			<form action="/admin/games/<%=game.id%>/versions/<%=version.id%>/announce" method="POST">
+				<input type="submit" value="Announce">
+			</form>
+		</td>
+
+		<% if (version.notes) { %>
+		<tr>
+			<td colspan=5>
+			<%- version.notesHTML() %>
+			</td>
+		</tr>
+		<% } %>
+
+	</tr>
+<% }) %>
+</tbody>
+</table>
+
+<%- include('../partials/footer') %>
