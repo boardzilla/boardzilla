@@ -28,7 +28,7 @@ import './style.scss';
 const DRAG_TOLERANCE = 1;
 const PING_INTERVAL = 7500;
 const IDLE_WAIT = 10000;
-const IS_MOBILE_PORTRAIT = !!(window.matchMedia("(orientation: portrait)").matches && window.TouchEvent);
+const IS_MOBILE_PORTRAIT = false; // !!(window.matchMedia("(orientation: portrait)").matches && window.TouchEvent);
 let SIDEBAR_WIDTH = 320;
 let mouse = {};
 let actionId = 1;
@@ -249,13 +249,23 @@ export default class Page extends Component {
       window.visualViewport.addEventListener('scroll', resize);
       SIDEBAR_WIDTH = window.screen.width;
       resize();
+    } else {
+      window.addEventListener('resize', () => {
+        const playArea = document.getElementById('play-area');
+        const scaledPlayArea = document.getElementById('scaled-play-area');
+        console.log(playArea.offsetHeight, scaledPlayArea.offsetHeight);
+        if (playArea) this.setState({ playAreaScale: Math.min(
+          (playArea.offsetWidth - 20) / scaledPlayArea.offsetWidth,
+          playArea.offsetHeight / scaledPlayArea.offsetHeight
+        )});
+      });
     }
-
     this.send('refresh');
     setInterval(() => this.send('ping'), PING_INTERVAL);
   }
 
   componentDidUpdate() {
+    if (!this.state.playAreaScale) window.dispatchEvent(new Event('resize'));
     if (Object.keys(this.state.changes).length) {
       Object.entries(this.state.changes).forEach(([id, {x: oldX, y: oldY}]) => {
         const el = elByChoice(id);
@@ -274,7 +284,7 @@ export default class Page extends Component {
             style.cssText = oldCss;
           }, 0);
         }
-      })
+      });
       this.setState({ changes: {} });
     }
   }
@@ -393,7 +403,7 @@ export default class Page extends Component {
       const elXY = el.getBoundingClientRect();
       if (dragAction) {
         if (parent.classList.contains('splay')) {
-          this.gameAction(dragAction, choice, dragOver, {pos: currentGridPosition(el, parent, elXY.x, elXY.y)});
+          this.gameAction(dragAction, choice, dragOver, {pos: currentGridPosition(el, parent, elXY.x, elXY.y, this.state.playAreaScale, isFlipped(parent))});
         } else {
           const translation = isFlipped(parent) ?
                               {x: ontoXY.right - elXY.right, y: ontoXY.bottom - elXY.bottom} :
@@ -403,9 +413,9 @@ export default class Page extends Component {
         // optimistically update the location to avoid flicker
         this.setPieceAt(choice, {x, y, moved: true});
         this.setState({ zoomPiece: null });
-      } else if (dragOver === parentChoice(choice)) {
+      } else if (dragOver === parentChoice(choice) && this.isAllowedMove(xmlNodeByChoice(boardXml, choice))) {
         if (parent.classList.contains('splay')) {
-          this.gameAction('moveElement', choice, {pos: currentGridPosition(el, parent, elXY.x, elXY.y)});
+          this.gameAction('moveElement', choice, {pos: currentGridPosition(el, parent, elXY.x, elXY.y, this.state.playAreaScale, isFlipped(parent))});
         } else {
           this.gameAction('moveElement', choice, {x, y});
         }
@@ -514,10 +524,6 @@ export default class Page extends Component {
     return methods.reduce((list, method) => {list[method] = this[method].bind(this); return list}, {});
   }
 
-  toggleLogExpand() {
-    this.setState({expandLogs: !this.state.expandLogs}, this.scrollLogs);
-  }
-
   scrollLogs() {
     const logUI = document.querySelector('#log ul');
     if (logUI) logUI.scrollTop = logUI.scrollHeight;
@@ -531,7 +537,7 @@ export default class Page extends Component {
 
   renderBoard(board) {
     return (
-      <div id="game">
+      <div id="game-dom">
         {[...board.querySelectorAll('.player-mat:not(.mine)')].map(
           mat => this.renderGameElement(mat, mat.attributes['player-after-me'].value != '3')
         )}
@@ -686,7 +692,7 @@ export default class Page extends Component {
           onStop={(e, data) => this.stopDrag(key, data.x, data.y, e)}
           key={key}
           position={position || {x:0, y:0}}
-          scale={parentFlipped ? -1 : 1}
+          scale={(parentFlipped ? -1 : 1) * this.state.playAreaScale}
         >
           {contents}
         </Draggable>
@@ -703,7 +709,7 @@ export default class Page extends Component {
     let messagesPane = 'hidden', zoomScale, actions = this.state.actions;
     const zoomXmlNode = this.state.zoomPiece && boardXml && xmlNodeByChoice(boardXml, this.state.zoomPiece);
 
-    if (!this.state.dragging && !this.state.touchMoving) {
+    if (!IS_MOBILE_PORTRAIT || (!this.state.dragging && !this.state.touchMoving)) {
       if (this.state.help) {
         messagesPane = 'help';
       } else if (this.state.choices) {
@@ -732,108 +738,112 @@ export default class Page extends Component {
     };
 
     return (
-      <div id="layout">
+      <>
+        <div id="play-area">
+          <div id="scaled-play-area" style={{ transform: `translate(-50%, -50%) scale(${this.state.playAreaScale})` }}>
+            {this.props.background}
+
+            {this.state.data.phase === 'ready' && boardXml && this.renderBoard(boardXml)}
+          </div>
+        </div>
         <div
           id="messages"
           className={classNames(messagesPane, {"big-zoom": this.state.bigZoom})}
-          style={{width: IS_MOBILE_PORTRAIT ? 2 * SIDEBAR_WIDTH: 20 + SIDEBAR_WIDTH}}
+          style={IS_MOBILE_PORTRAIT ? {width: 2 * SIDEBAR_WIDTH}: {}}
         > {/* why is this 2 and not devicePixelRatio ?? */}
           <div>{Object.keys(this.state.replies).length ? <span id="spinner"><Spinner/> connected</span> : (this.selfActivePlayer() ? "🟢 connected" : "🔴 not connected")}</div>
           <div className="prompt">{this.state.prompt || this.state.data.prompt}</div>
-          {messagesPane == 'choices' &&
-           <div>
-             {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus={!IS_MOBILE_PORTRAIT} onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
-             {textChoices && (
-               <div>
-                 {Array.from(new Set(textChoices.filter(choice => String(choice).toLowerCase().includes(this.state.filter.toLowerCase())))).sort().map(choice => (
-                   <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, choice)}>{choice}</button>
-                 ))}
-               </div>
-             )}
-           </div>
-          }
-
-          {messagesPane == 'actions' &&
-           <div id="actionContainer">
-             {zoomXmlNode &&
-              <div
-                id="zoomPiece"
-                onClick={() => this.setState({ bigZoom: IS_MOBILE_PORTRAIT && !this.state.bigZoom })}
-                style={{width: SIDEBAR_WIDTH, height: zoomScale * this.state.zoomOriginalSize.height}}
-              >
-                <div className="scaler" style={{width: this.state.zoomOriginalSize.width, height: this.state.zoomOriginalSize.height, transform: `scale(${zoomScale})`}}>
-                  {this.renderGameElement(zoomXmlNode, false, false, true)}
-                </div>
-              </div>
-             }
-             {!this.state.bigZoom &&
-              <div id="actions" style={IS_MOBILE_PORTRAIT ? {width: SIDEBAR_WIDTH - 30} : {}}>
-                {actions && Object.entries(actions).map(([a, {choice, prompt}]) => (
-                  <button key={a} onClick={e => {this.gameAction(a, ...this.state.args, choice); e.stopPropagation()}}>{showKeybind(prompt)}</button>
-                ))}
-              </div>
-             }
-           </div>
-          }
-
-          {messagesPane == 'setup' &&
-           <>
-             <div className="prompt">
-               Send the URL to other players. Click &apos;Start&apos; when all players are present.<br/><br/>
-               Players: {this.state.data.players.map(p => p[1]).join(', ')}
+          <div id="choices">
+            {messagesPane == 'choices' &&
+             <div>
+               {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus={!IS_MOBILE_PORTRAIT} onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
+               {textChoices && (
+                 <div>
+                   {Array.from(new Set(textChoices.filter(choice => String(choice).toLowerCase().includes(this.state.filter.toLowerCase())))).sort().map(choice => (
+                     <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, choice)}>{choice}</button>
+                   ))}
+                 </div>
+               )}
              </div>
-             <button onClick={() => this.send('start')}>Start</button>
-           </>
-          }
+            }
 
-          {messagesPane == 'standard' &&
-           <div id="actions">
-             <button className="undo" onClick={() => this.send('undo')}>Undo</button>
-             <button className="reset" onClick={() => confirm("Reset and lose all game history? This cannot be undone") && this.reset()}>Reset</button>
-             {nonBoardActions && Object.entries(nonBoardActions).map(([action, prompt]) => (
-               <button key={action} onClick={() => this.gameAction(action)}>{showKeybind(prompt)}</button>
-             ))}
-             <button className="fab help" onClick={() => this.setState({help: true})}>?</button>
-           </div>
-          }
+            {messagesPane == 'actions' &&
+             <div id="actionContainer">
+               {zoomXmlNode &&
+                <div
+                  id="zoomPiece"
+                  onClick={() => this.setState({ bigZoom: IS_MOBILE_PORTRAIT && !this.state.bigZoom })}
+                  style={{width: SIDEBAR_WIDTH, height: zoomScale * this.state.zoomOriginalSize.height}}
+                >
+                  <div className="scaler" style={{width: this.state.zoomOriginalSize.width, height: this.state.zoomOriginalSize.height, transform: `scale(${zoomScale})`}}>
+                    {this.renderGameElement(zoomXmlNode, false, false, true)}
+                  </div>
+                </div>
+               }
+               {!this.state.bigZoom &&
+                <div id="actions" style={IS_MOBILE_PORTRAIT ? {width: SIDEBAR_WIDTH - 30} : {}}>
+                  {actions && Object.entries(actions).map(([a, {choice, prompt}]) => (
+                    <button key={a} onClick={e => {this.gameAction(a, ...this.state.args, choice); e.stopPropagation()}}>{showKeybind(prompt)}</button>
+                  ))}
+                </div>
+               }
+             </div>
+            }
 
-          {messagesPane == 'help' &&
-           <span>
-             <h1>How to play</h1>
-             <ul>
-               <li>Click on {IS_MOBILE_PORTRAIT || 'or hold Z over '}an item to see what actions can be taken.</li>
-               <li>Most items can be dragged. {IS_MOBILE_PORTRAIT && 'Touch an item to bring up the action menu, then drag' || 'Drag items to see what moves are possible'}.</li>
-               <li>Join us on <a href="https://discord.gg/hkvp9uPA" target="_new">Discord</a>! Give us your feedback and suggestions.</li>
-             </ul>
+            {messagesPane == 'setup' &&
+             <>
+               <div className="prompt">
+                 Send the URL to other players. Click &apos;Start&apos; when all players are present.<br/><br/>
+                 Players: {this.state.data.players.map(p => p[1]).join(', ')}
+               </div>
+               <button onClick={() => this.send('start')}>Start</button>
+             </>
+            }
 
-           </span>
-          }
-          {messagesPane == 'standard' || messagesPane == 'setup' || <button className="fab cancel" onClick={() => this.cancel()}>✕</button>}
+            {messagesPane == 'standard' &&
+             <div id="actions">
+               <button className="undo" onClick={() => this.send('undo')}>Undo</button>
+               <button className="reset" onClick={() => confirm("Reset and lose all game history? This cannot be undone") && this.reset()}>Reset</button>
+               {nonBoardActions && Object.entries(nonBoardActions).map(([action, prompt]) => (
+                 <button key={action} onClick={() => this.gameAction(action)}>{showKeybind(prompt)}</button>
+               ))}
+               <button className="fab help" onClick={() => this.setState({help: true})}>?</button>
+             </div>
+            }
+
+            {messagesPane == 'help' &&
+             <span>
+               <h1>How to play</h1>
+               <ul>
+                 <li>Click on {IS_MOBILE_PORTRAIT || 'or hold Z over '}an item to see what actions can be taken.</li>
+                 <li>Most items can be dragged. {IS_MOBILE_PORTRAIT && 'Touch an item to bring up the action menu, then drag' || 'Drag items to see what moves are possible'}.</li>
+                 <li>Join us on <a href="https://discord.gg/hkvp9uPA" target="_new">Discord</a>! Give us your feedback and suggestions.</li>
+               </ul>
+
+             </span>
+            }
+            {messagesPane == 'standard' || messagesPane == 'setup' || <button className="fab cancel" onClick={() => this.cancel()}>✕</button>}
+          </div>
           {!this.state.bigZoom &&
            <>
              <div key="log" id="log">
-               <a className="expander" onClick={() => this.toggleLogExpand()}>{this.state.expandLogs ? '▼' : '▲'}</a>
-               <ul className={classNames({ expanded: this.state.expandLogs })}>
+               <ul>
                  {Object.entries(this.state.logs)
-                  .sort((a, b) => a[1].timestamp === b[1].timestamp ? (parseInt(a[0], 10) > parseInt(b[0], 10) ? 1 : -1) : (a[1].timestamp > b[1].timestamp ? 1 : -1))
-                  .map(([k, {message}]) => <li key={k} dangerouslySetInnerHTML={{__html: message}}/>)
+                        .sort((a, b) => a[1].timestamp === b[1].timestamp ? (parseInt(a[0], 10) > parseInt(b[0], 10) ? 1 : -1) : (a[1].timestamp > b[1].timestamp ? 1 : -1))
+                        .map(([k, {message}]) => <li key={k} dangerouslySetInnerHTML={{__html: message}}/>)
                  }
                </ul>
              </div>
              <div key="chat" id="chat">
                <form onSubmit={e => this.chat(e)}>
                  <label>💬</label>
-                 <input placeholder="Send message" value={this.state.chatMessage} onChange={e => this.setState({chatMessage: e.target.value})} />
+                 <input placeholder="Send message" value={this.state.chatMessage} onKeyUp={e => e.stopPropagation()} onChange={e => this.setState({chatMessage: e.target.value})} />
                </form>
              </div>
            </>
           }
         </div>
-
-        {this.props.background}
-
-        {this.state.data.phase === 'ready' && boardXml && this.renderBoard(boardXml)}
-      </div>
+      </>
     );
   }
 

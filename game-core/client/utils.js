@@ -7,7 +7,7 @@ export const throttle = fn => {
   throttled = true;
 };
 
-export const gameDom = () => document.querySelector('#game');
+export const gameDom = () => document.querySelector('#game-dom');
 
 export const elByChoice = c => gameDom().querySelector(`[data-key="${c}"]`);
 
@@ -17,7 +17,7 @@ export const parentEl = el => el && el.dataset && el.dataset.parent;
 
 export const parentChoice = c => parentEl(elByChoice(c));
 
-export const zoneChoice = c => nearestChoiceByEl(elByChoice(c), el => el.parentNode.id == 'game');
+export const zoneChoice = c => nearestChoiceByEl(elByChoice(c), el => el.parentNode.id == 'game-dom');
 
 export const isEl = choice => choice && choice.slice && (choice.slice(0, 6) == '$uuid(' || choice.slice(0, 4) == '$el(');
 
@@ -31,7 +31,7 @@ export const nearestChoiceByEl = (el, condition) => {
 };
 
 export const zoneInfoForPoint = (x, y) => {
-  const el = elAtPoint(x, y, el => el.parentNode.id == 'game');
+  const el = elAtPoint(x, y, el => el.parentNode.id == 'game-dom');
   if (el) return { el, x: x - el.getBoundingClientRect().x, y: y - el.getBoundingClientRect().y };
 };
 
@@ -55,17 +55,23 @@ export const xmlNodeByChoice = (doc, choice) => {
   return doc.querySelector(query.replace(/#(\d)/g, '#\\3$1 '));
 };
 
-export const currentGridPosition = (el, parent, x, y) => {
+export const currentGridPosition = (el, parent, x, y, scale, flipped) => {
   const tc = window.getComputedStyle(parent).gridTemplateColumns.split(' ');
   const tr = window.getComputedStyle(parent).gridTemplateRows.split(' ');
-  const { left, top } = parent.getBoundingClientRect();
-  const width = parseInt(tc[0].slice(0, -2), 10);
-  const height = parseInt(tr[0].slice(0, -2), 10);
+  let { left, top } = parent.getBoundingClientRect();
+  const width = parseFloat(tc[0].slice(0, -2), 10) * scale;
+  const height = parseFloat(tr[0].slice(0, -2), 10) * scale;
+  if (flipped) {
+    left -= width - parseFloat(tc[tc.length - 1].slice(0, -2), 10) * scale
+    top -= height - parseFloat(tr[tr.length - 1].slice(0, -2), 10) * scale
+  }
   const columns = tc.length;
   const rows = tr.length;
-  let col = Math.min(Math.max(Math.round((x - left) / width), 0), columns);
-  if (parent.getAttribute('direction') === 'rtl') col = columns - col - 1;
-  return col + Math.min(Math.max(Math.round((y - top) / height), 0), rows) * columns;
+  let col = Math.min(Math.max(Math.floor((x - left) / width), 0), columns);
+  if ((parent.getAttribute('direction') === 'rtl') ^ flipped) col = columns - col - 1;
+  let row = Math.min(Math.max(Math.floor((y - top) / height), 0), rows);
+  if (flipped) row = rows - row - 1;
+  return col + row * columns;
 }
 
 export const deserialize = value => {
