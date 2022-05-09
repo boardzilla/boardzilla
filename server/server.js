@@ -1,7 +1,6 @@
 const url = require('url');
 const needle = require('needle');
 const WebSocket = require('ws');
-const errorhandler = require('errorhandler');
 const express = require('express');
 const http = require('http');
 const bodyParser = require('body-parser');
@@ -612,6 +611,7 @@ module.exports = ({
   if (production) {
     app.use(Sentry.Handlers.errorHandler());
   } else {
+    const errorhandler = require('errorhandler');
     app.use(errorhandler())
   }
   // Optional fallthrough error handler
