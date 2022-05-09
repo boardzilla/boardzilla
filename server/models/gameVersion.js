@@ -16,8 +16,8 @@ module.exports = (sequelize, DataTypes) => {
     models.Session.belongsTo(models.Session, { foreignKey: 'gameVersionId' });
   };
 
-  GameVersion.prototype.notesHTML = function() {
-    return this.notes ? discordMarkdown.toHTML(this.notes) : null
-  }
+  GameVersion.prototype.notesHTML = function () {
+    return this.notes ? discordMarkdown.toHTML(this.notes) : null;
+  };
   return GameVersion;
 };

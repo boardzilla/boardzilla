@@ -248,20 +248,20 @@ module.exports = ({
   app.get('/admin/games/:id', async (req, res) => {
     if (!req.user && req.user.role !== 'admin') return unauthorized(req, res, 'permission denied');
     const game = await db.Game.findByPk(req.params.id);
-    const versions = await game.getGameVersions({limit: 20, order: [['id', 'desc']]});
+    const versions = await game.getGameVersions({ limit: 20, order: [['id', 'desc']] });
     res.render('admin/game', { game, versions });
   });
 
   app.get('/admin/games/:id/versions/:version_id/edit', async (req, res) => {
     if (!req.user && req.user.role !== 'admin') return unauthorized(req, res, 'permission denied');
     const game = await db.Game.findByPk(req.params.id);
-    const gameVersion = await db.GameVersion.findOne({where: {gameId: req.params.id, id: req.params.version_id}});
+    const gameVersion = await db.GameVersion.findOne({ where: { gameId: req.params.id, id: req.params.version_id } });
     res.render('admin/note-edit', { game, gameVersion });
   });
 
   app.post('/admin/games/:id/versions/:version_id', async (req, res) => {
     if (!req.user && req.user.role !== 'admin') return unauthorized(req, res, 'permission denied');
-    const gameVersion = await db.GameVersion.findOne({where: {gameId: req.params.id, id: req.params.version_id}});
+    const gameVersion = await db.GameVersion.findOne({ where: { gameId: req.params.id, id: req.params.version_id } });
     gameVersion.notes = req.body.notes;
     await gameVersion.save();
     res.redirect(`/admin/games/${req.params.id}`);
@@ -271,8 +271,8 @@ module.exports = ({
     if (!req.user && req.user.role !== 'admin') return unauthorized(req, res, 'permission denied');
     const game = await db.Game.findByPk(req.params.id);
 
-    const gameVersion = await db.GameVersion.findOne({where: {gameId: req.params.id, id: req.params.version_id}});
-    const content = `**${game.name}** has a new version available in _${gameVersion.beta ? "beta" : "release"}_ channel!\n\n${gameVersion.notes}`;
+    const gameVersion = await db.GameVersion.findOne({ where: { gameId: req.params.id, id: req.params.version_id } });
+    const content = `**${game.name}** has a new version available in _${gameVersion.beta ? 'beta' : 'release'}_ channel!\n\n${gameVersion.notes}`;
     await needle('post', process.env.DISCORD_RELEASE_WEBHOOK, { content });
     res.redirect(`/admin/games/${req.params.id}`);
   });
@@ -612,7 +612,7 @@ module.exports = ({
     app.use(Sentry.Handlers.errorHandler());
   } else {
     const errorhandler = require('errorhandler');
-    app.use(errorhandler())
+    app.use(errorhandler());
   }
   // Optional fallthrough error handler
   app.use((err, req, res, next) => {
