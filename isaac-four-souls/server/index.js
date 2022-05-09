@@ -265,13 +265,6 @@ game.defineActions({
     drag: '#rooms card:last-child, .mine card[type="room"]',
     onto: '#room',
   },
-  discardRoom: {
-    prompt: 'Discard',
-    log: '$0 discarded $1',
-    key: 'f',
-    drag: '#rooms card:last-child, #room card:last-child, .mine card[type="room"]',
-    onto: '#room-discard',
-  },
   inRoomDeck: {
     prompt: 'Put back in deck',
     log: '$0 put $1 back into deck',
