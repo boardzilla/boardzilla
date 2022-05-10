@@ -91,6 +91,19 @@ async function run() {
     version: 0,
     clientDigest: 'build',
     serverDigest: 'build',
+    notes: `Bunch of smaller quality-of-life fixes are live now, as promised:
+
+**Four Souls**
+- Eternal is automatically selected along with the character
+- Additional Eternals are included for characters that have alt art variants
+- Eternals and characters stay on the board for Clicker
+- Board start has fewer decks to hopefully remove confusion
+- Bonus souls can be replaced before play starts
+
+**General**
+- Better rearrangement of items in splayed space (e.g. cards in your hand)
+- Better translation of drag location when scaling the play area
+`
   });
   const session = await db.Session.create({ creatorId: players[0].id, gameVersionId: gameVersion.id, seed: 0 });
   await Promise.all(players.map((player, i) => db.SessionUser.create({ sessionId: session.id, userId: player.id, color: colors[player.id], position: i })));
