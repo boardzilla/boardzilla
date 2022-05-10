@@ -198,44 +198,47 @@ export default class Page extends Component {
           console.log("UNHANDLED MESSAGE", type, payload);
       }
     };
-    document.addEventListener('touchmove', e => {
-      let el = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
-      if (!this.state.touchMoving) this.setState({ touchMoving: true });
-      if (el && this.state.dragging) {
-        while (el.classList && !el.classList.contains("space") && el.parentNode) el = el.parentNode;
-        this.setState({dragOver: choiceByEl(el)});
-      }
-    });
-    document.addEventListener('touchend', () => {
-      this.setState({ touchMoving: false });
-    });
-    document.addEventListener('mousemove', e => {
-      mouse = {x: e.clientX, y: e.clientY};
-    });
-    document.addEventListener('keydown', e => {
-      if (e.key == "z") {
-        const zoomKey = choiceAtPoint(mouse.x, mouse.y, el => el.matches('.piece:not(.component)'));
-        zoomKey && this.handleClick(zoomKey, e);
-      }
-      if (e.key == "Escape") this.cancel();
-    });
-    document.addEventListener('keyup', e => {
-      if (this.state.choices) {
-        if (e.key == 'Enter') {
-          const choices = this.state.choices.filter(choice => !isEl(choice) && String(choice).toLowerCase().includes(this.state.filter.toLowerCase()));
-          if (choices.length == 1) {
-            this.gameAction(this.state.action, ...this.state.args, choices[0]);
+    if (!this.props.spectator) {
+      document.addEventListener('touchmove', e => {
+        let el = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+        if (!this.state.touchMoving) this.setState({ touchMoving: true });
+        if (el && this.state.dragging) {
+          while (el.classList && !el.classList.contains("space") && el.parentNode) el = el.parentNode;
+          this.setState({dragOver: choiceByEl(el)});
+        }
+      });
+      document.addEventListener('touchend', () => {
+        this.setState({ touchMoving: false });
+      });
+      document.addEventListener('mousemove', e => {
+        mouse = {x: e.clientX, y: e.clientY};
+      });
+      document.addEventListener('keydown', e => {
+        if (e.key == "z") {
+          const zoomKey = choiceAtPoint(mouse.x, mouse.y, el => el.matches('.piece:not(.component)'));
+          zoomKey && this.handleClick(zoomKey, e);
+        }
+        if (e.key == "Escape") this.cancel();
+      });
+      document.addEventListener('keyup', e => {
+        if (this.state.choices) {
+          if (e.key == 'Enter') {
+            const choices = this.state.choices.filter(choice => !isEl(choice) && String(choice).toLowerCase().includes(this.state.filter.toLowerCase()));
+            if (choices.length == 1) {
+              this.gameAction(this.state.action, ...this.state.args, choices[0]);
+            }
+          }
+        } else {
+          let choice = this.state.zoomPiece || (mouse.x != undefined && choiceAtPoint(mouse.x, mouse.y));
+          if (choice) {
+            const action = Object.entries(this.state.actions || this.actionsFor(choice)).find(([_, a]) => a.key && a.key.toLowerCase() == e.key);
+            if (action) this.gameAction(action[0], ...this.state.args, action[1].choice);
           }
         }
-      } else {
-        let choice = this.state.zoomPiece || (mouse.x != undefined && choiceAtPoint(mouse.x, mouse.y));
-        if (choice) {
-          const action = Object.entries(this.state.actions || this.actionsFor(choice)).find(([_, a]) => a.key && a.key.toLowerCase() == e.key);
-          if (action) this.gameAction(action[0], ...this.state.args, action[1].choice);
-        }
-      }
-    });
+      });
 
+      setInterval(() => this.send('ping'), PING_INTERVAL);
+    }
     if (IS_MOBILE_PORTRAIT) {
       const resize = e => {
         const vp = e ? e.target : window.visualViewport;
@@ -261,7 +264,6 @@ export default class Page extends Component {
       });
     }
     this.send('refresh');
-    setInterval(() => this.send('ping'), PING_INTERVAL);
   }
 
   componentDidUpdate() {
@@ -646,7 +648,7 @@ export default class Page extends Component {
       props.className += ' component';
       contents = React.createElement(
         this.components[type],
-        {...props, display: this.props.counterDisplays[props.display] || (v=>v), ...this.bindMethods('gameAction')},
+        {...props, spectator: this.props.spectator, display: this.props.counterDisplays[props.display] || (v=>v), ...this.bindMethods('gameAction')},
         contents
       );
     }
@@ -659,7 +661,7 @@ export default class Page extends Component {
       wrappedStyle.pointerEvents = "none";
     }
 
-    const draggable = !frozen && (this.isAllowedMove(node) || this.isAllowedDrag(key)) && (this.state.zoomPiece == key || !IS_MOBILE_PORTRAIT);
+    const draggable = !this.props.spectator && !frozen && (this.isAllowedMove(node) || this.isAllowedDrag(key)) && (this.state.zoomPiece == key || !IS_MOBILE_PORTRAIT);
 
     if (position && (position.x != undefined && position.x != 0 || position.y == undefined && position.y != 0) && !frozen && !draggable) {
       wrappedStyle.transform = `translate(${position.x}px, ${position.y}px)`;

@@ -15,7 +15,7 @@ class GameRunner {
     this.handles = new Set();
   }
 
-  async createSessionRunner(sessionId) {
+  async createSessionRunner(sessionId, spectator) {
     await this.setupConnection();
 
     let gameInstance;
@@ -118,6 +118,7 @@ class GameRunner {
       }, { noAck: true, consumerTag: eventConsumerTag });
     };
     handle.publishAction = async (payload) => {
+      if (spectator) return;
       const correlationId = nanoid();
       const p = new Promise((resolve, reject) => {
         responsePromises[correlationId] = { resolve, reject };
@@ -130,6 +131,7 @@ class GameRunner {
       return p;
     };
     handle.publishEvent = async (payload) => {
+      if (spectator) return;
       await eventPublishChannel.publish(eventExchangeName, sessionIdKey, Buffer.from(JSON.stringify(payload)), {
         deliveryMode: 1,
       });
@@ -174,6 +176,7 @@ class GameRunner {
           return await Promise.all(Object.entries(playerViews).map(([userId, view]) => (
             handle.publishEvent({ type: 'state', userId: parseInt(userId, 10), payload: view })
           )));
+          handle.publishEvent({ type: 'state', spectator: true, payload: gameInstance.getSpectatorView() });
         };
 
         const publishLogs = async (actions, userIds) => {

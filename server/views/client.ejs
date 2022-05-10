@@ -2,7 +2,7 @@
 
 <div id="container">
 </div>
-<script>window.userId=<%=userId%></script>
+<script><% if (spectator) { %>window.spectator=true<% } else { %>window.userId=<%=userId%><% } %></script>
 <script src="<%=entry%>"></script>
 
 <%- include('partials/footer') %>

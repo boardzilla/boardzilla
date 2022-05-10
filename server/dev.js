@@ -9,16 +9,16 @@ const db = require('./models');
 
 const allPlayerInfo = [
   {
-    name: 'alpha', password: bcrypt.hashSync('alpha', 10), email: 'alpha@alpha.com', role: 'admin',
+    id: 1, name: 'alpha', password: bcrypt.hashSync('alpha', 10), email: 'alpha@alpha.com', role: 'admin',
   },
   {
-    name: 'beta', password: bcrypt.hashSync('beta', 10), email: 'beta@alpha.com', role: 'admin',
+    id: 2, name: 'beta', password: bcrypt.hashSync('beta', 10), email: 'beta@alpha.com', role: 'admin',
   },
   {
-    name: 'gamma', password: bcrypt.hashSync('gamma', 10), email: 'gamma@alpha.com', role: 'admin',
+    id: 3, name: 'gamma', password: bcrypt.hashSync('gamma', 10), email: 'gamma@alpha.com', role: 'admin',
   },
   {
-    name: 'delta', password: bcrypt.hashSync('delta', 10), email: 'delta@alpha.com', role: 'admin',
+    id: 4, name: 'delta', password: bcrypt.hashSync('delta', 10), email: 'delta@alpha.com', role: 'admin',
   },
 ];
 
@@ -81,8 +81,7 @@ async function build() {
 
 async function run() {
   const numberOfPlayers = parseInt(process.env.PLAYERS_NUM || 2, 10);
-  const playerInfo = allPlayerInfo.slice(0, numberOfPlayers);
-  const players = await Promise.all(playerInfo.map(info => db.User.create(info)));
+  const players = (await Promise.all(allPlayerInfo.map(info => db.User.create(info)))).slice(0, numberOfPlayers);
   const game = await db.Game.create({
     name: gameName,
   });

@@ -326,11 +326,15 @@ module.exports = ({
       return res.render('play-error');
     }
     if (!req.params[0]) {
+      if (req.query.spectator) {
+        return res.render('client', { spectator: true, entry: 'index.js' });
+      }
+
       const sessionUser = await db.SessionUser.findOne({ where: { userId: req.user.id, sessionId: session.id } });
       if (!sessionUser) {
         return res.redirect(`/sessions/${session.id}`);
       }
-      return res.render('client', { userId: req.user.id, entry: 'index.js' });
+      return res.render('client', { spectator: false, userId: req.user.id, entry: 'index.js' });
     }
     const gameVersion = session.GameVersion;
     const game = gameVersion.Game;
@@ -452,13 +456,15 @@ module.exports = ({
   };
 
   const onWssConnection = async (ws, req) => {
+    const session = await db.Session.findOne({id: req.sessionId});
     const sessionUser = await db.SessionUser.findOne({ where: { userId: req.user.id, sessionId: req.sessionId } });
-    if (!sessionUser) {
-      return ws.close(4001);
-    }
+    const spectator = !sessionUser;
 
-    const session = await sessionUser.getSession();
-    const sessionRunner = await gameRunner.createSessionRunner(session.id);
+    // if (!session.allowSpectator && spectator) {
+    //   return ws.close(4001);
+    // }
+
+    const sessionRunner = await gameRunner.createSessionRunner(session.id, spectator);
     ws.addEventListener('close', async () => {
       log.debug('WS closing...');
       await sessionRunner.stop();
@@ -469,7 +475,12 @@ module.exports = ({
       await sessionRunner.stop();
     }, { once: true });
 
-    const sendWS = (type, payload) => ws.send(JSON.stringify({ type, payload }));
+    const sendWS = (type, payload) => {
+      if (sessionUser) {
+        console.log("SENDING TO A REAL SESSION =>", sessionUser.userId, type, payload);
+      }
+      ws.send(JSON.stringify({ type, payload }));
+    }
     const publish = async (type, payload) => sessionRunner.publishEvent({ type, payload });
     const queue = async (type, payload) => {
       try {
@@ -507,6 +518,7 @@ module.exports = ({
     };
 
     const requestLock = async (key) => {
+      if (!sessionUser) return
       try {
         await db.ElementLock.destroy({
           where: {
@@ -524,6 +536,7 @@ module.exports = ({
     };
 
     const releaseLock = async key => {
+      if (!sessionUser) return
       await db.ElementLock.destroy({ where: { sessionId: session.id, userId: sessionUser.userId, element: key } });
       locks = locks.filter((lock) => lock.key !== key);
       await publish('locks');
@@ -532,6 +545,7 @@ module.exports = ({
     const drag = async ({
       key, x, y, start, end, endFlip,
     }) => {
+      if (!sessionUser) return;
       const lock = locks.find(l => l.element === key);
       if (!lock || lock.userId !== sessionUser.userId) return;
       await publish('drag', {
@@ -542,7 +556,7 @@ module.exports = ({
     const updateElement = ({
       userId, key, x, y, start, end, endFlip,
     }) => {
-      if (userId === sessionUser.userId) return;
+      if (sessionUser && userId === sessionUser.userId) return;
       sendWS('updateElement', {
         key, x, y, start, end, endFlip,
       });
@@ -569,6 +583,7 @@ module.exports = ({
     });
 
     ws.on('message', async (data) => {
+      if (spectator) return;
       try {
         const message = JSON.parse(data);
         switch (message.type) {
@@ -589,6 +604,10 @@ module.exports = ({
     });
 
     sessionRunner.listen(message => {
+      if (message.spectator && spectator) {
+        return sendWS(message.type, message.payload);
+      }
+
       // TODO better as seperate channels for each user and all users?
       if (message.userId && message.userId !== req.user.id) return null;
       log.debug(`S ${req.user.id}: event`, message.type, message.userId);

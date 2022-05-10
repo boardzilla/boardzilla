@@ -13,6 +13,7 @@ Sentry.init({
 export const render = ({pieces, counters, background}) => {
   ReactDOM.render(
     <Page
+      spectator={window.spectator}
       userId={window.userId}
       session={document.location.href.match(/play\/(\d+)\//)[1]}
       pieces={pieces}
