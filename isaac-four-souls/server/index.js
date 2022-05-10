@@ -35,7 +35,7 @@ game.setupBoard(board => {
   addAllCards('eternal', eternalsDeck);
   eternalsDeck.shuffle();
 
-  const lootDeck = board.addSpace('#loot', 'stack', { class: 'deck' });
+  const lootDeck = board.addSpace('#loot', 'stack', { class: 'deck', bonus: true });
   board.addSpace('#loot-discard', 'stack', { class: 'deck' });
 
   board.addSpace('#treasure', 'stack', { class: 'deck' });
@@ -103,14 +103,14 @@ game.defineActions({
   draw: {
     prompt: 'Draw',
     log: '$0 drew $1',
-    drag: '.deck card:last-child, #loot-discard card:last-child',
+    drag: '.deck:not([bonus]) card:last-child, #loot-discard card:last-child',
     key: 'd',
     onto: '.mine #hand',
     action: card => { if (card.get('eternal')) game.board.find(`#${card.get('eternal')}`).move('.mine #hand'); },
   },
   drawMultiple: {
     prompt: 'Draw multiple',
-    select: '.deck',
+    select: '.deck:not([bonus])',
     key: 'm',
     log: '$0 drew $2 $1',
     next: {
@@ -130,7 +130,7 @@ game.defineActions({
   drawOne: {
     prompt: 'Draw specific card',
     log: '$0 drew $2 out of the deck',
-    select: '.deck',
+    select: '.deck:not([bonus])',
     key: 'i',
     next: {
       prompt: 'Select card',
@@ -403,6 +403,7 @@ game.play(async () => {
 
   const lootDeck = game.board.find('#loot');
   lootDeck.clear();
+  lootDeck.unset('bonus');
   addAllCards('loot', lootDeck);
   lootDeck.shuffle();
   const treasureDeck = game.board.find('#treasure');
@@ -411,7 +412,7 @@ game.play(async () => {
   const monsterDeck = game.board.find('#monsters');
   addAllCards('monster', monsterDeck);
   monsterDeck.shuffle();
-  game.board.find('#dungeon').addComponent('counter', { display: 'hp', initialValue: 1, max: 8, right: 20, top: 100 });
+  game.board.find('#dungeon').addComponent('counter', { display: 'hp', initialValue: 1, max: 8, left: 0, top: 100 });
   const roomDeck = game.board.find('#rooms');
   addAllCards('room', roomDeck);
   roomDeck.shuffle();

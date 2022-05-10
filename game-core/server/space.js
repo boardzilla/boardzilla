@@ -38,12 +38,12 @@ class Space extends GameElement {
     position = Math.min(Math.max(position, 0), space.node.childElementCount);
     let outOfGrid = false;
     movables.forEach(piece => {
-      piece.set('x');
-      piece.set('y');
-      piece.set('left');
-      piece.set('top');
-      piece.set('right');
-      piece.set('bottom');
+      piece.unset('x');
+      piece.unset('y');
+      piece.unset('left');
+      piece.unset('top');
+      piece.unset('right');
+      piece.unset('bottom');
       if (!piece.hasParent(space)) {
         const pos = space.findOpenPosition();
         if (pos) {

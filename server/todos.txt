@@ -5,6 +5,11 @@ container
  zone
  zone
 
+- components packaged better (+/- n counter options, mobile?)
+- mobile landscape
+- grid-snapping dungeon, tableau, space->piece rules
+- space labels?
+- visibility controls
 X sidebar and scaling
 X rooms
 X auto-eternal

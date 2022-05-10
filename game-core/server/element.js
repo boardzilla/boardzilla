@@ -60,11 +60,15 @@ class GameElement {
       if (typeof name === 'object') {
         Object.entries(name).forEach(([n, v]) => this.set(n, v));
       } else {
-        this.node.removeAttribute(name);
+        this.unset(name);
       }
     } else {
       this.node.setAttribute(name, escape(value)); // TODO reserved attributes class, className, id, style...
     }
+  }
+
+  unset(name) {
+    this.node.removeAttribute(name);
   }
 
   // human readable name of this element from the perspective of player
