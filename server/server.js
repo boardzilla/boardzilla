@@ -201,7 +201,7 @@ module.exports = ({
   });
 
   app.get('/', async (req, res) => {
-    const versions = await db.GameVersion.findAll({include: db.Game, limit: 5, where: {notes: {[Op.not]: null}}});
+    const versions = await db.GameVersion.findAll({include: db.Game, limit: 5, order: [['createdAt', 'desc']], where: {notes: {[Op.not]: null}}});
     res.render('home', { versions });
   });
 
