@@ -22,5 +22,4 @@ set -e
 ./node_modules/.bin/sequelize db:create
 ./node_modules/.bin/sequelize db:migrate
 
-
-yarn --cwd server run start:dev
+./node_modules/.bin/nodemon -w server --exec yarn -- --cwd server run start:dev

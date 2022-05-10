@@ -5,7 +5,7 @@ const express = require('express');
 const http = require('http');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
-const { Sequelize } = require('sequelize');
+const { Sequelize, Op } = require('sequelize');
 const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
 const path = require('path');
@@ -201,7 +201,8 @@ module.exports = ({
   });
 
   app.get('/', async (req, res) => {
-    res.render('home');
+    const versions = await db.GameVersion.findAll({include: db.Game, limit: 5, where: {notes: {[Op.not]: null}}});
+    res.render('home', { versions });
   });
 
   app.get('/sessions', async (req, res) => {
