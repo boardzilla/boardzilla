@@ -5,15 +5,20 @@ container
  zone
  zone
 
-- sidebar and scaling
-- rooms
-- auto-eternal
-- isaac rules draw before start? clicker
-- bonus souls at start and replaceable
-- repeat alt eternals, bone
+- components packaged better (+/- n counter options, mobile?)
+- mobile landscape
+- grid-snapping dungeon, tableau, space->piece rules
+- space labels?
+- visibility controls
+X sidebar and scaling
+X rooms
+X auto-eternal
+X isaac rules draw before start? clicker
+X bonus souls at start and replaceable
+X repeat alt eternals, bone
 X splay space
 - custom cards
-- undo/reset refresh
+X undo/reset refresh
 - changelog
 - spec mode
 - invite locks?
@@ -21,8 +26,6 @@ X splay space
 - unstyled defaults? and new game
 X game cleaning and idling
 X movement echo???
-  - send last pos (zone,x,y)
-  - translate zxy->zxy and apply transform
 X animate activate, or flip?
 - multi-select
 - numerical action type

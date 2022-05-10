@@ -38,15 +38,21 @@
     width: 100%;
     #characters {
       position: absolute;
-      left: 320px;
-      top: 74px;
+      left: 520px;
+      top: 12px;
       z-index: 20;
+      [data-players="3"] &, [data-players="4"] & {
+        left: 820px;
+      }
     }
     #eternals {
       position: absolute;
-      right: 320px;
-      top: 74px;
+      left: 520px;
+      bottom: 12px;
       z-index: 20;
+      [data-players="3"] &, [data-players="4"] & {
+        left: 820px;
+      }
     }
     #shop {
       position: absolute;
@@ -86,28 +92,28 @@
     }
     #loot {
       position: absolute;
-      left: 565px;
+      left: 615px;
       top: 12px;
       [data-players="3"] &, [data-players="4"] & {
-        left: 865px;
+        left: 915px;
       }
     }
     #loot-discard {
       position: absolute;
-      left: 659px;
+      left: 709px;
       top: 12px;
       [data-players="3"] &, [data-players="4"] & {
-        left: 959px;
+        left: 1009px;
       }
     }
     #bonus-souls {
       position: absolute;
-      left: 565px;
+      left: 615px;
       top: 135px;
       height: 100px;
       width: 167px;
       [data-players="3"] &, [data-players="4"] & {
-        left: 865px;
+        left: 915px;
       }
     }
     .deck {
@@ -116,32 +122,32 @@
     }
     #room {
       position: absolute;
-      left: 750px;
+      left: 810px;
       top: 0px;
       width: 100px;
       height: 74px;
       [data-players="3"] &, [data-players="4"] & {
-        left: 1050px;
+        left: 1110px;
       }
     }
     #rooms {
       position: absolute;
-      left: 750px;
+      left: 810px;
       top: 81px;
       width: 100px;
       height: 74px;
       [data-players="3"] &, [data-players="4"] & {
-        left: 1050px;
+        left: 1110px;
       }
     }
     #room-discard {
       position: absolute;
-      left: 750px;
+      left: 810px;
       bottom: 0px;
       width: 100px;
       height: 74px;
       [data-players="3"] &, [data-players="4"] & {
-        left: 1050px;
+        left: 1110px;
       }
     }
   }

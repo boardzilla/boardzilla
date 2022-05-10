@@ -477,7 +477,7 @@ class GameInterface {
     let nextPrompt;
     if (action.drag) {
       nextPrompt = this.dragAction(action.drag, action.onto, prompt, action.promptOnto, nextAction)(...args);
-    } if (action.select) {
+    } else if (action.select) {
       if (action.select instanceof Array) {
         nextPrompt = this.chooseAction(action.select, prompt, nextAction, argIndex)(...args);
       } else if (typeof action.select === 'string') {

@@ -39,7 +39,7 @@ button {
   #messages {
     z-index: 200;
     position: relative;
-    background: #989490;
+    background: #b8b4b4;
     padding: 10px;
     color: black;
     box-sizing: border-box;
@@ -259,7 +259,7 @@ div.nametag {
   }
 }
 
-@media(orientation: landscape) {
+/* @media(orientation: landscape) { */
   #container {
     display: grid;
     grid-template-columns: auto 340px;
@@ -288,59 +288,59 @@ div.nametag {
       }
     }
   }
-}
+/* } */
 
-@media(orientation: portrait) {
-  #container {
-    #messages {
-      left: 0;
-      bottom: 0;
-      width: 380px;
-      transform-origin: left bottom;
-      font-size: 5vw;
-      max-height: 900px;
-      overflow-y: scroll;
-      &.big-zoom {
-        max-height: 100%;
-      }
-      &.actions {
-        overflow-y: hidden;
-        #actions {
-          button .keybind {
-            display: none;
-          }
-          overflow-y: scroll;
-          height: 100%;
-          width: 345px;
-          position: absolute;
-          bottom: 0;
-          right: 0;
-        }
-      }
-      h1 {
-        font-size: 6vw;
-      }
-      button {
-        padding: 0.8vw 1vh;
-        &.fab {
-          width: 8vw;
-          height: 8vw;
-          border-radius: 4vh;
-          font-size: 4.5vw;
-        }
-      }
-      #choiceFilter {
-        height: 7vw;
-      }
-      #spinner {
-        margin-left: 3ex;
-        img {
-          top: 0.5em;
-        }
-      }
-    }
-  }
-}
+/* @media(orientation: portrait) { */
+/*   #container { */
+/*     #messages { */
+/*       left: 0; */
+/*       bottom: 0; */
+/*       width: 380px; */
+/*       transform-origin: left bottom; */
+/*       font-size: 5vw; */
+/*       max-height: 900px; */
+/*       overflow-y: scroll; */
+/*       &.big-zoom { */
+/*         max-height: 100%; */
+/*       } */
+/*       &.actions { */
+/*         overflow-y: hidden; */
+/*         #actions { */
+/*           button .keybind { */
+/*             display: none; */
+/*           } */
+/*           overflow-y: scroll; */
+/*           height: 100%; */
+/*           width: 345px; */
+/*           position: absolute; */
+/*           bottom: 0; */
+/*           right: 0; */
+/*         } */
+/*       } */
+/*       h1 { */
+/*         font-size: 6vw; */
+/*       } */
+/*       button { */
+/*         padding: 0.8vw 1vh; */
+/*         &.fab { */
+/*           width: 8vw; */
+/*           height: 8vw; */
+/*           border-radius: 4vh; */
+/*           font-size: 4.5vw; */
+/*         } */
+/*       } */
+/*       #choiceFilter { */
+/*         height: 7vw; */
+/*       } */
+/*       #spinner { */
+/*         margin-left: 3ex; */
+/*         img { */
+/*           top: 0.5em; */
+/*         } */
+/*       } */
+/*     } */
+/*   } */
+/* } */
 
 #zoomPiece {
   position: relative;

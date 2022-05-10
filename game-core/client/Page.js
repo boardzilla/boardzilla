@@ -89,7 +89,10 @@ export default class Page extends Component {
             if (payload.sequence > this.state.data.sequence) {
               payload.changes.forEach(([oldId, newId]) => {
                 let oldEl = elByChoice(oldId);
-                if (!oldEl) oldEl = elByChoice(choiceForXmlNode(xmlNodeByChoice(boardXml, oldId).parentNode));
+                if (!oldEl) {
+                  const oldNode = xmlNodeByChoice(boardXml, oldId);
+                  if (oldNode && oldNode.parentNode) oldEl = elByChoice(choiceForXmlNode(oldNode.parentNode));
+                }
                 if (oldEl) {
                   const { x, y } = oldEl.getBoundingClientRect();
                   changes[newId] = {x, y};
@@ -221,9 +224,9 @@ export default class Page extends Component {
     });
     document.addEventListener('keyup', e => {
       if (this.state.choices) {
-        if (e.key == 'Enter') {
+        if (e.key === 'Enter') {
           const choices = this.state.choices.filter(choice => !isEl(choice) && String(choice).toLowerCase().includes(this.state.filter.toLowerCase()));
-          if (choices.length == 1) {
+          if (choices.length === 1) {
             this.gameAction(this.state.action, ...this.state.args, choices[0]);
           }
         }
@@ -275,7 +278,7 @@ export default class Page extends Component {
           const style = el.parentNode.style;
           const oldCss = style.cssText;
           let [_, tx, ty] = [0, 0, 0];
-          const transform = oldCss.match(/translate\((-?[\d.]+)[^\d]*(-?[\d.]+)/);
+          const transform = oldCss.match(/translate\((-?[\d.]+)[^-.\d]*(-?[\d.]+)/);
           if (transform) [_, tx, ty] = transform;
           const flipped = el.matches('.flipped *, .flipped');
           style.cssText = `transform: translate(${(flipped ? -1 : 1) * (oldX - x) + parseInt(tx, 10)}px, ${(flipped ? -1 : 1) * (oldY - y) + parseInt(ty, 10)}px); display: block`;
@@ -382,11 +385,11 @@ export default class Page extends Component {
       dragData.end = choiceByEl(endZone);
       dragData.endFlip = isFlipped(startZone) ^ isFlipped(endZone);
       if (isFlipped(startZone)) {
-        dragData.x -= startZone.getBoundingClientRect().right - endZone.getBoundingClientRect().right;
-        dragData.y -= startZone.getBoundingClientRect().bottom - endZone.getBoundingClientRect().bottom;
+        dragData.x -= (startZone.getBoundingClientRect().right - endZone.getBoundingClientRect().right) / this.state.playAreaScale;
+        dragData.y -= (startZone.getBoundingClientRect().bottom - endZone.getBoundingClientRect().bottom) / this.state.playAreaScale;
       } else {
-        dragData.x += startZone.getBoundingClientRect().x - endZone.getBoundingClientRect().x;
-        dragData.y += startZone.getBoundingClientRect().y - endZone.getBoundingClientRect().y;
+        dragData.x += (startZone.getBoundingClientRect().x - endZone.getBoundingClientRect().x) / this.state.playAreaScale;
+        dragData.y += (startZone.getBoundingClientRect().y - endZone.getBoundingClientRect().y) / this.state.playAreaScale;
       }
     }
     throttle(() => this.send('drag', dragData));
@@ -408,6 +411,8 @@ export default class Page extends Component {
           const translation = isFlipped(parent) ?
                               {x: ontoXY.right - elXY.right, y: ontoXY.bottom - elXY.bottom} :
                               {x: elXY.x - ontoXY.x, y: elXY.y - ontoXY.y};
+          translation.x /= this.state.playAreaScale;
+          translation.y /= this.state.playAreaScale;
           this.gameAction(dragAction, choice, dragOver, translation);
         }
         // optimistically update the location to avoid flicker
@@ -453,7 +458,7 @@ export default class Page extends Component {
 
       const actions = this.actionsFor(choice);
       this.setState({dragging: null});
-      if (Object.keys(actions).length > 1) {
+      if (Object.keys(actions).length) {
         this.setState({actions});
         event.stopPropagation();
       } else if (!zooming && Object.keys(this.state.replies).length === 0) {
@@ -743,7 +748,7 @@ export default class Page extends Component {
           <div id="scaled-play-area" style={{ transform: `translate(-50%, -50%) scale(${this.state.playAreaScale})` }}>
             {this.props.background}
 
-            {this.state.data.phase === 'ready' && boardXml && this.renderBoard(boardXml)}
+            {this.state.data.phase === 'ready' && boardXml && this.state.playAreaScale && this.renderBoard(boardXml)}
           </div>
         </div>
         <div

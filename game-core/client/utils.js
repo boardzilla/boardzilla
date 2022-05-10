@@ -67,9 +67,9 @@ export const currentGridPosition = (el, parent, x, y, scale, flipped) => {
   }
   const columns = tc.length;
   const rows = tr.length;
-  let col = Math.min(Math.max(Math.floor((x - left) / width), 0), columns);
-  if ((parent.getAttribute('direction') === 'rtl') ^ flipped) col = columns - col - 1;
-  let row = Math.min(Math.max(Math.floor((y - top) / height), 0), rows);
+  let col = Math.min(Math.max(Math.ceil((x - left) / width), 0), columns);
+  if ((parent.getAttribute('direction') === 'rtl') ^ flipped) col = columns - col;
+  let row = Math.min(Math.max(Math.round((y - top) / height), 0), rows - 1);
   if (flipped) row = rows - row - 1;
   return col + row * columns;
 }
