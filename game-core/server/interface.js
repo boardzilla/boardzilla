@@ -273,6 +273,22 @@ class GameInterface {
     return value;
   }
 
+  getSpectatorView() {
+    return {
+      variables: this.shownVariables(),
+      phase: this.phase,
+      players: this.#players,
+      currentPlayer: this.currentPlayer,
+      sequence: this.sequence,
+      doc: this.doc.clone().node.outerHTML,
+      changes: [],
+      allowedMove: null,
+      allowedActions: null,
+      allowedDrags: null,
+      prompt: this.promptMessage,
+    };
+  }
+
   getPlayerViews() {
     return [...this.#players.entries()].reduce((views, [index, [userId]]) => {
       views[userId] = this.getPlayerView(index + 1);

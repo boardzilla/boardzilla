@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 
-export default function Die({id, number, rolls, faces, gameAction}) {
+export default function Die({id, spectator, number, rolls, faces, gameAction}) {
   const [override, setOverride] = useState();
   const [rolls2, setRolls2] = useState(rolls);
   const [shake, setShake] = useState({x:0, y:0});
@@ -22,6 +22,7 @@ export default function Die({id, number, rolls, faces, gameAction}) {
   }
 
   const rollD6 = () => {
+    if (spectator) return;
     gameAction('rollDie', id);
     setRolls2(rolls2 + 1);
     shakeSequence()

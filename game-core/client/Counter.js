@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 
-export default function Counter({id, display, value, min, max, moves, gameAction}) {
+export default function Counter({id, spectator, display, value, min, max, moves, gameAction}) {
   const [override, setOverride] = useState();
   const [moves2, setMoves2] = useState(moves);
 
@@ -14,9 +14,9 @@ export default function Counter({id, display, value, min, max, moves, gameAction
 
   return (
     <div>
-      <button onClick={e => {set(-1); e.stopPropagation()}}>-</button>
+      {spectator ? <button onClick={e => {set(-1); e.stopPropagation()}}>-</button> : null}
       {display(moves2 > moves ? override : value)}
-      <button onClick={e => {set(1); e.stopPropagation()}}>+</button>
+      {spectator ? <button onClick={e => {set(1); e.stopPropagation()}}>+</button> : null}
     </div>
   );
 }
