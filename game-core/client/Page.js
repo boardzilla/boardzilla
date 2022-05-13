@@ -346,7 +346,7 @@ export default class Page extends Component {
   }
 
   player() {
-    return this.state.data.players && this.state.data.players.findIndex(p => p[0] == this.props.userId) + 1;
+    return this.state.data.players && this.state.data.players.findIndex(p => p.userId == this.props.userId) + 1;
   }
 
   setPieceAt(choice, attributes) {
@@ -560,6 +560,11 @@ export default class Page extends Component {
 
     const type = node.nodeName.toLowerCase();
     const key = choiceForXmlNode(node);
+    let label;
+    if (attributes.label !== undefined) {
+      label = unescape(attributes.label);
+      delete attributes.label;
+    }
 
     const props = {
       key,
@@ -582,7 +587,7 @@ export default class Page extends Component {
       };
       props.className = classNames(type, node.className, {
         flipped,
-        "hilited": (
+        hilited: (
           (this.state.dragging && key == this.state.dragOver && (
             this.allowedDragSpaces(this.state.dragging.key)[key] ||
               this.state.dragOver == parentChoice(this.state.dragging.key))
@@ -642,8 +647,8 @@ export default class Page extends Component {
       const player = attributes.player && this.state.data.players[attributes.player - 1];
       if (player) contents.push(
         <div key="nametag"
-          className={classNames("nametag", {active: this.activePlayer(player[0])})}>
-          {player[1]}
+          className={classNames("nametag", {active: this.activePlayer(player.userId)})}>
+          {player.name}
         </div>
       );
     }
@@ -658,7 +663,6 @@ export default class Page extends Component {
     if (this.props.pieces[type]) {
       contents = React.createElement(this.props.pieces[type], {...props}, frozen || contents);
     }
-    contents = contents || node.id;
 
     if (this.state.dragging && this.state.dragging.key == key) {
       wrappedStyle.pointerEvents = "none";
@@ -671,6 +675,11 @@ export default class Page extends Component {
     }
 
     if (this.state.changes[key]) wrappedStyle.display = 'hidden'; // temporarily hide while animation starts
+
+    if (node.id) contents = <>
+      {contents}
+      {label && <label>{label}</label>}
+    </>;
 
     contents = <div {...props}>{contents}</div>;
     if (position && node.classList.contains('piece') || externallyControlled || props.moved || Object.keys(wrappedStyle).length) {
@@ -719,7 +728,7 @@ export default class Page extends Component {
         messagesPane = 'help';
       } else if (this.state.choices) {
         messagesPane = 'choices';
-      } else if (actions && actions.length || zoomXmlNode) {
+      } else if (actions && Object.keys(actions).length || zoomXmlNode) {
         messagesPane = 'actions';
         if (zoomXmlNode) {
           zoomScale = SIDEBAR_WIDTH / this.state.zoomOriginalSize.width * (this.state.bigZoom ? 2 : 1);
@@ -734,7 +743,7 @@ export default class Page extends Component {
     }
 
     const showKeybind = message => {
-        let key = message.match(/\s*\((\w)\)$/);
+      let key = message.match(/\s*\((\w)\)$/);
       if (key) {
         message = message.replace(key[0], '');
         key = key[1].toUpperCase();
@@ -799,7 +808,7 @@ export default class Page extends Component {
              <>
                <div className="prompt">
                  Send the URL to other players. Click &apos;Start&apos; when all players are present.<br/><br/>
-                 Players: {this.state.data.players.map(p => p[1]).join(', ')}
+                 Players: {this.state.data.players.map(p => p.name).join(', ')}
                </div>
                <button onClick={() => this.send('start')}>Start</button>
              </>

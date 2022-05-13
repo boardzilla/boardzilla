@@ -259,6 +259,18 @@ div.nametag {
   }
 }
 
+.space label, .piece label {
+  color: white;
+  position: absolute;
+  display: block;
+  padding: 3px;
+  right: 2px;
+  top: 2px;
+  background: #006;
+  padding: 0 5px;
+  border-radius: 5px;
+}
+
 /* @media(orientation: landscape) { */
   #container {
     display: grid;

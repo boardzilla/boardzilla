@@ -19,7 +19,7 @@ export const parentChoice = c => parentEl(elByChoice(c));
 
 export const zoneChoice = c => nearestChoiceByEl(elByChoice(c), el => el.parentNode.id == 'game-dom');
 
-export const isEl = choice => choice && choice.slice && (choice.slice(0, 6) == '$uuid(' || choice.slice(0, 4) == '$el(');
+export const isEl = choice => choice && choice.slice && (choice.slice(0, 6) == '$uuid(' || choice.slice(0, 4) == '$el(' || choice.slice(0, 3) == '$p(');
 
 export const choiceAtPoint = (x, y, condition) => choiceByEl(elAtPoint(x, y, condition));
 
@@ -38,6 +38,7 @@ export const zoneInfoForPoint = (x, y) => {
 export const xmlToNode = xml => new DOMParser().parseFromString(xml, 'text/xml').firstChild;
 
 export const choiceForXmlNode = node => {
+  if (node.classList.contains('player-mat')) return `$p(${node.attributes.player.value})`;
   if (node.attributes.uuid) return `$uuid(${node.attributes.uuid.value})`;
   const branch = [];
   while (node.parentNode && node.parentNode.parentNode) {
@@ -51,6 +52,7 @@ export const isFlipped = el => el.matches('.flipped, .flipped *');
 
 export const xmlNodeByChoice = (doc, choice) => {
   if (choice.slice(0, 6) === '$uuid(') return doc.querySelector(`[uuid="${choice.slice(6, -1)}"]`);
+  if (choice.slice(0, 3) === '$p(') return doc.querySelector(`.player-mat[player="${choice.slice(3, -1)}"]`);
   const query = `game > ${choice.slice(4,-1).split('-').map((index) => `*:nth-child(${index})`).join(' > ')}`;
   return doc.querySelector(query.replace(/#(\d)/g, '#\\3$1 '));
 };
@@ -76,7 +78,7 @@ export const currentGridPosition = (el, parent, x, y, scale, flipped) => {
 
 export const deserialize = value => {
   if (value instanceof Array) return value.map(deserialize);
-  if (value.slice && (value.slice(0, 4) === '$el(' || value.slice(0, 6) === '$uuid(')) {
+  if (value && value.slice && (value.slice(0, 4) === '$el(' || value.slice(0, 6) === '$uuid(' || value.slice(0, 3) === '$p(')) {
     return value;
   }
   return JSON.parse(value);

@@ -15,11 +15,12 @@ class GameElement {
   }
 
   assignUUID() {
-    this.set('uuid', nanoid());
+    this.set({ uuid: nanoid() });
   }
 
   enhanceQuery(q) {
-    return q.replace(/\.mine/g, `[player="${this.game.currentPlayer}"]`)
+    return q.replace(/\.mine/g, `[player="${this.game.currentPlayerPosition}"]`)
+      .replace(/\$me/g, this.game.currentPlayerPosition)
       .replace(/#(\d)/g, '#\\3$1 ')
       .replace(/([#=])(\d)/g, '$1\\3$2 ')
       .replace(/="([^"]+)/g, (_, p1) => `="${escape(p1)}`);
@@ -41,7 +42,7 @@ class GameElement {
    */
   get(name) {
     const attr = this.node.attributes[name];
-    if (!attr) return undefined;
+    if (!attr || !attr.value) return undefined;
     const value = unescape(!attr.value || Number.isNaN(Number(attr.value)) ? attr.value : Number(attr.value));
     try {
       return JSON.parse(value);
@@ -63,12 +64,12 @@ class GameElement {
         this.unset(name);
       }
     } else {
-      this.node.setAttribute(name, escape(value)); // TODO reserved attributes class, className, id, style...
+      this.node.setAttribute(name, escape(value)); // TODO reserved attributes? class, className, id, style & special attributes: player, layout, x,y,top,left,right,bottom...?
     }
   }
 
-  unset(name) {
-    this.node.removeAttribute(name);
+  unset(...names) {
+    names.forEach(name => this.node.removeAttribute(name));
   }
 
   // human readable name of this element from the perspective of player
@@ -77,7 +78,7 @@ class GameElement {
     let pronoun = '';
     if (!this.id || hidden) {
       if (this.matches('.mine *')) {
-        pronoun = this.game.currentPlayer === player ? 'my' : 'their';
+        pronoun = this.game.currentPlayerPosition === player ? 'my' : 'their';
       } else {
         pronoun = 'a';
       }
@@ -119,7 +120,7 @@ class GameElement {
   }
 
   player() {
-    return this.get('player');
+    return this.get('player') || (this.node.parentNode && this.parent().player());
   }
 
   parent() {

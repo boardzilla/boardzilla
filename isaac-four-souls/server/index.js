@@ -62,7 +62,7 @@ game.afterMove(
 );
 
 game.hideBoard(
-  'card[flipped], .player-mat:not(.mine) #hand card, #loot card, #treasure card, #monsters card, #characters card, #eternals card, #rooms card',
+  'card[flipped], .player-mat:not(.mine) #hand:not([showTo=$me]):not([showTo="Everyone"]) card, #loot card, #treasure card, #monsters card, #characters card, #eternals card, #rooms card',
   ['front', 'name', 'edition', 'p3'],
 );
 
@@ -103,10 +103,17 @@ game.defineActions({
   draw: {
     prompt: 'Draw',
     log: '$0 drew $1',
-    drag: '.deck:not([bonus]) card:last-child, #loot-discard card:last-child',
+    drag: '.deck:not([bonus]):not(#characters) card:last-child, #loot-discard card:last-child',
     key: 'd',
     onto: '.mine #hand',
-    action: card => { if (card.get('eternal')) game.board.find(`#${card.get('eternal')}`).move('.mine #hand'); },
+  },
+  drawCharacter: {
+    prompt: 'Draw',
+    log: '$0 drew $1',
+    drag: '#characters card:last-child',
+    key: 'd',
+    onto: '.mine #tableau',
+    action: card => { if (card.get('eternal')) game.board.move(`#${card.get('eternal')}`, '.mine #tableau'); },
   },
   drawMultiple: {
     prompt: 'Draw multiple',
@@ -138,7 +145,7 @@ game.defineActions({
       action: (deck, name) => {
         const card = deck.find(`card[name="${name}"]`);
         card.move('.mine #hand');
-        if (card.get('eternal')) game.board.find(`#${card.get('eternal')}`).move('.mine #hand');
+        if (card.get('eternal')) game.board.move(`#${card.get('eternal')}`, '.mine #hand');
       },
     },
   },
@@ -290,10 +297,11 @@ game.defineActions({
   giveCard: {
     prompt: 'Give to player',
     promptOnto: 'Which player',
-    log: '$0 gave $1',
+    log: '$0 gave $1 to $2',
     key: 'g',
     drag: ".mine #tableau card, .mine card[type='monster']",
-    onto: '.player-mat:not(.mine) #tableau',
+    toPlayer: 'other',
+    onto: '#tableau',
   },
   giveLoot: {
     prompt: 'Give to player',
@@ -333,7 +341,7 @@ game.defineActions({
     key: 'f',
     drag: '.mine card[type="character"]',
     onto: '#characters',
-    action: card => { if (card.get('eternal')) game.doc.find(`.mine #${card.get('eternal')}`).move('#eternals'); },
+    action: card => { if (card.get('eternal')) game.doc.move(`.mine #${card.get('eternal')}`, '#eternals'); },
   },
   intoEternalDeckTop: {
     prompt: 'Put back in deck',
@@ -358,9 +366,29 @@ game.defineActions({
     action: deck => deck.shuffle(),
   },
   flip: {
-    select: '.mine card',
+    select: '.mine card, #dungeon card',
     prompt: 'Flip',
     action: card => card.set('flipped', !card.get('flipped')),
+  },
+  showHand: {
+    select: '.mine #hand',
+    prompt: 'Show hand',
+    log: '$0 showed hand to $2',
+    next: {
+      select: () => {
+        const players = game.otherPlayers();
+        if (players.length > 1) players.push('Everyone');
+        return players;
+      },
+      prompt: 'To whom?',
+      action: (hand, player) => hand.set({ showTo: player, label: `Showing to ${player.name}` }),
+    },
+  },
+  hideHand: {
+    select: '.mine #hand[showTo]',
+    prompt: 'Stop showing hand',
+    log: '$0 stopped showing hand',
+    action: hand => { hand.unset('showTo'); hand.unset('label'); },
   },
 });
 
@@ -391,7 +419,7 @@ game.play(async () => {
       ...startingActions,
       'intoCharDeckTop',
       'intoEternalDeckTop',
-      'draw',
+      'drawCharacter',
       'drawOne',
       'drawMultiple',
       'shuffle',
