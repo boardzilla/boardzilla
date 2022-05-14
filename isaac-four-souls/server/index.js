@@ -396,7 +396,7 @@ game.defineActions({
         return players;
       },
       prompt: 'To whom?',
-      action: (hand, player) => hand.set({ showTo: player, label: `Showing to ${player.name}` }),
+      action: (hand, player) => hand.set({ showTo: player.position || player, label: `Showing to ${player.name || player}` }),
     },
   },
   hideHand: {

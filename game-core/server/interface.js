@@ -3,7 +3,7 @@ const Player = require('./player');
 const GameDocument = require('./document');
 const GameElement = require('./element');
 const ActionQueue = require('./actionqueue');
-const { times, range, asyncTimes } = require('./utils');
+const { range, asyncTimes } = require('./utils');
 
 class InvalidChoiceError extends Error {}
 class InvalidActionError extends Error {}
@@ -117,8 +117,8 @@ class GameInterface {
   }
 
   initializeBoardWithPlayers() {
-    times(this.#players.length, player => {
-      const playerMat = this.doc.addSpace(`#player-mat-${player}`, { player, class: 'player-mat', color: this.player(player).color });
+    this.#players.forEach(({ position, color }) => {
+      const playerMat = this.doc.addSpace(`#player-mat-${position}`, { player: position, class: 'player-mat', color });
       this.#setupPlayerMat.forEach(f => f(playerMat));
     });
     this.#setupBoard.forEach(f => f(this.board));
@@ -194,7 +194,7 @@ class GameInterface {
   addPlayers(players) {
     if (this.phase !== 'setup') throw Error('not able to add players while playing');
     if (players.length > this.#maxPlayers) throw Error('too many players');
-    this.#players = players.map(({ id, name, color }) => new Player({ userId: id, name, color }));
+    this.#players = Object.entries(players).map(([index, { id, name, color }]) => new Player({ userId: id, name, color, position: parseInt(index, 10) + 1 }));
   }
 
   get(key) {
@@ -275,8 +275,8 @@ class GameInterface {
   }
 
   getPlayerViews() {
-    return [...this.#players.entries()].reduce((views, [index, { userId }]) => {
-      views[userId] = this.getPlayerView(index + 1);
+    return this.#players.reduce((views, { position, userId }) => {
+      views[userId] = this.getPlayerView(position);
       return views;
     }, {});
   }
@@ -608,16 +608,17 @@ class GameInterface {
   logEntry(action, ...args) {
     if (action.drag) args = args.slice(0, 2);
     const name = this.currentPlayer().colorEncodedName();
-    return [...this.#players.entries()].reduce((entry, [player, { userId }]) => {
+    return this.#players.reduce((entry, { position, userId }) => {
+      position -= 1;
       if (action.log) {
         entry[userId] = action.log.replace(/\$(\d+)/g, sub => {
           if (sub[1] === '0') return name;
           const namedArg = args[parseInt(sub[1], 10) - 1];
-          if (namedArg instanceof Array && namedArg[player]) return namedArg[player].shown || namedArg[player].hidden;
+          if (namedArg instanceof Array && namedArg[position]) return namedArg[position].shown || namedArg[position].hidden;
           return namedArg;
         });
       } else if (action.log !== false) {
-        entry[userId] = `${name} : ${action.prompt} ${args.map(a => (a instanceof Array && a[player] ? a[player].shown || a[player].hidden : a)).join(' ')}`.trim();
+        entry[userId] = `${name} : ${action.prompt} ${args.map(a => (a instanceof Array && a[position] ? a[position].shown || a[position].hidden : a)).join(' ')}`.trim();
       }
       return entry;
     }, {});
@@ -629,10 +630,10 @@ class GameInterface {
     return Object.entries(elements).map(([i, el]) => {
       if (el instanceof Player) return el.name;
       if (!(el instanceof GameElement)) return el;
-      return times(this.#players.length, fromPlayer => {
-        if (previousNames[i] && previousNames[i][fromPlayer - 1].shown) return previousNames[i][fromPlayer - 1];
-        const hidden = this.inScopeAsPlayer(fromPlayer, () => !!this.hiddenElements.find(([selector]) => el.matches(selector)));
-        const name = el.name(fromPlayer, hidden);
+      return this.#players.map(({ position }) => {
+        if (previousNames[i] && previousNames[i][position - 1].shown) return previousNames[i][position - 1];
+        const hidden = this.inScopeAsPlayer(position, () => !!this.hiddenElements.find(([selector]) => el.matches(selector)));
+        const name = el.name(position, hidden);
         return { [el.id && !hidden ? 'shown' : 'hidden']: name };
       });
     });
