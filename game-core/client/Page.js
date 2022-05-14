@@ -643,10 +643,10 @@ export default class Page extends Component {
       }
       props.style = {
         gridTemplateColumns: `repeat(${(columns || 1) - 1}, 1fr) ${props.minwidth ? props.minwidth + 'px' : '1fr'}`,
-        gridTemplateRows: `repeat(${props.rows || 1}, 1fr)`,
+        gridTemplateRows: `repeat(${(props.rows || 1) - 1}, 1fr) ${props.minheight ? props.minheight + 'px' : '1fr'}`,
         gap: `${props.gutter || 0}px`,
-      };
-    }
+    };
+  }
 
     let contents;
     if (node.getAttribute('layout') === 'stack' && node.childElementCount) {
@@ -687,7 +687,7 @@ export default class Page extends Component {
 
     if (this.state.changes[key]) wrappedStyle.display = 'hidden'; // temporarily hide while animation starts
 
-    if (gridItem && attributes.cell !== undefined) {
+    if (node.parentNode.getAttribute('layout') === 'grid' && attributes.cell !== undefined) {
       wrappedStyle.gridArea = `${Math.floor(attributes.cell / (node.parentNode.getAttribute('columns') || 1)) + 1} / ${attributes.cell % (node.parentNode.getAttribute('columns') || 1) + 1}`;
       wrappedStyle.transition = 'none';
     }

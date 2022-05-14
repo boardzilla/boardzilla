@@ -19,12 +19,13 @@ const addCards = (pieces, deck) => {
 const addAllCards = (type, deck) => addCards(findCards(type), deck);
 
 game.setupPlayerMat(mat => {
-  const tableau = mat.addSpace('#tableau', { layout: 'area', spreadX: 100 });
+  mat.addSpace('#tableau', { layout: 'splay', columns: 12, rows: 2 });
   mat.addSpace('#hand', { layout: 'splay', columns: 16, minWidth: 73 });
-  tableau.addComponent('counter', { name: 'health', display: 'hp', initialValue: 2, max: 5, left: 20, bottom: 20 });
-  tableau.addComponent('counter', { name: 'attack', display: 'attack', initialValue: 1, max: 8, left: 140, bottom: 20 });
-  tableau.addComponent('counter', { name: 'coins', display: 'coin', initialValue: 3, max: 50, right: 20, bottom: 20 });
-  tableau.addComponent('die', { faces: 6, right: 40, top: 20 });
+  mat.addSpace('#souls', { layout: 'splay', columns: 2, rows: 2, minWidth: 73, minHeight: 100 });
+  mat.addComponent('counter', { name: 'health', display: 'hp', initialValue: 2, max: 5, left: 20, bottom: 140 });
+  mat.addComponent('counter', { name: 'attack', display: 'attack', initialValue: 1, max: 8, left: 140, bottom: 140 });
+  mat.addComponent('counter', { name: 'coins', display: 'coin', initialValue: 3, max: 50, right: 170, bottom: 140 });
+  mat.addComponent('die', { faces: 6, right: 200, top: 20 });
 });
 
 game.setupBoard(board => {
@@ -264,19 +265,19 @@ game.defineActions({
     onto: '#loot',
     action: card => { card.moveToBottom(); game.board.find('#loot card:last-child').move('#bonus-souls'); },
   },
-  takeBonus: {
-    prompt: 'Claim bonus soul',
-    log: '$0 claimed $1',
-    key: 'd',
-    drag: "#board card[type='bonus']",
-    onto: '.mine #tableau',
-  },
   discardBonus: {
     prompt: 'Discard',
     log: '$0 discarded $1',
     key: 'f',
     drag: ".mine card[type='bonus']",
     onto: '#bonus-souls',
+  },
+  takeSoul: {
+    prompt: 'Take soul',
+    log: '$0 won soul of $1',
+    key: 'w',
+    drag: '#bonus-souls card, #dungeon card, #monsters-discard card, .mine card',
+    onto: '.mine #souls',
   },
   playRoom: {
     prompt: 'Play',
@@ -307,6 +308,15 @@ game.defineActions({
     drag: ".mine #tableau card, .mine card[type='monster']",
     toPlayer: 'other',
     onto: '#tableau',
+  },
+  giveSoul: {
+    prompt: 'Give to player',
+    promptOnto: 'Which player',
+    log: '$0 gave $1 to $2',
+    key: 'g',
+    drag: '.mine #souls card',
+    toPlayer: 'other',
+    onto: '#souls',
   },
   giveLoot: {
     prompt: 'Give to player',
