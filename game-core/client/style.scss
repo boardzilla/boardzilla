@@ -10,6 +10,7 @@ body {
   width: 100%;
   box-sizing: border-box;
   height: 38px;
+  z-index: 1000;
 }
 
 button {
@@ -194,12 +195,12 @@ button {
     &.flipped {
       transform: scale(-1);
     }
-    &.stack {
+    &[layout="stack"] {
       & > :not(:last-child) {
         margin: 2px 0 0 2px;
       }
     }
-    &.splay {
+    &[layout="splay"], &[layout="grid"] {
       display: grid;
       > .positioned-piece {
         position: relative;
@@ -257,6 +258,18 @@ div.nametag {
   &.active {
     opacity: 1;
   }
+}
+
+.space label, .piece label {
+  color: white;
+  position: absolute;
+  display: block;
+  padding: 3px;
+  right: 2px;
+  top: 2px;
+  background: #006;
+  padding: 0 5px;
+  border-radius: 5px;
 }
 
 /* @media(orientation: landscape) { */
@@ -361,6 +374,9 @@ div.nametag {
 .react-draggable-dragging, .external-dragging {
   z-index: 100;
   position: relative;
+  .piece {
+    transform: scale(1.2);
+  }
   img {
     filter: drop-shadow(5px 5px 5px #222);
     will-change: filter;

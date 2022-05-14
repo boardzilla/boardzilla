@@ -204,7 +204,6 @@ const cards = {
     edition: { 'Base Game V2': 1 },
     front: 'b2-eden-308x420.webp',
     back: 'CharacterCardBack-308x420.webp',
-    eternal: undefined
   },
   'Belly-Button': {
     name: 'Belly Button',
@@ -3452,7 +3451,6 @@ const cards = {
     edition: { Requiem: 1 },
     front: 'r-eden_2-308x420.webp',
     back: 'CharacterCardBack-308x420.webp',
-    eternal: undefined
   },
   Eden2: {
     name: 'Eden',
@@ -3460,7 +3458,6 @@ const cards = {
     edition: { Requiem: 1 },
     front: 'r-eden-308x420.webp',
     back: 'CharacterCardBack-308x420.webp',
-    eternal: undefined
   },
   Abel: {
     name: 'Abel',
@@ -5675,7 +5672,6 @@ const cards = {
     edition: { 'Alt Art': 1 },
     front: 'aa-eden-308x420.webp',
     back: 'CharacterCardBack-308x420.webp',
-    eternal: undefined
   },
   Eden4: {
     name: 'Eden',
@@ -5683,7 +5679,6 @@ const cards = {
     edition: { 'Alt Art': 1 },
     front: 'aa-eden_2-308x420.webp',
     back: 'CharacterCardBack-308x420.webp',
-    eternal: undefined
   },
   Brimstone1: {
     name: 'Brimstone',
@@ -6157,7 +6152,6 @@ const cards = {
     edition: { Promo: 1 },
     front: 'sp-eden-308x420.webp',
     back: 'CharacterCardBack-308x420.webp',
-    eternal: undefined
   },
   Eden6: {
     name: 'Eden',
@@ -6165,7 +6159,6 @@ const cards = {
     edition: { Promo: 1 },
     front: 'psp-eden-308x420.webp',
     back: 'CharacterCardBack-308x420.webp',
-    eternal: undefined
   },
   'The-Bloat3': {
     name: 'The Bloat',

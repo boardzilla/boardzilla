@@ -1,8 +1,9 @@
 const random = require('random-seed');
+const Player = require('./player');
 const GameDocument = require('./document');
 const GameElement = require('./element');
 const ActionQueue = require('./actionqueue');
-const { times, range, asyncTimes } = require('./utils');
+const { range, asyncTimes } = require('./utils');
 
 class InvalidChoiceError extends Error {}
 class InvalidActionError extends Error {}
@@ -19,7 +20,7 @@ class GameInterface {
 
   #maxPlayers;
 
-  // player list [[id, name],...]
+  // list of Player objects in turn order
   #players = [];
 
   // phase state machine: setup (can addPlayer) -> ready (can receive player actions)
@@ -41,7 +42,7 @@ class GameInterface {
   #play;
 
   // 1-indexed from list of players, or undefined if any player can play
-  #currentPlayer;
+  #currentPlayerPosition;
 
   constructor() {
     this.actionQueue = new ActionQueue();
@@ -61,9 +62,11 @@ class GameInterface {
         if (counter) {
           newValue = Math.max(newValue, 0, counter.get('min'));
           if (counter.get('max')) newValue = Math.min(newValue, counter.get('max'));
-          counter.set('value', newValue);
-          counter.set('moves', counter.get('moves') + 1);
-          return `${this.colorEncodedName(this.currentPlayer)} set ${counter.get('name') || 'counter'} to ${newValue}`;
+          counter.set({
+            value: newValue,
+            moves: counter.get('moves') + 1,
+          });
+          return `${this.currentPlayer().colorEncodedName()} set ${counter.get('name') || 'counter'} to ${newValue}`;
         }
         return null;
       },
@@ -71,9 +74,8 @@ class GameInterface {
         const die = this.doc.find(`die#${key}`);
         if (die) {
           const number = this.random(die.get('faces')) + 1;
-          die.set('number', number);
-          die.set('rolls', die.get('rolls') + 1);
-          return `${this.colorEncodedName(this.currentPlayer)} rolled a ${number}`;
+          die.set({ number, rolls: die.get('rolls') + 1 });
+          return `${this.currentPlayer().colorEncodedName()} rolled a ${number}`;
         }
         return null;
       },
@@ -115,23 +117,27 @@ class GameInterface {
   }
 
   initializeBoardWithPlayers() {
-    times(this.#players.length, player => {
-      const playerMat = this.doc.addSpace(`#player-mat-${player}`, 'area', { player, class: 'player-mat', color: this.color(player) });
+    this.#players.forEach(({ position, color }) => {
+      const playerMat = this.doc.addSpace(`#player-mat-${position}`, { player: position, class: 'player-mat', color });
       this.#setupPlayerMat.forEach(f => f(playerMat));
     });
     this.#setupBoard.forEach(f => f(this.board));
-    this.currentPlayer = 1;
+    this.currentPlayerPosition = 1;
   }
 
   defineAction(name, action) {
     if (typeof name !== 'string' || typeof action !== 'object') throw Error('usage: defineAction(someAction, { ...action properties... })');
-    const unknownAttrs = Object.keys(action).filter(a => !['select', 'prompt', 'promptOnto', 'log', 'if', 'key', 'action', 'next', 'drag', 'onto', 'min', 'max'].includes(a));
+    const unknownAttrs = Object.keys(action).filter(a => !['select', 'prompt', 'promptOnto', 'log', 'if', 'key', 'action', 'next', 'drag', 'onto', 'min', 'max', 'toPlayer'].includes(a));
     if (unknownAttrs.length) throw Error(`${name} has unknown properties: '${unknownAttrs.join('\', \'')}'`);
     if (!action.prompt) throw Error(`${name} is missing 'prompt'`);
     if (action.next && action.action) throw Error(`${name} may not have both 'next' and 'action'. Use 'next' for a follow-up action, and 'action' only at the end.`);
-    if (action.drag && !action.onto) {
-      throw Error(`${name} has a 'drag' but no 'onto'`);
+    if (action.drag) {
+      if (!action.onto && !action.toPlayer) throw Error(`${name} has a 'drag' but no 'onto' or 'toPlayer'`);
+      if (action.onto instanceof Array && action.onto.length === 0) {
+        throw Error(`${name} has an 'onto' with no spaces.`);
+      }
     }
+    if (action.toPlayer && action.toPlayer !== 'other' && action.toPlayer !== 'all') throw Error(`${name} 'toPlayer' must be 'other' or 'all'`);
     if (action.max === undefined ? action.min !== undefined : action.min === undefined) {
       throw Error(`${name} has 'min' or 'max' but needs both`);
     }
@@ -152,7 +158,7 @@ class GameInterface {
     this.#setupBoard.push(fn);
   }
 
-  playerMat(player = this.currentPlayer) {
+  playerMat(player = this.currentPlayerPosition) {
     if (!player) throw Error('playerMat called without a player or a current player');
     return this.doc.find(`#player-mat[player="${player}"]`);
   }
@@ -188,19 +194,7 @@ class GameInterface {
   addPlayers(players) {
     if (this.phase !== 'setup') throw Error('not able to add players while playing');
     if (players.length > this.#maxPlayers) throw Error('too many players');
-    this.#players = players.map(p => [p.id, p.name, p.color]);
-  }
-
-  colorEncodedName(player) {
-    return `<span color="${this.color(player)}">${this.playerName(player)}</span>`;
-  }
-
-  playerName(player) {
-    return this.#players[player - 1][1];
-  }
-
-  color(player) {
-    return this.#players[player - 1][2];
+    this.#players = Object.entries(players).map(([index, { id, name, color }]) => new Player({ userId: id, name, color, position: parseInt(index, 10) + 1 }));
   }
 
   get(key) {
@@ -239,6 +233,7 @@ class GameInterface {
   serialize(value) {
     try {
       if (value instanceof Array) return value.map(v => this.serialize(v));
+      if (value instanceof Player) return `$p(${this.playerByUserId(value.userId)})`;
       if (value && value.serialize) {
         return value.serialize();
       }
@@ -250,13 +245,19 @@ class GameInterface {
   }
 
   deserialize(value) {
+    if (value === undefined) return undefined;
     try {
       if (value instanceof Array) return value.map(v => this.deserialize(v));
-      if (value.slice && value.slice(0, 4) === '$el(') {
-        return this.doc.pieceAt(value.slice(4, -1));
-      }
-      if (value.slice && value.slice(0, 6) === '$uuid(') {
-        return this.doc.find(`[uuid="${value.slice(6, -1)}"]`);
+      if (value && value.slice) {
+        if (value.slice(0, 4) === '$el(') {
+          return this.doc.pieceAt(value.slice(4, -1));
+        }
+        if (value.slice(0, 6) === '$uuid(') {
+          return this.doc.find(`[uuid="${value.slice(6, -1)}"]`);
+        }
+        if (value.slice(0, 3) === '$p(') {
+          return this.player(parseInt(value.slice(3, -1), 10));
+        }
       }
       return JSON.parse(value);
     } catch (e) {
@@ -274,8 +275,8 @@ class GameInterface {
   }
 
   getPlayerViews() {
-    return [...this.#players.entries()].reduce((views, [index, [userId]]) => {
-      views[userId] = this.getPlayerView(index + 1);
+    return this.#players.reduce((views, { position, userId }) => {
+      views[userId] = this.getPlayerView(position);
       return views;
     }, {});
   }
@@ -291,7 +292,7 @@ class GameInterface {
         playerView.findNodes(selector).forEach(n => {
           n.removeAttribute('id');
           attrs.forEach(attr => n.removeAttribute(attr));
-          if (n.classList.contains('space')) {
+          if (GameElement.isSpaceNode(n)) {
             n.innerHTML = ''; // space contents are hidden
           }
         });
@@ -301,14 +302,14 @@ class GameInterface {
 
       playerView.findNodes('.mine').forEach(n => n.classList.add('mine'));
       playerView.findNodes('[player]:not(.mine)').forEach(n => (
-        n.setAttribute('player-after-me', (parseInt(n.attributes.player.value, 10) - this.currentPlayer + this.players.length) % this.players.length)
+        n.setAttribute('player-after-me', (parseInt(n.attributes.player.value, 10) - this.currentPlayerPosition + this.players.length) % this.players.length)
       ));
 
       const view = this.currentActions.reduce((drags, action) => {
         if (this.#actions[action].drag) {
           drags[action] = {
             pieces: this.serialize(this.doc.findAll(this.#actions[action].drag)),
-            spaces: this.serialize(this.doc.findAll(this.#actions[action].onto)),
+            spaces: this.serialize(this.doc.findAll(this.ontoSelector(action))),
           };
         }
         return drags;
@@ -325,8 +326,8 @@ class GameInterface {
     return {
       variables: this.shownVariables(),
       phase: this.phase,
-      players: this.#players,
-      currentPlayer: this.currentPlayer,
+      players: this.players,
+      currentPlayer: this.currentPlayerPosition,
       sequence: this.sequence,
       doc: playerView.node.outerHTML,
       changes: this.changeset,
@@ -345,7 +346,7 @@ class GameInterface {
 
   // wait for an action from list of actions from current player
   async currentPlayerPlay(actions) {
-    return this.playerPlay(actions, this.currentPlayer);
+    return this.playerPlay(actions, this.currentPlayerPosition);
   }
 
   // wait for an action from list of actions from any player
@@ -356,7 +357,7 @@ class GameInterface {
   async playerPlay(allowedActions, allowedPlayer) {
     if (!(allowedActions instanceof Array)) throw Error('called a play action without a list of actions');
     this.currentActions = allowedActions;
-    this.currentPlayer = allowedPlayer;
+    this.currentPlayerPosition = allowedPlayer;
 
     const allAllowedActions = [...allowedActions, ...this.alwaysAllowedPlays, 'moveElement'];
 
@@ -381,7 +382,7 @@ class GameInterface {
 
   // runs provided async block for each player, starting with the current
   async playersInTurn(fn) {
-    if (!this.currentPlayer) this.currentPlayer = 1;
+    if (!this.currentPlayerPosition) this.currentPlayerPosition = 1;
     await asyncTimes(this.#players.length, async turn => {
       await fn(turn);
       this.endTurn();
@@ -411,7 +412,7 @@ class GameInterface {
 
   // test list of actions for validity and options, returns object of name:{prompt, choices?}
   choicesFromActions(player) {
-    if (this.currentPlayer !== undefined && player !== this.currentPlayer) return {};
+    if (this.currentPlayerPosition !== undefined && player !== this.currentPlayerPosition) return {};
     return this.currentActions.reduce((choices, action) => {
       // console.time('choicesFromActions:' + action);
       const { key } = this.builtinActions[action] || this.#actions[action];
@@ -460,12 +461,15 @@ class GameInterface {
       throw Error(`No such action: ${actionName}`);
     }
 
-    if (action.if && !action.if()) {
-      throw new InvalidActionError(`${actionName} not allowed due to "if" condition`);
+    if (action.if) {
+      let result = true;
+      if (typeof action.if === 'function') result = action.if();
+      if (typeof action.if === 'string') result = this.doc.contains(action.if);
+      if (!result) throw new InvalidActionError(`${actionName} not allowed due to "if" condition`);
     }
 
-    let nextAction = action.action;
-
+    let nextAction;
+    if (action.action) nextAction = a => action.action.apply(null, a);
     if (test) {
       nextAction = () => {};
     } else if (action.next) {
@@ -476,20 +480,24 @@ class GameInterface {
     if (!test) namedArgs = this.namedElements(args, []);
     let nextPrompt;
     if (action.drag) {
-      nextPrompt = this.dragAction(action.drag, action.onto, prompt, action.promptOnto, nextAction)(...args);
+      nextPrompt = this.dragAction(action.drag, this.ontoSelector(actionName), prompt, action.promptOnto, nextAction)(args);
+      if (action.toPlayer) {
+        args[1] = this.player(args[1].player());
+      }
     } else if (action.select) {
       if (action.select instanceof Array) {
-        nextPrompt = this.chooseAction(action.select, prompt, nextAction, argIndex)(...args);
+        nextPrompt = this.chooseAction(action.select, prompt, nextAction, argIndex)(args);
       } else if (typeof action.select === 'string') {
-        nextPrompt = this.chooseAction(this.doc.findAll(action.select), prompt, nextAction, argIndex)(...args);
+        nextPrompt = this.chooseAction(this.doc.findAll(action.select), prompt, nextAction, argIndex)(args);
       } else if (typeof action.select === 'function') {
-        nextPrompt = this.chooseAction(action.select(...args), prompt, nextAction, argIndex)(...args);
+        nextPrompt = this.chooseAction(action.select(...args), prompt, nextAction, argIndex)(args);
       } else {
         throw Error(`'select' for ${actionName} must be a list or a finder`);
       }
     } else if (action.max !== undefined || action.min !== undefined) { // simple numerical
-      nextPrompt = this.chooseAction(range(action.min, action.max), prompt, nextAction, argIndex)(...args);
+      nextPrompt = this.chooseAction(range(action.min, action.max), prompt, nextAction, argIndex)(args);
     } else if (nextAction) {
+      argIndex -= 1; // simple prompt does not consume an arg
       const result = nextAction(...args);
       if (result && result.prompt) nextPrompt = prompt;
     }
@@ -502,48 +510,60 @@ class GameInterface {
   }
 
   dragAction(pieceSelector, spaceSelector, prompt, promptOnto, action) {
-    const fn = this.chooseAction(
+    return this.chooseAction(
       this.doc.findAll(pieceSelector),
       prompt,
-      this.chooseAction(
+      args => this.chooseAction(
         this.doc.findAll(spaceSelector),
         promptOnto || prompt,
-        (piece, space, positioning) => {
+        ([piece, space, positioning]) => {
           if (positioning && positioning.pos !== undefined) {
             piece.move(space, -1 - positioning.pos);
           } else {
             piece.move(space);
-            if (positioning && positioning.x !== undefined) piece.set(positioning);
+            if (positioning) piece.set(positioning);
           }
           if (action) {
-            action(piece, space);
+            action([piece, space]);
           }
         },
         1,
-      ),
+      )(args),
     );
-    fn.type = 'drag';
-    return fn;
   }
 
   // returns a fn (...choices) -> action that throws appropriate choice errors
   chooseAction(validChoices, prompt, action, argIndex = 0) {
     const choices = this.serialize(validChoices);
-    return (...args) => {
+    return args => {
       const choice = args[argIndex];
       if (choice === undefined) {
         if (validChoices.length === 1 && action && argIndex > 0) {
           // auto-select simgle choice if not the first arg
-          action(...args, validChoices[0]);
+          args.push(validChoices[0]);
+          action(args);
         } else {
           throw new IncompleteActionError({ choices, prompt });
         }
       } else {
         if (!choices.includes(this.serialize(choice))) throw new InvalidChoiceError(`${this.serialize(choice)} not found in ${choices}`);
-        if (action) action(...args);
+        if (action) action(args);
       }
       return prompt;
     };
+  }
+
+  ontoSelector(action) {
+    let { onto, toPlayer } = this.#actions[action]; // eslint-disable-line prefer-const
+    if (toPlayer) {
+      if (toPlayer === 'other') {
+        onto = `.player-mat:not(.mine) ${onto}`;
+      }
+      if (toPlayer === 'all') {
+        onto = `.player-mat ${onto}`;
+      }
+    }
+    return onto;
   }
 
   async replay(actions) {
@@ -591,17 +611,18 @@ class GameInterface {
 
   logEntry(action, ...args) {
     if (action.drag) args = args.slice(0, 2);
-    const name = this.colorEncodedName(this.currentPlayer);
-    return [...this.#players.entries()].reduce((entry, [player, [userId]]) => {
+    const name = this.currentPlayer().colorEncodedName();
+    return this.#players.reduce((entry, { position, userId }) => {
+      position -= 1;
       if (action.log) {
         entry[userId] = action.log.replace(/\$(\d+)/g, sub => {
           if (sub[1] === '0') return name;
           const namedArg = args[parseInt(sub[1], 10) - 1];
-          if (namedArg instanceof Array && namedArg[player]) return namedArg[player].shown || namedArg[player].hidden;
+          if (namedArg instanceof Array && namedArg[position]) return namedArg[position].shown || namedArg[position].hidden;
           return namedArg;
         });
       } else if (action.log !== false) {
-        entry[userId] = `${name} : ${action.prompt} ${args.map(a => (a instanceof Array && a[player] ? a[player].shown || a[player].hidden : a)).join(' ')}`.trim();
+        entry[userId] = `${name} : ${action.prompt} ${args.map(a => (a instanceof Array && a[position] ? a[position].shown || a[position].hidden : a)).join(' ')}`.trim();
       }
       return entry;
     }, {});
@@ -611,25 +632,34 @@ class GameInterface {
   // namedElements[el][player]
   namedElements(elements, previousNames) {
     return Object.entries(elements).map(([i, el]) => {
+      if (el instanceof Player) return el.name;
       if (!(el instanceof GameElement)) return el;
-      return times(this.#players.length, fromPlayer => {
-        if (previousNames[i] && previousNames[i][fromPlayer - 1].shown) return previousNames[i][fromPlayer - 1];
-        const hidden = this.inScopeAsPlayer(fromPlayer, () => !!this.hiddenElements.find(([selector]) => el.matches(selector)));
-        const name = el.name(fromPlayer, hidden);
+      return this.#players.map(({ position }) => {
+        if (previousNames[i] && previousNames[i][position - 1].shown) return previousNames[i][position - 1];
+        const hidden = this.inScopeAsPlayer(position, () => !!this.hiddenElements.find(([selector]) => el.matches(selector)));
+        const name = el.name(position, hidden);
         return { [el.id && !hidden ? 'shown' : 'hidden']: name };
       });
     });
   }
 
-  set currentPlayer(player) {
+  set currentPlayerPosition(player) {
     if (player > this.#players.length || player < 1) {
       throw new Error(`No such player ${player}`);
     }
-    this.#currentPlayer = player;
+    this.#currentPlayerPosition = player;
   }
 
-  get currentPlayer() {
-    return this.#currentPlayer;
+  get currentPlayerPosition() {
+    return this.#currentPlayerPosition;
+  }
+
+  player(p) {
+    return this.#players[p - 1];
+  }
+
+  currentPlayer() {
+    return this.player(this.currentPlayerPosition);
   }
 
   get phase() {
@@ -640,28 +670,28 @@ class GameInterface {
     return this.#players;
   }
 
-  currentPlayerName() {
-    return this.#players[this.currentPlayer - 1][1];
+  otherPlayers() {
+    return this.players.slice(0, this.currentPlayerPosition - 1).concat(this.players.slice(this.currentPlayerPosition));
   }
 
   inScopeAsPlayer(player, fn) {
-    const tmpPlayer = this.currentPlayer;
-    this.currentPlayer = player;
+    const tmpPlayer = this.currentPlayerPosition;
+    this.currentPlayerPosition = player;
     try {
       return fn();
     } finally {
-      this.currentPlayer = tmpPlayer;
+      this.currentPlayerPosition = tmpPlayer;
     }
   }
 
   playerByUserId(userId) {
-    const player = this.#players.findIndex(p => p[0] === userId);
+    const player = this.#players.findIndex(p => p.userId === userId);
     if (player < 0) throw Error(`No such player ${userId}`);
     return player + 1;
   }
 
   endTurn() {
-    this.currentPlayer = (this.currentPlayer % this.#players.length) + 1;
+    this.currentPlayerPosition = (this.currentPlayerPosition % this.#players.length) + 1;
   }
 
   moveElement(el, positioning) {
@@ -671,7 +701,8 @@ class GameInterface {
         el.move(null, -1 - positioning.pos);
       } else {
         el.moveToTop();
-        el.set({ x: positioning.x, y: positioning.y });
+        el.set(positioning);
+        console.log(positioning, el.node.innerHTML);
       }
     } else {
       throw new Error(`Illegal moveElement ${el.node.outerHTML}, ${this.allowedMoveElements}`);

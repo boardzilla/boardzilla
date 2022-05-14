@@ -121,6 +121,7 @@ export default class Page extends Component {
               this.setState({actions: this.actionsFor(zoomPiece)});
             }
             document.getElementsByTagName('body')[0].dataset.players = this.state.data.players && this.state.data.players.length;
+            window.dispatchEvent(new Event('resize'));
           }
           break;
         case "updateLocks":
@@ -346,7 +347,7 @@ export default class Page extends Component {
   }
 
   player() {
-    return this.state.data.players && this.state.data.players.findIndex(p => p[0] == this.props.userId) + 1;
+    return this.state.data.players && this.state.data.players.findIndex(p => p.userId == this.props.userId) + 1;
   }
 
   setPieceAt(choice, attributes) {
@@ -366,10 +367,10 @@ export default class Page extends Component {
       this.setState(state => ({positions: Object.assign({}, state.positions, {[key]: x !== undefined ? {x, y} : undefined })}));
   }
 
-  dragging(key, x, y, event) {
+  dragging(key, x, y, event, moveAnchor) {
     if (!this.state.dragging) {
       this.send('requestLock', {key});
-      this.setState({dragging: {key, x, y, zone: zoneChoice(key)}, dragOver: parentChoice(key)});
+      this.setState({dragging: {key, x, y, zone: zoneChoice(key), moveAnchor}, dragOver: parentChoice(key)});
       // set piece to uncontrolled
       this.updatePosition(key);
     }
@@ -402,11 +403,14 @@ export default class Page extends Component {
       const dragAction = this.allowedDragSpaces(choice)[dragOver];
       const parent = elByChoice(dragOver);
       const el = elByChoice(choice);
-      const ontoXY = parent.getBoundingClientRect();
+      const ontoXY = dragOver && parent.getBoundingClientRect();
       const elXY = el.getBoundingClientRect();
       if (dragAction) {
-        if (parent.classList.contains('splay')) {
-          this.gameAction(dragAction, choice, dragOver, {pos: currentGridPosition(el, parent, elXY.x, elXY.y, this.state.playAreaScale, isFlipped(parent))});
+        if (['splay', 'grid'].includes(parent.getAttribute('layout'))) {
+          const splay = parent.getAttribute('layout') === 'splay';
+          this.gameAction(dragAction, choice, dragOver, {
+            [splay ? 'pos' : 'cell']: currentGridPosition(el, parent, elXY.x, elXY.y, this.state.playAreaScale, splay, isFlipped(parent))
+          });
         } else {
           const translation = isFlipped(parent) ?
                               {x: ontoXY.right - elXY.right, y: ontoXY.bottom - elXY.bottom} :
@@ -419,8 +423,11 @@ export default class Page extends Component {
         this.setPieceAt(choice, {x, y, moved: true});
         this.setState({ zoomPiece: null });
       } else if (dragOver === parentChoice(choice) && this.isAllowedMove(xmlNodeByChoice(boardXml, choice))) {
-        if (parent.classList.contains('splay')) {
-          this.gameAction('moveElement', choice, {pos: currentGridPosition(el, parent, elXY.x, elXY.y, this.state.playAreaScale, isFlipped(parent))});
+        if (['splay', 'grid'].includes(parent.getAttribute('layout'))) {
+          const splay = parent.getAttribute('layout') === 'splay';
+          this.gameAction('moveElement', choice, {
+            [splay ? 'pos' : 'cell']: currentGridPosition(el, parent, elXY.x, elXY.y, this.state.playAreaScale, splay, isFlipped(parent))
+          });
         } else {
           this.gameAction('moveElement', choice, {x, y});
         }
@@ -525,6 +532,12 @@ export default class Page extends Component {
     }, {});
   }
 
+  isValidDropSpace(key) {
+    if (!this.state.dragging || !this.state.dragging.key) return false;
+    if (this.allowedDragSpaces(this.state.dragging.key)[key]) return true;
+    return this.state.dragging.moveAnchor === key;
+  }
+
   bindMethods(...methods) {
     return methods.reduce((list, method) => {list[method] = this[method].bind(this); return list}, {});
   }
@@ -540,11 +553,16 @@ export default class Page extends Component {
     event.preventDefault();
   }
 
+  choiceText(choice) {
+    if (choice && choice.slice && choice.slice(0, 3) === '$p(') return this.state.data.players[choice.slice(3, -1) - 1].name;
+    return choice;
+  }
+
   renderBoard(board) {
     return (
       <div id="game-dom">
         {[...board.querySelectorAll('.player-mat:not(.mine)')].map(
-          mat => this.renderGameElement(mat, mat.attributes['player-after-me'].value != '3')
+          mat => this.renderGameElement(mat, mat.getAttribute('player-after-me') != '3')
         )}
         {this.renderGameElement(board.querySelector('#board'))}
         {this.renderGameElement(board.querySelector(`.player-mat.mine`))}
@@ -560,19 +578,24 @@ export default class Page extends Component {
 
     const type = node.nodeName.toLowerCase();
     const key = choiceForXmlNode(node);
+    let label;
+    if (attributes.label !== undefined) {
+      label = unescape(attributes.label);
+      delete attributes.label;
+    }
 
     const props = {
       key,
       "data-key": key,
       "data-parent": choiceForXmlNode(node.parentNode),
       ...attributes,
-      className: classNames(type, node.className),
+      className: classNames(type, node.className, { piece: type !== 'space' }),
     };
     if (node.id) props.id = node.id;
 
     const externallyControlled = this.state.locks[key] && this.state.locks[key] !== this.props.userId;
     let position, wrappedStyle = {};
-    const gridItem = node.parentNode.nodeName === 'splay';
+    const gridItem = ['splay', 'grid'].includes(node.parentNode.getAttribute('layout'));
 
     if (!frozen) {
       props.onClick = e => this.handleClick(key, e);
@@ -580,60 +603,59 @@ export default class Page extends Component {
         e.preventDefault();
         this.handleClick(key, e);
       };
-      props.className = classNames(type, node.className, {
+      props.className = classNames(props.className, {
         flipped,
-        "hilited": (
+        hilited: (
           (this.state.dragging && key == this.state.dragOver && (
             this.allowedDragSpaces(this.state.dragging.key)[key] ||
-              this.state.dragOver == parentChoice(this.state.dragging.key))
+            this.state.dragOver == parentChoice(this.state.dragging.key))
           ) ||
           (this.state.choices instanceof Array && this.state.choices.includes(key))
         )
       });
-      if (node.classList.contains('space')) {
-        props.onMouseEnter = () => this.setState({dragOver: key});
-        props.onMouseLeave = () => this.setState({dragOver: choiceAtPoint(mouse.x, mouse.y, el => el.classList.contains('space'))});
+      if (type === 'space') {
+        if (this.state.dragging) props.onMouseEnter = () => this.isValidDropSpace(key) && this.setState({dragOver: key});
+        if (this.state.dragging && this.state.dragOver === key) {
+          props.onMouseLeave = () => this.setState({
+            dragOver: choiceAtPoint(mouse.x, mouse.y, el => this.isValidDropSpace(choiceByEl(el)) && choiceByEl(el) !== this.state.dragOver)
+          });
+        }
       }
       if (externallyControlled && this.state.positions[key]) {
         position = this.state.positions[key];
-      } else if ((node.parentNode.nodeName == 'stack' || gridItem) && !attributes.moved) {
+      } else if (node.parentNode.getAttribute('layout') === 'stack' && !attributes.moved) {
         position = {x: 0, y: 0};
       } else {
         const x = attributes.x;
         const y = attributes.y;
         if (!position && !isNaN(x) && !isNaN(y) && !isNaN(parseFloat(x)) && !isNaN(parseFloat(y))) {
           position = {x, y};
-        } else if (node.parentNode.classList.contains('space')) {
+        } else if (node.parentNode.nodeName === 'space') {
           position = {x: 0, y: 0};
         }
       }
-      if (props.left != undefined) {
-        wrappedStyle.left = props.left;
-        delete props.left;
-      }
-      if (props.right != undefined) {
-        wrappedStyle.right = props.right;
-        delete props.right;
-      }
-      if (props.top != undefined) {
-        wrappedStyle.top = props.top;
-        delete props.top;
-      }
-      if (props.bottom != undefined) {
-        wrappedStyle.bottom = props.bottom;
-        delete props.bottom;
-      }
+      ['left', 'right', 'top', 'bottom'].forEach(p => {
+        if (props[p] != undefined) {
+          wrappedStyle[p] = props[p];
+          delete props[p];
+        }
+      });
     }
 
-    if (node.nodeName === 'splay') {
+    if (['splay', 'grid'].includes(node.getAttribute('layout'))) {
+      let { columns } = props;
+      if (node.getAttribute('layout') === 'splay') {
+        columns = Math.max(columns, Math.ceil(node.childElementCount / (props.rows || 1)));
+      }
       props.style = {
-        gridTemplateColumns: `repeat(${Math.max(props.columns || 1, Math.ceil(node.childElementCount / (props.rows || 1))) - 1}, 1fr) 73px`,
-        gridTemplateRows: `repeat(${props.rows || 1}, 1fr)`,
-      };
-    }
+        gridTemplateColumns: `repeat(${(columns || 1) - 1}, 1fr) ${props.minwidth ? props.minwidth + 'px' : '1fr'}`,
+        gridTemplateRows: `repeat(${(props.rows || 1) - 1}, 1fr) ${props.minheight ? props.minheight + 'px' : '1fr'}`,
+        gap: `${props.gutter || 0}px`,
+    };
+  }
 
     let contents;
-    if (node.nodeName === 'stack' && node.childElementCount) {
+    if (node.getAttribute('layout') === 'stack' && node.childElementCount) {
       contents = Array.from(node.children).slice(-2).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
     } else {
       contents = Array.from(node.children).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
@@ -642,8 +664,8 @@ export default class Page extends Component {
       const player = attributes.player && this.state.data.players[attributes.player - 1];
       if (player) contents.push(
         <div key="nametag"
-          className={classNames("nametag", {active: this.activePlayer(player[0])})}>
-          {player[1]}
+          className={classNames("nametag", {active: this.activePlayer(player.userId)})}>
+          {player.name}
         </div>
       );
     }
@@ -658,7 +680,6 @@ export default class Page extends Component {
     if (this.props.pieces[type]) {
       contents = React.createElement(this.props.pieces[type], {...props}, frozen || contents);
     }
-    contents = contents || node.id;
 
     if (this.state.dragging && this.state.dragging.key == key) {
       wrappedStyle.pointerEvents = "none";
@@ -672,13 +693,23 @@ export default class Page extends Component {
 
     if (this.state.changes[key]) wrappedStyle.display = 'hidden'; // temporarily hide while animation starts
 
+    if (node.parentNode.getAttribute('layout') === 'grid' && attributes.cell !== undefined) {
+      wrappedStyle.gridArea = `${Math.floor(attributes.cell / (node.parentNode.getAttribute('columns') || 1)) + 1} / ${attributes.cell % (node.parentNode.getAttribute('columns') || 1) + 1}`;
+      wrappedStyle.transition = 'none';
+    }
+
+    if (node.id) contents = <>
+      {contents}
+      {label && <label>{label}</label>}
+    </>;
+
     contents = <div {...props}>{contents}</div>;
-    if (position && node.classList.contains('piece') || externallyControlled || props.moved || Object.keys(wrappedStyle).length) {
+    if (position && type !== 'space' || externallyControlled || gridItem || props.moved || Object.keys(wrappedStyle).length) {
       contents = (
         <div
           key={key}
           className={classNames({
-            'positioned-piece': node.classList.contains('piece') && !frozen,
+            'positioned-piece': type !== 'space' && !frozen,
             "external-dragging": externallyControlled || props.moved,
           })}
           style={wrappedStyle}
@@ -693,7 +724,7 @@ export default class Page extends Component {
       return (
         <Draggable
           disabled={externallyControlled}
-          onDrag={(e, data) => this.dragging(key, data.x, data.y, e)}
+          onDrag={(e, data) => this.dragging(key, data.x, data.y, e, !this.state.dragging && choiceForXmlNode(node.parentNode))}
           onStop={(e, data) => this.stopDrag(key, data.x, data.y, e)}
           key={key}
           position={position || {x:0, y:0}}
@@ -719,7 +750,7 @@ export default class Page extends Component {
         messagesPane = 'help';
       } else if (this.state.choices) {
         messagesPane = 'choices';
-      } else if (actions && actions.length || zoomXmlNode) {
+      } else if (actions && Object.keys(actions).length || zoomXmlNode) {
         messagesPane = 'actions';
         if (zoomXmlNode) {
           zoomScale = SIDEBAR_WIDTH / this.state.zoomOriginalSize.width * (this.state.bigZoom ? 2 : 1);
@@ -734,7 +765,7 @@ export default class Page extends Component {
     }
 
     const showKeybind = message => {
-        let key = message.match(/\s*\((\w)\)$/);
+      let key = message.match(/\s*\((\w)\)$/);
       if (key) {
         message = message.replace(key[0], '');
         key = key[1].toUpperCase();
@@ -765,7 +796,7 @@ export default class Page extends Component {
                {textChoices && (
                  <div>
                    {Array.from(new Set(textChoices.filter(choice => String(choice).toLowerCase().includes(this.state.filter.toLowerCase())))).sort().map(choice => (
-                     <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, choice)}>{choice}</button>
+                     <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, choice)}>{this.choiceText(choice)}</button>
                    ))}
                  </div>
                )}
@@ -799,7 +830,7 @@ export default class Page extends Component {
              <>
                <div className="prompt">
                  Send the URL to other players. Click &apos;Start&apos; when all players are present.<br/><br/>
-                 Players: {this.state.data.players.map(p => p[1]).join(', ')}
+                 Players: {this.state.data.players.map(p => p.name).join(', ')}
                </div>
                <button onClick={() => this.send('start')}>Start</button>
              </>

@@ -36,36 +36,27 @@ class Space extends GameElement {
       position = space.node.childElementCount - position;
     }
     position = Math.min(Math.max(position, 0), space.node.childElementCount);
-    let outOfGrid = false;
+    let outOfSplay = false;
     movables.forEach(piece => {
-      piece.unset('x');
-      piece.unset('y');
-      piece.unset('left');
-      piece.unset('top');
-      piece.unset('right');
-      piece.unset('bottom');
-      if (!piece.hasParent(space)) {
-        const pos = space.findOpenPosition();
-        if (pos) {
-          piece.set('x', pos.x);
-          piece.set('y', pos.y);
-        }
-      }
-      outOfGrid = outOfGrid || (piece.parent().type === 'splay' && piece.parent());
+      piece.unset('x', 'y', 'left', 'top', 'right', 'bottom');
+      outOfSplay = outOfSplay || (piece.parent().get('layout') === 'splay' && piece.parent());
       const previousId = piece.serialize();
-      if (GameElement.isPieceNode(piece.node) && !piece.hasParent(space) && space.type !== 'stack') piece.assignUUID();
+      if (GameElement.isPieceNode(piece.node) && !piece.hasParent(space) && space.get('layout') !== 'stack') piece.assignUUID();
       space.node.insertBefore(piece.node, space.node.children[position]);
+      if (space.get('layout') === 'grid' && piece.get('cell') === undefined) {
+        piece.set({ cell: space.findOpenCell() });
+      }
       this.game.changeset.push([previousId, piece.serialize()]);
     });
     this.game.processAfterMoves(movables);
-    if (space.type === 'splay') {
+    if (space.get('layout') === 'splay') {
       Array.from(space.node.children).forEach(c => {
         const nextId = this.wrap(c).serialize();
         if (!this.game.changeset.find(cs => cs[1] === nextId)) this.game.changeset.push([nextId, nextId]);
       });
     }
-    if (outOfGrid && outOfGrid.node !== space.node) {
-      Array.from(outOfGrid.node.children).forEach(c => {
+    if (outOfSplay && outOfSplay.node !== space.node) {
+      Array.from(outOfSplay.node.children).forEach(c => {
         const nextId = this.wrap(c).serialize();
         if (!this.game.changeset.find(cs => cs[1] === nextId)) this.game.changeset.push([nextId, nextId]);
       });
@@ -84,6 +75,10 @@ class Space extends GameElement {
 
   clear(pieces, num) {
     return this.move(pieces, this.pile(), num);
+  }
+
+  destroy(pieces) {
+    this.pieces(pieces).forEach(p => p.destroy());
   }
 
   shuffle() {
@@ -113,12 +108,19 @@ class Space extends GameElement {
     return set.sort((a, b) => (comp(a) > comp(b) && 1) || (comp(a) < comp(b) && -1) || 0);
   }
 
-  addSpace(name, type, attrs) {
-    return this.addGameElement(name, type, 'space', attrs);
+  findOpenCell() {
+    const cells = (this.get('columns') || 1) * (this.get('rows') || 1);
+    let cell = 0;
+    while (this.contains(`[cell="${cell}"]`)) cell += 1;
+    return cell >= cells ? 0 : cell;
   }
 
-  addSpaces(num, name, type, attrs) {
-    return times(num, () => this.addSpace(name, type, attrs));
+  addSpace(name, attrs) {
+    return this.addGameElement(name, 'space', attrs);
+  }
+
+  addSpaces(num, name, attrs) {
+    return times(num, () => this.addSpace(name, attrs));
   }
 }
 

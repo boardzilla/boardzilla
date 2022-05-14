@@ -171,13 +171,13 @@ class GameRunner {
       try {
         const publishPlayerViews = async () => {
           const playerViews = gameInstance.getPlayerViews();
-          return await Promise.all(Object.entries(playerViews).map(([userId, view]) => (
+          return Promise.all(Object.entries(playerViews).map(([userId, view]) => (
             handle.publishEvent({ type: 'state', userId: parseInt(userId, 10), payload: view })
           )));
         };
 
         const publishLogs = async (actions, userIds) => {
-          if (!userIds) userIds = gameInstance.players.map(p => p[0]);
+          if (!userIds) userIds = gameInstance.players.map(p => p.userId);
           await Promise.all(actions.filter(m => m.messages).flatMap(({ messages, createdAt, sequence }) => userIds.map(userId => handle.publishEvent({
             type: 'log',
             userId,
@@ -226,7 +226,7 @@ class GameRunner {
                 parsedMessage.payload.sequence,
                 ...parsedMessage.payload.action,
               );
-              log.debug(`R action succeeded u${parsedMessage.payload.userId} #${parsedMessage.payload.sequence} ${parsedMessage.payload.action} ${response.type}`);
+              log.debug(`R action response u${parsedMessage.payload.userId} #${parsedMessage.payload.sequence} ${parsedMessage.payload.action} ${response.type}`);
               switch (response.type) {
                 case 'ok':
                   const action = await session.createAction({
