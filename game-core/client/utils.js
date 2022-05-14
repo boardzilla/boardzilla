@@ -38,8 +38,8 @@ export const zoneInfoForPoint = (x, y) => {
 export const xmlToNode = xml => new DOMParser().parseFromString(xml, 'text/xml').firstChild;
 
 export const choiceForXmlNode = node => {
-  if (node.classList.contains('player-mat')) return `$p(${node.attributes.player.value})`;
-  if (node.attributes.uuid) return `$uuid(${node.attributes.uuid.value})`;
+  if (node.classList.contains('player-mat')) return `$p(${node.getAttribute('player')})`;
+  if (node.getAttribute('uuid')) return `$uuid(${node.getAttribute('uuid')})`;
   const branch = [];
   while (node.parentNode && node.parentNode.parentNode) {
     branch.unshift(Array.from(node.parentNode.childNodes).indexOf(node) + 1);
@@ -57,7 +57,7 @@ export const xmlNodeByChoice = (doc, choice) => {
   return doc.querySelector(query.replace(/#(\d)/g, '#\\3$1 '));
 };
 
-export const currentGridPosition = (el, parent, x, y, scale, flipped) => {
+export const currentGridPosition = (el, parent, x, y, scale, interColumn=false, flipped=false) => {
   const tc = window.getComputedStyle(parent).gridTemplateColumns.split(' ');
   const tr = window.getComputedStyle(parent).gridTemplateRows.split(' ');
   let { left, top } = parent.getBoundingClientRect();
@@ -69,8 +69,8 @@ export const currentGridPosition = (el, parent, x, y, scale, flipped) => {
   }
   const columns = tc.length;
   const rows = tr.length;
-  let col = Math.min(Math.max(Math.ceil((x - left) / width), 0), columns);
-  if ((parent.getAttribute('direction') === 'rtl') ^ flipped) col = columns - col;
+  let col = Math.min(Math.max(Math[interColumn ? 'ceil' : 'round']((x - left) / width), 0), columns - (interColumn ? 0 : 1));
+  if ((parent.getAttribute('direction') === 'rtl') ^ flipped) col = columns - col - (interColumn ? 0 : 1);
   let row = Math.min(Math.max(Math.round((y - top) / height), 0), rows - 1);
   if (flipped) row = rows - row - 1;
   return col + row * columns;

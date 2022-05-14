@@ -6,7 +6,7 @@ class GameDocument extends Space {
   constructor(node, caller) {
     const document = caller.document
                    // initial call to build the base DOM
-                   || (new DOMParser()).parseFromString('<game><board id="board" class="space"></board><pile class="space"></pile></game>', 'text/xml');
+                   || (new DOMParser()).parseFromString('<game><space id="board"/><space id="pile"/></game>', 'text/xml');
 
     super(document.getRootNode(), { game: caller.game, document });
   }

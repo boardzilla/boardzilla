@@ -118,7 +118,7 @@ class GameInterface {
 
   initializeBoardWithPlayers() {
     times(this.#players.length, player => {
-      const playerMat = this.doc.addSpace(`#player-mat-${player}`, 'area', { player, class: 'player-mat', color: this.player(player).color });
+      const playerMat = this.doc.addSpace(`#player-mat-${player}`, { player, class: 'player-mat', color: this.player(player).color });
       this.#setupPlayerMat.forEach(f => f(playerMat));
     });
     this.#setupBoard.forEach(f => f(this.board));
@@ -292,7 +292,7 @@ class GameInterface {
         playerView.findNodes(selector).forEach(n => {
           n.removeAttribute('id');
           attrs.forEach(attr => n.removeAttribute(attr));
-          if (n.classList.contains('space')) {
+          if (GameElement.isSpaceNode(n)) {
             n.innerHTML = ''; // space contents are hidden
           }
         });
@@ -517,7 +517,7 @@ class GameInterface {
             piece.move(space, -1 - positioning.pos);
           } else {
             piece.move(space);
-            if (positioning && positioning.x !== undefined) piece.set(positioning);
+            if (positioning) piece.set(positioning);
           }
           if (action) {
             action([piece, space]);
@@ -696,7 +696,8 @@ class GameInterface {
         el.move(null, -1 - positioning.pos);
       } else {
         el.moveToTop();
-        el.set({ x: positioning.x, y: positioning.y });
+        el.set(positioning);
+        console.log(positioning, el.node.innerHTML);
       }
     } else {
       throw new Error(`Illegal moveElement ${el.node.outerHTML}, ${this.allowedMoveElements}`);
