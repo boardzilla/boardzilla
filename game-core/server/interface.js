@@ -118,7 +118,7 @@ class GameInterface {
 
   initializeBoardWithPlayers() {
     times(this.#players.length, player => {
-      const playerMat = this.doc.addSpace(`#player-mat-${player}`, 'area', { player, class: 'player-mat', color: this.player(player).color });
+      const playerMat = this.doc.addSpace(`#player-mat-${player}`, { player, class: 'player-mat', color: this.player(player).color });
       this.#setupPlayerMat.forEach(f => f(playerMat));
     });
     this.#setupBoard.forEach(f => f(this.board));
@@ -292,7 +292,7 @@ class GameInterface {
         playerView.findNodes(selector).forEach(n => {
           n.removeAttribute('id');
           attrs.forEach(attr => n.removeAttribute(attr));
-          if (n.classList.contains('space')) {
+          if (GameElement.isSpaceNode(n)) {
             n.innerHTML = ''; // space contents are hidden
           }
         });

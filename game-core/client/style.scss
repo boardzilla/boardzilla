@@ -194,12 +194,12 @@ button {
     &.flipped {
       transform: scale(-1);
     }
-    &.stack {
+    &[layout="stack"] {
       & > :not(:last-child) {
         margin: 2px 0 0 2px;
       }
     }
-    &.splay {
+    &[layout="splay"] {
       display: grid;
       > .positioned-piece {
         position: relative;
@@ -373,6 +373,9 @@ div.nametag {
 .react-draggable-dragging, .external-dragging {
   z-index: 100;
   position: relative;
+  .piece {
+    transform: scale(1.2);
+  }
   img {
     filter: drop-shadow(5px 5px 5px #222);
     will-change: filter;

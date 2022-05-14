@@ -405,7 +405,7 @@ export default class Page extends Component {
       const ontoXY = parent.getBoundingClientRect();
       const elXY = el.getBoundingClientRect();
       if (dragAction) {
-        if (parent.classList.contains('splay')) {
+        if (parent.getAttribute('layout') === 'splay') {
           this.gameAction(dragAction, choice, dragOver, {pos: currentGridPosition(el, parent, elXY.x, elXY.y, this.state.playAreaScale, isFlipped(parent))});
         } else {
           const translation = isFlipped(parent) ?
@@ -419,7 +419,7 @@ export default class Page extends Component {
         this.setPieceAt(choice, {x, y, moved: true});
         this.setState({ zoomPiece: null });
       } else if (dragOver === parentChoice(choice) && this.isAllowedMove(xmlNodeByChoice(boardXml, choice))) {
-        if (parent.classList.contains('splay')) {
+        if (parent.getAttribute('layout') === 'splay') {
           this.gameAction('moveElement', choice, {pos: currentGridPosition(el, parent, elXY.x, elXY.y, this.state.playAreaScale, isFlipped(parent))});
         } else {
           this.gameAction('moveElement', choice, {x, y});
@@ -544,7 +544,7 @@ export default class Page extends Component {
     return (
       <div id="game-dom">
         {[...board.querySelectorAll('.player-mat:not(.mine)')].map(
-          mat => this.renderGameElement(mat, mat.attributes['player-after-me'].value != '3')
+          mat => this.renderGameElement(mat, mat.getAttribute('player-after-me') != '3')
         )}
         {this.renderGameElement(board.querySelector('#board'))}
         {this.renderGameElement(board.querySelector(`.player-mat.mine`))}
@@ -571,13 +571,13 @@ export default class Page extends Component {
       "data-key": key,
       "data-parent": choiceForXmlNode(node.parentNode),
       ...attributes,
-      className: classNames(type, node.className),
+      className: classNames(type, node.className, { piece: type !== 'space' }),
     };
     if (node.id) props.id = node.id;
 
     const externallyControlled = this.state.locks[key] && this.state.locks[key] !== this.props.userId;
     let position, wrappedStyle = {};
-    const gridItem = node.parentNode.nodeName === 'splay';
+    const gridItem = node.parentNode.getAttribute('layout') === 'splay';
 
     if (!frozen) {
       props.onClick = e => this.handleClick(key, e);
@@ -585,30 +585,30 @@ export default class Page extends Component {
         e.preventDefault();
         this.handleClick(key, e);
       };
-      props.className = classNames(type, node.className, {
+      props.className = classNames(props.className, {
         flipped,
         hilited: (
           (this.state.dragging && key == this.state.dragOver && (
             this.allowedDragSpaces(this.state.dragging.key)[key] ||
-              this.state.dragOver == parentChoice(this.state.dragging.key))
+            this.state.dragOver == parentChoice(this.state.dragging.key))
           ) ||
           (this.state.choices instanceof Array && this.state.choices.includes(key))
         )
       });
-      if (node.classList.contains('space')) {
+      if (type === 'space') {
         props.onMouseEnter = () => this.setState({dragOver: key});
         props.onMouseLeave = () => this.setState({dragOver: choiceAtPoint(mouse.x, mouse.y, el => el.classList.contains('space'))});
       }
       if (externallyControlled && this.state.positions[key]) {
         position = this.state.positions[key];
-      } else if ((node.parentNode.nodeName == 'stack' || gridItem) && !attributes.moved) {
+      } else if ((node.parentNode.getAttribute('layout') === 'stack' || gridItem) && !attributes.moved) {
         position = {x: 0, y: 0};
       } else {
         const x = attributes.x;
         const y = attributes.y;
         if (!position && !isNaN(x) && !isNaN(y) && !isNaN(parseFloat(x)) && !isNaN(parseFloat(y))) {
           position = {x, y};
-        } else if (node.parentNode.classList.contains('space')) {
+        } else if (node.parentNode.nodeName === 'space') {
           position = {x: 0, y: 0};
         }
       }
@@ -630,7 +630,7 @@ export default class Page extends Component {
       }
     }
 
-    if (node.nodeName === 'splay') {
+    if (node.getAttribute('layout') === 'splay') {
       props.style = {
         gridTemplateColumns: `repeat(${Math.max(props.columns || 1, Math.ceil(node.childElementCount / (props.rows || 1))) - 1}, 1fr) 73px`,
         gridTemplateRows: `repeat(${props.rows || 1}, 1fr)`,
@@ -638,7 +638,7 @@ export default class Page extends Component {
     }
 
     let contents;
-    if (node.nodeName === 'stack' && node.childElementCount) {
+    if (node.getAttribute('layout') === 'stack' && node.childElementCount) {
       contents = Array.from(node.children).slice(-2).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
     } else {
       contents = Array.from(node.children).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
@@ -682,19 +682,19 @@ export default class Page extends Component {
     </>;
 
     contents = <div {...props}>{contents}</div>;
-    if (position && node.classList.contains('piece') || externallyControlled || props.moved || Object.keys(wrappedStyle).length) {
+    if (position && type !== 'space' || externallyControlled || props.moved || Object.keys(wrappedStyle).length) {
       contents = (
         <div
           key={key}
           className={classNames({
-            'positioned-piece': node.classList.contains('piece') && !frozen,
+            'positioned-piece': type !== 'space' && !frozen,
             "external-dragging": externallyControlled || props.moved,
           })}
           style={wrappedStyle}
         >
           {contents}
         </div>
-      );
+);
     }
 
     if (draggable) {

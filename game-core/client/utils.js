@@ -38,8 +38,8 @@ export const zoneInfoForPoint = (x, y) => {
 export const xmlToNode = xml => new DOMParser().parseFromString(xml, 'text/xml').firstChild;
 
 export const choiceForXmlNode = node => {
-  if (node.classList.contains('player-mat')) return `$p(${node.attributes.player.value})`;
-  if (node.attributes.uuid) return `$uuid(${node.attributes.uuid.value})`;
+  if (node.classList.contains('player-mat')) return `$p(${node.getAttribute('player')})`;
+  if (node.getAttribute('uuid')) return `$uuid(${node.getAttribute('uuid')})`;
   const branch = [];
   while (node.parentNode && node.parentNode.parentNode) {
     branch.unshift(Array.from(node.parentNode.childNodes).indexOf(node) + 1);

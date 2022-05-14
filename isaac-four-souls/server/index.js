@@ -19,8 +19,8 @@ const addCards = (pieces, deck) => {
 const addAllCards = (type, deck) => addCards(findCards(type), deck);
 
 game.setupPlayerMat(mat => {
-  const tableau = mat.addSpace('#tableau', 'area', { spreadX: 100 });
-  mat.addSpace('#hand', 'splay', { columns: 16 });
+  const tableau = mat.addSpace('#tableau', { layout: 'area', spreadX: 100 });
+  mat.addSpace('#hand', { layout: 'splay', columns: 16 });
   tableau.addComponent('counter', { name: 'health', display: 'hp', initialValue: 2, max: 5, left: 20, bottom: 20 });
   tableau.addComponent('counter', { name: 'attack', display: 'attack', initialValue: 1, max: 8, left: 140, bottom: 20 });
   tableau.addComponent('counter', { name: 'coins', display: 'coin', initialValue: 3, max: 50, right: 20, bottom: 20 });
@@ -28,32 +28,33 @@ game.setupPlayerMat(mat => {
 });
 
 game.setupBoard(board => {
-  const charactersDeck = board.addSpace('#characters', 'stack', { class: 'deck' });
+  console.log(board.node);
+  const charactersDeck = board.addSpace('#characters', { layout: 'stack', class: 'deck' });
   addAllCards('character', charactersDeck);
   charactersDeck.shuffle();
-  const eternalsDeck = board.addSpace('#eternals', 'stack', { class: 'deck' });
+  const eternalsDeck = board.addSpace('#eternals', { layout: 'stack', class: 'deck' });
   addAllCards('eternal', eternalsDeck);
   eternalsDeck.shuffle();
 
-  const lootDeck = board.addSpace('#loot', 'stack', { class: 'deck', bonus: true });
-  board.addSpace('#loot-discard', 'stack', { class: 'deck' });
+  const lootDeck = board.addSpace('#loot', { layout: 'stack', class: 'deck', bonus: true });
+  board.addSpace('#loot-discard', { layout: 'stack', class: 'deck' });
 
-  board.addSpace('#treasure', 'stack', { class: 'deck' });
-  board.addSpace('#treasure-discard', 'stack', { class: 'deck' });
-  board.addSpace('#shop', 'splay', { columns: 3, rows: 2 });
+  board.addSpace('#treasure', { layout: 'stack', class: 'deck' });
+  board.addSpace('#treasure-discard', { layout: 'stack', class: 'deck' });
+  board.addSpace('#shop', { layout: 'splay', columns: 3, rows: 2 });
 
-  board.addSpace('#monsters', 'stack', { class: 'deck' });
-  board.addSpace('#monsters-discard', 'stack', { class: 'deck' });
-  board.addSpace('#dungeon', 'area', { spreadX: 110 });
+  board.addSpace('#monsters', { layout: 'stack', class: 'deck' });
+  board.addSpace('#monsters-discard', { layout: 'stack', class: 'deck' });
+  board.addSpace('#dungeon', { spreadX: 110 });
 
-  const bonusSouls = board.addSpace('#bonus-souls', 'splay', { columns: 3 });
+  const bonusSouls = board.addSpace('#bonus-souls', { layout: 'splay', columns: 3 });
   addAllCards('bonus', lootDeck);
   lootDeck.shuffle();
   lootDeck.move('card', bonusSouls, 3);
 
-  board.addSpace('#rooms', 'stack', { class: 'deck' });
-  board.addSpace('#room', 'stack', { class: 'deck' });
-  board.addSpace('#room-discard', 'stack', { class: 'deck' });
+  board.addSpace('#rooms', { layout: 'stack', class: 'deck' });
+  board.addSpace('#room', { layout: 'stack', class: 'deck' });
+  board.addSpace('#room-discard', { layout: 'stack', class: 'deck' });
 });
 
 game.afterMove(

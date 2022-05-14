@@ -105,12 +105,12 @@ class Space extends GameElement {
     return set.sort((a, b) => (comp(a) > comp(b) && 1) || (comp(a) < comp(b) && -1) || 0);
   }
 
-  addSpace(name, type, attrs) {
-    return this.addGameElement(name, type, 'space', attrs);
+  addSpace(name, attrs) {
+    return this.addGameElement(name, 'space', attrs);
   }
 
-  addSpaces(num, name, type, attrs) {
-    return times(num, () => this.addSpace(name, type, attrs));
+  addSpaces(num, name, attrs) {
+    return times(num, () => this.addSpace(name, attrs));
   }
 }
 
