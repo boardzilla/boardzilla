@@ -19,7 +19,7 @@ export const parentChoice = c => parentEl(elByChoice(c));
 
 export const zoneChoice = c => nearestChoiceByEl(elByChoice(c), el => el.parentNode.id == 'game-dom');
 
-export const isEl = choice => choice && choice.slice && (choice.slice(0, 6) == '$uuid(' || choice.slice(0, 4) == '$el(' || choice.slice(0, 3) == '$p(');
+export const isEl = choice => choice && choice.slice && (choice.slice(0, 6) == '$uuid(' || choice.slice(0, 4) == '$el(');
 
 export const choiceAtPoint = (x, y, condition) => choiceByEl(elAtPoint(x, y, condition));
 

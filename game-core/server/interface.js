@@ -461,8 +461,11 @@ class GameInterface {
       throw Error(`No such action: ${actionName}`);
     }
 
-    if (action.if && !action.if()) {
-      throw new InvalidActionError(`${actionName} not allowed due to "if" condition`);
+    if (action.if) {
+      let result = true;
+      if (typeof action.if === 'function') result = action.if();
+      if (typeof action.if === 'string') result = this.doc.contains(action.if);
+      if (!result) throw new InvalidActionError(`${actionName} not allowed due to "if" condition`);
     }
 
     let nextAction;
@@ -494,6 +497,7 @@ class GameInterface {
     } else if (action.max !== undefined || action.min !== undefined) { // simple numerical
       nextPrompt = this.chooseAction(range(action.min, action.max), prompt, nextAction, argIndex)(args);
     } else if (nextAction) {
+      argIndex -= 1; // simple prompt does not consume an arg
       const result = nextAction(...args);
       if (result && result.prompt) nextPrompt = prompt;
     }

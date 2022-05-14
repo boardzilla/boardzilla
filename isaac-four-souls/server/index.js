@@ -386,24 +386,23 @@ game.defineActions({
     action: card => card.set('flipped', !card.get('flipped')),
   },
   showHand: {
-    select: '.mine #hand',
     prompt: 'Show hand',
-    log: '$0 showed hand to $2',
+    log: '$0 showed hand to $1',
+    if: '.mine #hand:not([showTo])',
     next: {
       select: () => {
         const players = game.otherPlayers();
         if (players.length > 1) players.push('Everyone');
         return players;
       },
-      prompt: 'To whom?',
-      action: (hand, player) => hand.set({ showTo: player.position || player, label: `Showing to ${player.name || player}` }),
+      action: player => game.doc.find('.mine #hand').set({ showTo: player.position || player, label: `Showing to ${player.name || player}` }),
     },
   },
   hideHand: {
-    select: '.mine #hand[showTo]',
     prompt: 'Stop showing hand',
+    if: '.mine #hand[showTo]',
     log: '$0 stopped showing hand',
-    action: hand => { hand.unset('showTo'); hand.unset('label'); },
+    action: () => game.doc.find('.mine #hand').unset('showTo', 'label'),
   },
 });
 

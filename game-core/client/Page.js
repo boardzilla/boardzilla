@@ -121,6 +121,7 @@ export default class Page extends Component {
               this.setState({actions: this.actionsFor(zoomPiece)});
             }
             document.getElementsByTagName('body')[0].dataset.players = this.state.data.players && this.state.data.players.length;
+            window.dispatchEvent(new Event('resize'));
           }
           break;
         case "updateLocks":
@@ -552,6 +553,11 @@ export default class Page extends Component {
     event.preventDefault();
   }
 
+  choiceText(choice) {
+    if (choice.slice(0, 3) === '$p(') return this.state.data.players[choice.slice(3, -1) - 1].name;
+    return choice;
+  }
+
   renderBoard(board) {
     return (
       <div id="game-dom">
@@ -790,7 +796,7 @@ export default class Page extends Component {
                {textChoices && (
                  <div>
                    {Array.from(new Set(textChoices.filter(choice => String(choice).toLowerCase().includes(this.state.filter.toLowerCase())))).sort().map(choice => (
-                     <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, choice)}>{choice}</button>
+                     <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, choice)}>{this.choiceText(choice)}</button>
                    ))}
                  </div>
                )}
