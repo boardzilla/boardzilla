@@ -517,7 +517,7 @@ class GameInterface {
             piece.move(space, -1 - positioning.pos);
           } else {
             piece.move(space);
-            if (positioning && positioning.x !== undefined) piece.set(positioning);
+            if (positioning) piece.set(positioning);
           }
           if (action) {
             action([piece, space]);
@@ -696,7 +696,8 @@ class GameInterface {
         el.move(null, -1 - positioning.pos);
       } else {
         el.moveToTop();
-        el.set({ x: positioning.x, y: positioning.y });
+        el.set(positioning);
+        console.log(positioning, el.node.innerHTML);
       }
     } else {
       throw new Error(`Illegal moveElement ${el.node.outerHTML}, ${this.allowedMoveElements}`);

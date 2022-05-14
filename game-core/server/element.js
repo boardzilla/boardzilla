@@ -213,30 +213,10 @@ class GameElement {
     if (name[0] !== '#') throw Error(`id ${name} must start with #`);
     el.id = name.slice(1);
     Object.keys(attrs).forEach(attr => el.setAttribute(attr, escape(attrs[attr])));
-    if (attrs.left === undefined && attrs.top === undefined && attrs.right === undefined && attrs.bottom === undefined) {
-      const pos = this.findOpenPosition();
-      if (pos) {
-        el.setAttribute('x', pos.x);
-        el.setAttribute('y', pos.y);
-      }
-    }
     this.node.appendChild(el);
     const gameElement = this.wrap(this.node.lastChild);
-    if (GameElement.isPieceNode(this.node.lastChild) && GameElement.isSpaceNode(this.node) && this.type !== 'stack') gameElement.assignUUID();
+    if (GameElement.isPieceNode(this.node.lastChild) && GameElement.isSpaceNode(this.node) && this.get('layout') !== 'stack') gameElement.assignUUID();
     return gameElement;
-  }
-
-  findOpenPosition() {
-    if (this.get('spreadX') || this.get('spreadY')) {
-      let x = 0; let
-        y = 0;
-      while (this.contains(`[x="${x}"][y="${y}"]`)) {
-        x += this.get('spreadX') || 0;
-        y += this.get('spreadY') || 0;
-      }
-      return { x, y };
-    }
-    return null;
   }
 
   moveToTop() {

@@ -57,7 +57,7 @@ export const xmlNodeByChoice = (doc, choice) => {
   return doc.querySelector(query.replace(/#(\d)/g, '#\\3$1 '));
 };
 
-export const currentGridPosition = (el, parent, x, y, scale, flipped) => {
+export const currentGridPosition = (el, parent, x, y, scale, interColumn=false, flipped=false) => {
   const tc = window.getComputedStyle(parent).gridTemplateColumns.split(' ');
   const tr = window.getComputedStyle(parent).gridTemplateRows.split(' ');
   let { left, top } = parent.getBoundingClientRect();
@@ -69,8 +69,8 @@ export const currentGridPosition = (el, parent, x, y, scale, flipped) => {
   }
   const columns = tc.length;
   const rows = tr.length;
-  let col = Math.min(Math.max(Math.ceil((x - left) / width), 0), columns);
-  if ((parent.getAttribute('direction') === 'rtl') ^ flipped) col = columns - col;
+  let col = Math.min(Math.max(Math[interColumn ? 'ceil' : 'round']((x - left) / width), 0), columns - (interColumn ? 0 : 1));
+  if ((parent.getAttribute('direction') === 'rtl') ^ flipped) col = columns - col - (interColumn ? 0 : 1);
   let row = Math.min(Math.max(Math.round((y - top) / height), 0), rows - 1);
   if (flipped) row = rows - row - 1;
   return col + row * columns;

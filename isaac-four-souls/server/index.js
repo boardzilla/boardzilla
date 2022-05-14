@@ -20,7 +20,7 @@ const addAllCards = (type, deck) => addCards(findCards(type), deck);
 
 game.setupPlayerMat(mat => {
   const tableau = mat.addSpace('#tableau', { layout: 'area', spreadX: 100 });
-  mat.addSpace('#hand', { layout: 'splay', columns: 16 });
+  mat.addSpace('#hand', { layout: 'splay', columns: 16, minWidth: 73 });
   tableau.addComponent('counter', { name: 'health', display: 'hp', initialValue: 2, max: 5, left: 20, bottom: 20 });
   tableau.addComponent('counter', { name: 'attack', display: 'attack', initialValue: 1, max: 8, left: 140, bottom: 20 });
   tableau.addComponent('counter', { name: 'coins', display: 'coin', initialValue: 3, max: 50, right: 20, bottom: 20 });
@@ -38,16 +38,19 @@ game.setupBoard(board => {
 
   const lootDeck = board.addSpace('#loot', { layout: 'stack', class: 'deck', bonus: true });
   board.addSpace('#loot-discard', { layout: 'stack', class: 'deck' });
+  addAllCards('loot', game.pile);
 
   board.addSpace('#treasure', { layout: 'stack', class: 'deck' });
   board.addSpace('#treasure-discard', { layout: 'stack', class: 'deck' });
-  board.addSpace('#shop', { layout: 'splay', columns: 3, rows: 2 });
+  board.addSpace('#shop', { layout: 'splay', columns: 3, rows: 2, minWidth: 73 });
+  addAllCards('treasure', game.pile);
 
   board.addSpace('#monsters', { layout: 'stack', class: 'deck' });
   board.addSpace('#monsters-discard', { layout: 'stack', class: 'deck' });
-  board.addSpace('#dungeon', { spreadX: 110 });
+  board.addSpace('#dungeon', { layout: 'grid', columns: 3, rows: 2, minWidth: 73 });
+  addAllCards('monster', game.pile);
 
-  const bonusSouls = board.addSpace('#bonus-souls', { layout: 'splay', columns: 3 });
+  const bonusSouls = board.addSpace('#bonus-souls', { layout: 'splay', columns: 3, minWidth: 73 });
   addAllCards('bonus', lootDeck);
   lootDeck.shuffle();
   lootDeck.move('card', bonusSouls, 3);
@@ -55,6 +58,7 @@ game.setupBoard(board => {
   board.addSpace('#rooms', { layout: 'stack', class: 'deck' });
   board.addSpace('#room', { layout: 'stack', class: 'deck' });
   board.addSpace('#room-discard', { layout: 'stack', class: 'deck' });
+  addAllCards('room', game.pile);
 });
 
 game.afterMove(
@@ -353,8 +357,8 @@ game.defineActions({
   },
   removeP3: {
     prompt: 'Remove 3+ player cards',
-    if: () => game.doc.find('#board card[p3], .player-mat card[p3]'),
-    action: () => game.doc.clear('#board card[p3], .player-mat card[p3]'),
+    if: () => game.doc.find('card[p3]'),
+    action: () => game.doc.destroy('card[p3]'),
   },
   remove: {
     prompt: 'Put back in your hand',
@@ -433,17 +437,17 @@ game.play(async () => {
   const lootDeck = game.board.find('#loot');
   lootDeck.clear();
   lootDeck.unset('bonus');
-  addAllCards('loot', lootDeck);
+  lootDeck.add('card[type="loot"]');
   lootDeck.shuffle();
   const treasureDeck = game.board.find('#treasure');
-  addAllCards('treasure', treasureDeck);
+  treasureDeck.add('card[type="treasure"]');
   treasureDeck.shuffle();
   const monsterDeck = game.board.find('#monsters');
-  addAllCards('monster', monsterDeck);
+  monsterDeck.add('card[type="monster"]');
   monsterDeck.shuffle();
-  game.board.find('#dungeon').addComponent('counter', { display: 'hp', initialValue: 1, max: 8, left: 0, top: 100 });
+  game.board.addComponent('counter', { display: 'hp', initialValue: 1, max: 8, left: game.players.length > 2 ? 1290 : 990, top: 110 });
   const roomDeck = game.board.find('#rooms');
-  addAllCards('room', roomDeck);
+  roomDeck.add('card[type="room"]');
   roomDeck.shuffle();
   game.prompt(null);
 

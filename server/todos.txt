@@ -28,6 +28,7 @@ playersMay({
   use: '.mine'
 })
 
+- piece drag on to piece
 - components packaged better (+/- n counter options, mobile?)
 - mobile landscape
 - grid-snapping dungeon, tableau, space->piece rules

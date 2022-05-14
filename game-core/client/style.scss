@@ -199,7 +199,7 @@ button {
         margin: 2px 0 0 2px;
       }
     }
-    &[layout="splay"] {
+    &[layout="splay"], &[layout="grid"] {
       display: grid;
       > .positioned-piece {
         position: relative;
