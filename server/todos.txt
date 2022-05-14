@@ -5,33 +5,10 @@ container
  zone
  zone
 
-space {
-  name: '',
-  layout: free,
-
-space {
-  name: '',
-  layout: {
-    grid: 'card',
-    free: 'counter'
-  },
-  attributes: {
-    
-  },
-}
-
-already have a simple, powerful mechanism for describing what can be seen or moved by whom
-
-playersMay({
-  see: 'card:mine',
-  move: '.mine stuff',
-  use: '.mine'
-})
-
 - piece drag on to piece
 - components packaged better (+/- n counter options, mobile?)
 - mobile landscape
-- grid-snapping dungeon, tableau, space->piece rules
+X grid-snapping dungeon, tableau, space->piece rules
 X space labels?
 X visibility controls
 X sidebar and scaling

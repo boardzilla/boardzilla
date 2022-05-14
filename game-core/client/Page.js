@@ -554,7 +554,7 @@ export default class Page extends Component {
   }
 
   choiceText(choice) {
-    if (choice.slice(0, 3) === '$p(') return this.state.data.players[choice.slice(3, -1) - 1].name;
+    if (choice && choice.slice && choice.slice(0, 3) === '$p(') return this.state.data.players[choice.slice(3, -1) - 1].name;
     return choice;
   }
 

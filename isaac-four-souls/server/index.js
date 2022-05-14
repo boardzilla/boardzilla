@@ -19,7 +19,7 @@ const addCards = (pieces, deck) => {
 const addAllCards = (type, deck) => addCards(findCards(type), deck);
 
 game.setupPlayerMat(mat => {
-  mat.addSpace('#tableau', { layout: 'splay', columns: 12, rows: 2 });
+  mat.addSpace('#tableau', { layout: 'splay', columns: game.players.length > 2 ? 9 : 12, rows: 2 });
   mat.addSpace('#hand', { layout: 'splay', columns: 16, minWidth: 73 });
   mat.addSpace('#souls', { layout: 'splay', columns: 2, rows: 2, minWidth: 73, minHeight: 100 });
   mat.addComponent('counter', { name: 'health', display: 'hp', initialValue: 2, max: 5, left: 20, bottom: 140 });
