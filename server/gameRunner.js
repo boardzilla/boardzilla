@@ -52,7 +52,6 @@ class GameRunner {
     const actionQueueName = `${actionExchangeName}-${sessionId}-queue`;
     const eventChannel = await this.conn.createChannel();
     const actionsChannel = await this.conn.createChannel();
-    actionsChannel.prefetch(10);
     const responseChannel = await this.conn.createChannel();
     const actionPublishChannel = await this.conn.createChannel();
     const eventPublishChannel = await this.conn.createChannel();
@@ -158,16 +157,8 @@ class GameRunner {
     const gameVersion = await session.getGameVersion();
     const game = await gameVersion.getGame();
     const serverBuffer = await this.s3Provider.getObject({ Key: path.join(game.name, 'server', gameVersion.serverDigest, 'index.js') }).promise();
-    const queue = [];
-    let processorRunning = false;
-    async function processMessage(internal) {
-      if (processorRunning && !internal) return;
-      if (queue.length === 0) {
-        processorRunning = false;
-        return;
-      }
-      const message = queue.shift();
-      processorRunning = true;
+
+    actionsChannel.consume(actionQueueName, async message => {
       try {
         const publishPlayerViews = async () => {
           const playerViews = gameInstance.getPlayerViews();
@@ -303,14 +294,9 @@ class GameRunner {
           return;
         }
       } catch (e) {
+        await actionsChannel.reject(message);
         await handleError(e);
       }
-      setImmediate(() => processMessage(true));
-    }
-
-    actionsChannel.consume(actionQueueName, message => {
-      queue.push(message);
-      processMessage(false);
     }, { noAck: false, consumerTag: actionConsumerTag });
 
     this.handles.add(handle);
