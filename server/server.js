@@ -478,7 +478,7 @@ module.exports = ({
         console.log('error while publishing', e);
         ws.close(4001);
       }
-    }
+    };
     const queue = async (type, payload) => {
       try {
         const response = await sessionRunner.publishAction({ type, payload });
@@ -619,7 +619,7 @@ module.exports = ({
     (await session.getChats()).forEach(publishChat);
     sessionRunner.publishAction({ type: session.state === 'initial' ? 'updatePlayers' : 'refreshAll' }).catch(() => {
       ws.close(4001);
-    })
+    });
 
     return null;
   };

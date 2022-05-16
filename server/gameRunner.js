@@ -289,7 +289,7 @@ class GameRunner {
               Sentry.captureException(e);
             });
             const session = await db.Session.findByPk(sessionId);
-            await session.update({ state: 'error' })
+            await session.update({ state: 'error' });
           }
         } finally {
           handle.emit('error', e);
