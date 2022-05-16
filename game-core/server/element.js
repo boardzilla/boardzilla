@@ -215,7 +215,7 @@ class GameElement {
     Object.keys(attrs).forEach(attr => el.setAttribute(attr, escape(attrs[attr])));
     this.node.appendChild(el);
     const gameElement = this.wrap(this.node.lastChild);
-    if (GameElement.isPieceNode(this.node.lastChild) && GameElement.isSpaceNode(this.node) && this.get('layout') !== 'stack') gameElement.assignUUID();
+    if (GameElement.isPieceNode(this.node.lastChild) && this.get('layout') !== 'stack') gameElement.assignUUID();
     return gameElement;
   }
 
