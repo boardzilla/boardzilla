@@ -103,7 +103,7 @@ async function run() {
 **General**
 - Better rearrangement of items in splayed space (e.g. cards in your hand)
 - Better translation of drag location when scaling the play area
-`
+`,
   });
   const session = await db.Session.create({ creatorId: players[0].id, gameVersionId: gameVersion.id, seed: 0 });
   await Promise.all(players.map((player, i) => db.SessionUser.create({ sessionId: session.id, userId: player.id, color: colors[player.id], position: i })));

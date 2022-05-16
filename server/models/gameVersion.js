@@ -1,5 +1,5 @@
 const discordMarkdown = require('discord-markdown');
-const dayjs = require('dayjs')
+const dayjs = require('dayjs');
 
 module.exports = (sequelize, DataTypes) => {
   const GameVersion = sequelize.define('GameVersion', {
@@ -20,9 +20,9 @@ module.exports = (sequelize, DataTypes) => {
   GameVersion.prototype.notesHTML = function () {
     return this.notes ? discordMarkdown.toHTML(this.notes) : null;
   };
-  GameVersion.prototype.formattedCreatedAt = function() {
-    return dayjs(this.createdAt).format("YYYY-MM-DD h:mm");
-  }
+  GameVersion.prototype.formattedCreatedAt = function () {
+    return dayjs(this.createdAt).format('YYYY-MM-DD h:mm');
+  };
 
   return GameVersion;
 };
