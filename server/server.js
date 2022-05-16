@@ -419,7 +419,7 @@ module.exports = ({
   }
 
   app.get('/play', async (req, res) => {
-    const sessions = await db.Session.findAll({ include: [db.Game, { model: db.User, as: 'creator' }] });
+    const sessions = await db.Session.findAll({ include: [{ model: db.GameVersion, include: [db.Game] }, { model: db.User, as: 'creator' }] });
     res.render('index', { sessions });
   });
 
