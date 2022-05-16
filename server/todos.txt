@@ -5,7 +5,32 @@ container
  zone
  zone
 
+powergrid
+- board with city spaces, resource squares, hide/show regions
+- houses free move into cities (22p - 2)
+- resource tokens, onto factories and resource squares (24/24/24/12)
+- score meter, money counter (+/- 5, 10, 50 ?)
+- cards with auto sort
+- hammer discount tokens on cards
+- turn spots addGrid, holding player tokens
+- bid action
+
+- cards: 42, step3
+- 5 refill
+- 6 summary?
+- turn order summary
+
+- addGrid
 - piece drag on to piece
+- numerical action type
+- turn order changes
+- display component?
+- inc, toggle
+- graph, adjacency
+  - user calls createAdjacencies((node1, node2) => is-adjacent or cost) and boards precalculates the graph
+  - element.findAdjacent(selector)
+  - element.findWithinDistance(cost, selector)
+
 - components packaged better (+/- n counter options, mobile?)
 - mobile landscape
 X grid-snapping dungeon, tableau, space->piece rules
@@ -29,7 +54,6 @@ X game cleaning and idling
 X movement echo???
 X animate activate, or flip?
 - multi-select
-- numerical action type
 X moveEl changes to deal with stack change???
 X give all
 X addPlayer? order
