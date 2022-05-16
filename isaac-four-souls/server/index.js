@@ -29,7 +29,6 @@ game.setupPlayerMat(mat => {
 });
 
 game.setupBoard(board => {
-  console.log(board.node);
   const charactersDeck = board.addSpace('#characters', { layout: 'stack', class: 'deck' });
   addAllCards('character', charactersDeck);
   charactersDeck.shuffle();
