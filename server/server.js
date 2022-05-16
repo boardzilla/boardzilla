@@ -423,7 +423,7 @@ module.exports = ({
     res.render('index', { sessions });
   });
 
-  const verifyClient = async (info, verified) => {
+  const verifyClient = (info, verified) => {
     cookieParser()(info.req, null, () => {});
     try {
       verifyToken(info.req, (error, user) => {
