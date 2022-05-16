@@ -617,8 +617,11 @@ module.exports = ({
     });
 
     (await session.getChats()).forEach(publishChat);
-    sessionRunner.publishAction({ type: session.state === 'initial' ? 'updatePlayers' : 'refreshAll' }).catch(() => {
-      ws.close(4001);
+
+    console.log("publish the initial refresh...");
+    sessionRunner.publishAction({ type: session.state === 'initial' ? 'updatePlayers' : 'refreshAll' }).catch(e => {
+      console.error("error", e);
+      ws.close(1011);
     });
 
     return null;
