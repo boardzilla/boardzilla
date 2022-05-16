@@ -702,7 +702,6 @@ class GameInterface {
       } else {
         el.moveToTop();
         el.set(positioning);
-        console.log(positioning, el.node.innerHTML);
       }
     } else {
       throw new Error(`Illegal moveElement ${el.node.outerHTML}, ${this.allowedMoveElements}`);

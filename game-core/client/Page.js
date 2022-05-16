@@ -281,11 +281,15 @@ export default class Page extends Component {
           const {x, y} = el.getBoundingClientRect();
           const style = el.parentNode.style;
           const oldCss = style.cssText;
+          const oldPos = ['left', 'right', 'top', 'bottom'].reduce((s, p) => {s[p] = style[p]; return s}, {});
+
           let [_, tx, ty] = [0, 0, 0];
           const transform = oldCss.match(/translate\((-?[\d.]+)[^-.\d]*(-?[\d.]+)/);
           if (transform) [_, tx, ty] = transform;
           const flipped = el.matches('.flipped *, .flipped');
           style.cssText = `transform: translate(${(flipped ? -1 : 1) * (oldX - x) + parseInt(tx, 10)}px, ${(flipped ? -1 : 1) * (oldY - y) + parseInt(ty, 10)}px); display: block`;
+          Object.entries(oldPos).forEach(([p, old]) => style[p] = old);
+
           setTimeout(() => {
             el.parentNode.classList.remove('no-transition');
             style.cssText = oldCss;
@@ -408,7 +412,7 @@ export default class Page extends Component {
       const el = elByChoice(choice);
       const ontoXY = dragOver && parent.getBoundingClientRect();
       const elXY = el.getBoundingClientRect();
-      if (dragAction) {
+      if (dragAction && dragOver !== parentChoice(choice)) {
         if (['splay', 'grid'].includes(parent.getAttribute('layout'))) {
           const splay = parent.getAttribute('layout') === 'splay';
           this.gameAction(dragAction, choice, dragOver, {
@@ -616,14 +620,14 @@ export default class Page extends Component {
           (this.state.choices instanceof Array && this.state.choices.includes(key))
         )
       });
-      if (type === 'space') {
-        if (this.state.dragging) props.onMouseEnter = () => this.isValidDropSpace(key) && this.setState({dragOver: key});
-        if (this.state.dragging && this.state.dragOver === key) {
-          props.onMouseLeave = () => this.setState({
-            dragOver: choiceAtPoint(mouse.x, mouse.y, el => this.isValidDropSpace(choiceByEl(el)) && choiceByEl(el) !== this.state.dragOver)
-          });
-        }
+
+      if (this.state.dragging) props.onMouseEnter = () => this.isValidDropSpace(key) && this.setState({dragOver: key});
+      if (this.state.dragging && this.state.dragOver === key) {
+        props.onMouseLeave = () => this.setState({
+          dragOver: choiceAtPoint(mouse.x, mouse.y, el => this.isValidDropSpace(choiceByEl(el)) && choiceByEl(el) !== this.state.dragOver)
+        });
       }
+
       if (externallyControlled && this.state.positions[key]) {
         position = this.state.positions[key];
       } else if (node.parentNode.getAttribute('layout') === 'stack' && !attributes.moved) {
@@ -643,6 +647,12 @@ export default class Page extends Component {
           delete props[p];
         }
       });
+
+      // ensure minimal positioning for a positioned piece
+      if (type !== 'space' && node.parentNode.getAttribute('layout') !== 'stretch') {
+        if (wrappedStyle.right === undefined && wrappedStyle.left === undefined) wrappedStyle.left = 0;
+        if (wrappedStyle.bottom === undefined && wrappedStyle.top === undefined) wrappedStyle.top = 0;
+      }
     }
 
     if (['splay', 'grid'].includes(node.getAttribute('layout'))) {
@@ -654,8 +664,8 @@ export default class Page extends Component {
         gridTemplateColumns: `repeat(${(columns || 1) - 1}, 1fr) ${props.minwidth ? props.minwidth + 'px' : '1fr'}`,
         gridTemplateRows: `repeat(${(props.rows || 1) - 1}, 1fr) ${props.minheight ? props.minheight + 'px' : '1fr'}`,
         gap: `${props.gutter || 0}px`,
-    };
-  }
+      };
+    }
 
     let contents;
     if (node.getAttribute('layout') === 'stack' && node.childElementCount) {
@@ -727,6 +737,7 @@ export default class Page extends Component {
       return (
         <Draggable
           disabled={externallyControlled}
+          onStart={e => e.stopPropagation()}
           onDrag={(e, data) => this.dragging(key, data.x, data.y, e, !this.state.dragging && choiceForXmlNode(node.parentNode))}
           onStop={(e, data) => this.stopDrag(key, data.x, data.y, e)}
           key={key}

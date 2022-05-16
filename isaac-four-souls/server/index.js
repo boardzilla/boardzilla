@@ -29,7 +29,6 @@ game.setupPlayerMat(mat => {
 });
 
 game.setupBoard(board => {
-  console.log(board.node);
   const charactersDeck = board.addSpace('#characters', { layout: 'stack', class: 'deck' });
   addAllCards('character', charactersDeck);
   charactersDeck.shuffle();
@@ -340,7 +339,7 @@ game.defineActions({
     prompt: 'Add counter',
     log: '$0 added counter to $1',
     key: 'c',
-    select: '.mine card:empty, #board card:empty',
+    select: '.mine card, #board card',
     action: card => card.addComponent('counter', { max: 99 }),
   },
   removeCounter: {

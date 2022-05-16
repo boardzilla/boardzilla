@@ -23,52 +23,6 @@ class Space extends GameElement {
     return this.findAll(q).filter(el => el instanceof Piece);
   }
 
-  // move pieces to a space, at end of list (on top). use num to limit the number moved. use position to control child placement (same as slice)
-  move(pieces, to, num, position = 0) {
-    const space = this.root().space(to);
-    if (!space) throw new Error(`No space found "${to}"`);
-    let movables = this.pieces(pieces);
-    if (num !== undefined) movables = movables.slice(-num);
-    if (!movables.length) return [];
-    if (position < 0) {
-      position = -1 - position;
-    } else {
-      position = space.node.childElementCount - position;
-    }
-    position = Math.min(Math.max(position, 0), space.node.childElementCount);
-    let outOfSplay = false;
-    movables.forEach(piece => {
-      piece.unset('x', 'y', 'left', 'top', 'right', 'bottom');
-      outOfSplay = outOfSplay || (piece.parent().get('layout') === 'splay' && piece.parent());
-      const previousId = piece.serialize();
-      if (GameElement.isPieceNode(piece.node) && !piece.hasParent(space) && space.get('layout') !== 'stack') piece.assignUUID();
-      space.node.insertBefore(piece.node, space.node.children[position]);
-      if (space.get('layout') === 'grid' && piece.get('cell') === undefined) {
-        piece.set({ cell: space.findOpenCell() });
-      }
-      this.game.changeset.push([previousId, piece.serialize()]);
-    });
-    this.game.processAfterMoves(movables);
-    if (space.get('layout') === 'splay') {
-      Array.from(space.node.children).forEach(c => {
-        const nextId = this.wrap(c).serialize();
-        if (!this.game.changeset.find(cs => cs[1] === nextId)) this.game.changeset.push([nextId, nextId]);
-      });
-    }
-    if (outOfSplay && outOfSplay.node !== space.node) {
-      Array.from(outOfSplay.node.children).forEach(c => {
-        const nextId = this.wrap(c).serialize();
-        if (!this.game.changeset.find(cs => cs[1] === nextId)) this.game.changeset.push([nextId, nextId]);
-      });
-    }
-    return movables;
-  }
-
-  // move pieces to a space, at start of list (on bottom). use num to limit the number moved
-  moveToBottom(pieces, to, num) {
-    this.move(pieces, to, num, -1);
-  }
-
   add(pieces, num) {
     return this.move(this.pile().pieces(pieces), this, num);
   }
