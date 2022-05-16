@@ -265,7 +265,10 @@ export default class Page extends Component {
       });
     }
     this.send('refresh');
-    setInterval(() => this.send('ping'), PING_INTERVAL);
+    setInterval(() => {
+      if (!this.state.connected) return;
+      this.send('ping');
+    }, PING_INTERVAL);
   }
 
   componentDidUpdate() {
