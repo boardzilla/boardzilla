@@ -471,13 +471,21 @@ module.exports = ({
     }, { once: true });
 
     const sendWS = (type, payload) => ws.send(JSON.stringify({ type, payload }));
-    const publish = async (type, payload) => sessionRunner.publishEvent({ type, payload });
+    const publish = async (type, payload) => {
+      try {
+        await sessionRunner.publishEvent({ type, payload });
+      } catch (e) {
+        console.log('error while publishing', e);
+        ws.close(4001);
+      }
+    }
     const queue = async (type, payload) => {
       try {
         const response = await sessionRunner.publishAction({ type, payload });
         sendWS('response', { id: payload.id, response });
       } catch (e) {
         console.log('error while queuing', e);
+        ws.close(4001);
       }
     };
     const publishChat = async chat => {
@@ -560,6 +568,12 @@ module.exports = ({
     sessionRunner.once('error', async (error) => {
       await sessionRunner.stop();
       log.error('error starting session!', error);
+
+      Sentry.withScope(scope => {
+        scope.setTag('source', 'ws');
+        scope.setExtra('session_id', req.sessionId);
+        Sentry.captureException(error);
+      });
       return ws.close(1011); // internal error
     });
 
@@ -603,7 +617,9 @@ module.exports = ({
     });
 
     (await session.getChats()).forEach(publishChat);
-    sessionRunner.publishAction({ type: session.state === 'initial' ? 'updatePlayers' : 'refreshAll' });
+    sessionRunner.publishAction({ type: session.state === 'initial' ? 'updatePlayers' : 'refreshAll' }).catch(() => {
+      ws.close(4001);
+    })
 
     return null;
   };
