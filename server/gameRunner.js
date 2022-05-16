@@ -23,25 +23,6 @@ class GameRunner {
     const responsePromises = {};
     let stopConsuming = false;
 
-    const handleError = async e => {
-      if (stopConsuming) {
-        log.debug('erorr in game loop, but consuming was stopped, so, ignoring', e);
-        return;
-      }
-      log.error('error in game runner loop', e);
-      Sentry.withScope(scope => {
-        scope.setTag('source', 'game-runner');
-        scope.setExtra('session_id', sessionId);
-        Sentry.captureException(e);
-      });
-      if (process.env.NODE_ENV !== 'development') {
-        const session = await db.Session.findByPk(sessionId);
-        session.update({ state: 'error' }).then(() => {
-          handle.emit('error', e);
-        });
-      }
-    };
-
     const actionConsumerTag = nanoid();
     const eventConsumerTag = nanoid();
     const sessionIdKey = String(sessionId);
@@ -294,8 +275,25 @@ class GameRunner {
           return;
         }
       } catch (e) {
-        await actionsChannel.reject(message);
-        await handleError(e);
+        try {
+          log.error('error in game runner loop', e);
+          await actionsChannel.reject(message);
+          if (stopConsuming) {
+            log.debug('erorr in game loop, but consuming was stopped, so, ignoring', e);
+            return;
+          }
+          if (process.env.NODE_ENV !== 'development') {
+            Sentry.withScope(scope => {
+              scope.setTag('source', 'game-runner');
+              scope.setExtra('session_id', sessionId);
+              Sentry.captureException(e);
+            });
+            const session = await db.Session.findByPk(sessionId);
+            await session.update({ state: 'error' });
+          }
+        } finally {
+          handle.emit('error', e);
+        }
       }
     }, { noAck: false, consumerTag: actionConsumerTag });
 
