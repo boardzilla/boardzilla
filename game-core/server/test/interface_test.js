@@ -17,15 +17,20 @@ describe('GameInterface', () => {
     const game = this.interface;
     game.setPlayers({ min: 4 });
     game.initialize();
-    [101, 102, 103, 104].forEach(p => game.addPlayer(p, `p${p}`));
+    game.addPlayers([
+      { id: 101, name: 'Joe' },
+      { id: 102, name: 'Jane' },
+      { id: 103, name: 'Jack' },
+      { id: 104, name: 'Jen' },
+    ]);
 
     game.play(async () => {
       game.set('tokens', 4);
       do {
-        await game.anyPlayerPlay(['addSome']);
+        await game.anyPlayerPlay(['addSome', 'spend']);
         console.log('in turn', game.get('tokens'), game.sequence);
       } while (game.get('tokens') < 8);
-      game.currentPlayer = 1;
+      game.currentPlayerPosition = 1;
       do {
         await game.playersInTurn(async (turn) => {
           console.log('playersInTurn', turn, game.currentPlayer);
@@ -60,20 +65,21 @@ describe('GameInterface', () => {
 
   describe('start', () => {
     it('waits for playerStart', done => {
-      this.interface.start([]).then(() => assert(false, 'start completed without player start'));
+      this.interface.startProcessing().then(() => assert(false, 'start completed without player start'));
       setTimeout(done, 100);
     });
 
     it('proceeds with playerStart', async () => {
-      this.interface.start();
-      const result = await this.interface.playerStart();
+      this.interface.startProcessing();
+      const result = await this.interface.processPlayerStart();
       console.log(result);
     });
   });
 
   describe('replay', () => {
     it('plays', async () => {
-      await this.interface.start([
+      this.interface.startProcessing();
+      await this.interface.processHistory([
         [2, 0, 'addSome', 2],
         [3, 1, 'addSome', 2],
         [3, 2, 'addSome', 200], // will be ignored
@@ -91,9 +97,12 @@ describe('GameInterface', () => {
     });
   });
 
-  describe('chooseAction', () => {
-    it('can run composite actions', () => {
-      this.interface.runAction('spend', ['gold', 2]);
+  describe('processAction', () => {
+    it('can run composite actions', async () => {
+      this.interface.startProcessing();
+      await this.interface.processPlayerStart();
+      console.log('current', this.interface.currentPlayerPosition);
+      await this.interface.processAction(1, 0, 'spend', '"gold"', 2);
       expect(this.spendSpy).to.have.been.called.with('gold', 2);
     });
   });

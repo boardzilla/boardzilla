@@ -1,6 +1,6 @@
 const GameElement = require('./element');
 const Piece = require('./piece');
-const { times } = require('./utils');
+const { times, registerElement } = require('./utils');
 
 class Space extends GameElement {
   space(q) {
@@ -52,7 +52,7 @@ class Space extends GameElement {
   }
 
   sort(fn) {
-    Space.sort(Array.from(this.node.children).map(node => this.wrap(node)), fn)
+    Space.sort(Array.from(this.node.children).map(node => node.gameElement), fn)
       .map(pair => pair.node)
       .forEach(i => this.node.insertBefore(i, null));
   }
@@ -78,6 +78,6 @@ class Space extends GameElement {
   }
 }
 
-GameElement.wrapNodeAs(1, Space, GameElement.isSpaceNode);
+registerElement('space', Space);
 
 module.exports = Space;

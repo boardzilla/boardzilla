@@ -1,12 +1,13 @@
 const GameElement = require('./element');
+const { registerElement } = require('./utils');
 
 class Piece extends GameElement {
   move(to, position = 0) {
-    return this.root().move([this], to || this.parent(), 1, position);
+    return this.document.move([this], to || this.parent(), 1, position);
   }
 
   moveToBottom(to) {
-    return this.root().moveToBottom([this], to || this.parent());
+    return this.document.moveToBottom([this], to || this.parent());
   }
 
   remove() {
@@ -14,6 +15,6 @@ class Piece extends GameElement {
   }
 }
 
-GameElement.wrapNodeAs(2, Piece, GameElement.isPieceNode);
+registerElement('piece', Piece);
 
 module.exports = Piece;

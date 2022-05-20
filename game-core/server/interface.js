@@ -3,7 +3,7 @@ const Player = require('./player');
 const GameDocument = require('./document');
 const GameElement = require('./element');
 const ActionQueue = require('./actionqueue');
-const { range, asyncTimes } = require('./utils');
+const { range, asyncTimes, isSpaceNode } = require('./utils');
 
 class InvalidChoiceError extends Error {}
 class InvalidActionError extends Error {}
@@ -88,7 +88,7 @@ class GameInterface {
   initialize(rseed) {
     console.log('I: initialize');
     this.random = random.create(rseed);
-    this.doc = new GameDocument(null, { game: this });
+    this.doc = new GameDocument(this);
     this.board = this.doc.board();
     this.pile = this.doc.pile();
     this.variables = this.initialVariables || {};
@@ -292,9 +292,7 @@ class GameInterface {
         playerView.findNodes(selector).forEach(n => {
           n.removeAttribute('id');
           attrs.forEach(attr => n.removeAttribute(attr));
-          if (GameElement.isSpaceNode(n)) {
-            n.innerHTML = ''; // space contents are hidden
-          }
+          if (isSpaceNode(n)) n.innerHTML = ''; // space contents are hidden
         });
       });
       console.log('getPlayerView:hidden');

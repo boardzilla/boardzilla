@@ -1,22 +1,32 @@
 const { DOMParser } = require('linkedom/cached');
-const GameElement = require('./element');
 const Space = require('./space');
 
 class GameDocument extends Space {
-  constructor(node, caller) {
-    const document = caller.document
-                   // initial call to build the base DOM
-                   || (new DOMParser()).parseFromString('<game><space id="board"/><space id="pile"/></game>', 'text/xml');
+  constructor(game, xmlDoc) {
+    const newDoc = !xmlDoc;
+    // initial call to build the base DOM
+    xmlDoc = xmlDoc || (new DOMParser()).parseFromString('<game/>', 'text/xmlDoc');
+    super({ node: xmlDoc.getRootNode() });
 
-    super(document.getRootNode(), { game: caller.game, document });
+    this.document = this;
+    this.game = game;
+    this.xmlDoc = xmlDoc;
+    if (newDoc) {
+      this.addGameElement('#board', 'space');
+      this.addGameElement('#pile', 'space');
+    }
   }
 
   clone() {
-    const document = this.document.cloneNode(true);
-    return new GameDocument(document, { game: this.game, document });
+    return new GameDocument(this.game, this.xmlDoc.cloneNode(true));
+  }
+
+  // return element from branch
+  pieceAt(key) {
+    return this.find(
+      `game > ${key.split('-').map(index => `*:nth-child(${index})`).join(' > ')}`,
+    );
   }
 }
-
-GameElement.wrapNodeAs(0, GameDocument, node => !node.parentNode);
 
 module.exports = GameDocument;

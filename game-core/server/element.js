@@ -1,15 +1,10 @@
-const { customAlphabet } = require('nanoid/non-secure');
-const { times } = require('./utils');
-
-const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 10);
-
-const gameElements = [];
+const { times, nodeClass, isPieceNode, nanoid } = require('./utils');
 
 class GameElement {
-  constructor(node, caller = {}) {
+  constructor({ node, game, document }) {
     this.node = node;
-    this.document = caller.document;
-    this.game = caller.game;
+    this.document = document;
+    this.game = game;
     this.id = node.id; // TODO reserved id's? game, board...
     this.type = node.nodeName.toLowerCase();
   }
@@ -24,17 +19,6 @@ class GameElement {
       .replace(/#(\d)/g, '#\\3$1 ')
       .replace(/([#=])(\d)/g, '$1\\3$2 ')
       .replace(/="([^"]+)/g, (_, p1) => `="${escape(p1)}`);
-  }
-
-  wrap(node) {
-    if (!node) return null;
-    const element = gameElements.find(el => el && el.test(node));
-    if (!element) throw Error(`No wrapper for node ${node.nodeName}`);
-    return new element.className(node, { game: this.game, document: this.document });
-  }
-
-  static wrapNodeAs(index, className, test) {
-    gameElements[index] = { className, test };
   }
 
   /**
@@ -110,13 +94,13 @@ class GameElement {
 
   find(q) {
     if (q instanceof GameElement) return q;
-    return this.wrap(this.findNode(q));
+    return this.findNode(q)?.gameElement;
   }
 
   findAll(q) {
     if (q instanceof GameElement) return [q];
     if (q instanceof Array) return q;
-    return Array.from(this.findNodes(q)).map(node => this.wrap(node));
+    return Array.from(this.findNodes(q)).map(node => node?.gameElement);
   }
 
   player() {
@@ -124,7 +108,7 @@ class GameElement {
   }
 
   parent() {
-    return this.node.parentNode && this.wrap(this.node.parentNode);
+    return this.node?.parentNode?.gameElement;
   }
 
   matches(q) {
@@ -151,32 +135,24 @@ class GameElement {
     return `$el(${branches.join('-')})`;
   }
 
-  root() {
-    return this.wrap(this.document);
-  }
-
   boardNode() {
-    return this.document.getRootNode().children[0];
+    return this.document.node.children[0];
   }
 
   board() {
-    return this.wrap(this.boardNode());
+    return this.boardNode()?.gameElement;
   }
 
   pileNode() {
-    return this.document.getRootNode().children[1];
+    return this.document.node.children[1];
   }
 
   pile() {
-    return this.wrap(this.pileNode());
+    return this.pileNode()?.gameElement;
   }
 
   place(pieces, to) {
     return this.pile().move(pieces, to);
-  }
-
-  duplicate() {
-    return this.wrap(this.node.parentNode.appendChild(this.node.cloneNode(true)));
   }
 
   destroy() {
@@ -208,20 +184,22 @@ class GameElement {
     }
   }
 
-  addGameElement(name, type, attrs = {}) {
-    const el = this.document.createElement(type);
-    if (name[0] !== '#') throw Error(`id ${name} must start with #`);
-    el.id = name.slice(1);
+  addGameElement(id, type, attrs = {}) {
+    const el = this.document.xmlDoc.createElement(type);
+    if (id[0] !== '#') throw Error(`id ${id} must start with #`);
+    el.id = id.slice(1);
     Object.keys(attrs).forEach(attr => el.setAttribute(attr, escape(attrs[attr])));
     this.node.appendChild(el);
-    const gameElement = this.wrap(this.node.lastChild);
-    if (GameElement.isPieceNode(this.node.lastChild) && this.get('layout') !== 'stack') gameElement.assignUUID();
+    const ElementClass = nodeClass(el);
+    const gameElement = new ElementClass({ node: el, game: this.game, document: this.document });
+    el.gameElement = gameElement;
+    if (isPieceNode(el) && this.get('layout') !== 'stack') gameElement.assignUUID();
     return gameElement;
   }
 
   // move pieces to a space, at end of list (on top). use num to limit the number moved. use position to control child placement (same as slice)
   move(pieces, to, num, position = 0) {
-    const space = this.root().find(to);
+    const space = this.document.find(to);
     if (!space) throw new Error(`No space found "${to}"`);
     let movables = this.pieces(pieces);
     if (num !== undefined) movables = movables.slice(-num);
@@ -237,7 +215,7 @@ class GameElement {
       piece.unset('x', 'y', 'left', 'top', 'right', 'bottom');
       outOfSplay = outOfSplay || (piece.parent().get('layout') === 'splay' && piece.parent());
       const previousId = piece.serialize();
-      if (GameElement.isPieceNode(piece.node) && !piece.hasParent(space) && space.get('layout') !== 'stack') piece.assignUUID();
+      if (isPieceNode(piece.node) && !piece.hasParent(space) && space.get('layout') !== 'stack') piece.assignUUID();
       space.node.insertBefore(piece.node, space.node.children[position]);
       if (space.get('layout') === 'grid' && piece.get('cell') === undefined) {
         piece.set({ cell: space.findOpenCell() });
@@ -247,13 +225,13 @@ class GameElement {
     this.game.processAfterMoves(movables);
     if (space.get('layout') === 'splay') {
       Array.from(space.node.children).forEach(c => {
-        const nextId = this.wrap(c).serialize();
+        const nextId = c.gameElement.serialize();
         if (!this.game.changeset.find(cs => cs[1] === nextId)) this.game.changeset.push([nextId, nextId]);
       });
     }
     if (outOfSplay && outOfSplay.node !== space.node) {
       Array.from(outOfSplay.node.children).forEach(c => {
-        const nextId = this.wrap(c).serialize();
+        const nextId = c.gameElement.serialize();
         if (!this.game.changeset.find(cs => cs[1] === nextId)) this.game.changeset.push([nextId, nextId]);
       });
     }
@@ -269,25 +247,10 @@ class GameElement {
     this.node.parentNode.appendChild(this.node);
   }
 
-  static isSpaceNode(node) {
-    return node && node.nodeName === 'space';
-  }
-
-  static isPieceNode(node) {
-    return node && !GameElement.isSpaceNode(node);
-  }
-
   // return string representation, e.g. "$el(2-1-3)"
   serialize() {
     if (this.get('uuid')) return `$uuid(${this.get('uuid')})`;
     return this.branch();
-  }
-
-  // return element from branch
-  pieceAt(key) {
-    return this.root().find(
-      `game > ${key.split('-').map(index => `*:nth-child(${index})`).join(' > ')}`,
-    );
   }
 
   toString() {
