@@ -1,4 +1,6 @@
 const game = require('game-core-server');
+const Counter = require('game-core-server/counter');
+const Die = require('game-core-server/die');
 const { editions, cards } = require('./data');
 
 game.setPlayers({
@@ -22,10 +24,10 @@ game.setupPlayerMat(mat => {
   mat.addSpace('#tableau', { layout: 'splay', columns: game.players.length > 2 ? 9 : 12, rows: 2 });
   mat.addSpace('#hand', { layout: 'splay', columns: 16, minWidth: 73 });
   mat.addSpace('#souls', { layout: 'splay', columns: 2, rows: 2, minWidth: 73, minHeight: 100 });
-  mat.addComponent('counter', { name: 'health', display: 'hp', initialValue: 2, max: 5, left: 20, bottom: 140 });
-  mat.addComponent('counter', { name: 'attack', display: 'attack', initialValue: 1, max: 8, left: 140, bottom: 140 });
-  mat.addComponent('counter', { name: 'coins', display: 'coin', initialValue: 3, max: 50, right: 170, bottom: 140 });
-  mat.addComponent('die', { faces: 6, right: 200, top: 20 });
+  mat.addInteractivePiece(Counter, { name: 'health', component: 'HealthCounter', initialValue: 2, max: 5, left: 20, bottom: 140 });
+  mat.addInteractivePiece(Counter, { name: 'attack', component: 'AttackCounter', initialValue: 1, max: 8, left: 140, bottom: 140 });
+  mat.addInteractivePiece(Counter, { name: 'coins', component: 'CoinCounter', initialValue: 3, max: 50, right: 170, bottom: 140 });
+  mat.addInteractivePiece(Die, { faces: 6, right: 200, top: 20 });
 });
 
 game.setupBoard(board => {
@@ -340,7 +342,7 @@ game.defineActions({
     log: '$0 added counter to $1',
     key: 'c',
     select: '.mine card, #board card',
-    action: card => card.addComponent('counter', { max: 99 }),
+    action: card => card.addInteractivePiece(Counter, { max: 99 }),
   },
   removeCounter: {
     prompt: 'Remove counter',
@@ -423,7 +425,7 @@ Object.entries(editions).forEach(([i, edition]) => {
 
 game.play(async () => {
   game.playersMayAlwaysMove('.mine card, .mine counter, #board counter, .mine die, #shop card, #dungeon card, #bonus-souls card');
-  game.playersMayAlwaysPlay(['setCounter', 'rollDie']);
+  game.playersMayAlwaysPlay(['interactWithPiece']);
 
   let action;
   game.prompt('Select starting characters and eternals, then hit Begin game');
@@ -453,7 +455,7 @@ game.play(async () => {
   const monsterDeck = game.board.find('#monsters');
   monsterDeck.add('card[type="monster"]');
   monsterDeck.shuffle();
-  game.board.addComponent('counter', { display: 'hp', initialValue: 1, max: 8, left: game.players.length > 2 ? 1290 : 990, top: 110 });
+  game.board.addInteractivePiece(Counter, { name: 'boss health', component: 'HealthCounter', initialValue: 1, max: 8, left: game.players.length > 2 ? 1290 : 990, top: 110 });
   const roomDeck = game.board.find('#rooms');
   roomDeck.add('card[type="room"]');
   roomDeck.shuffle();

@@ -12,8 +12,8 @@ class GameDocument extends Space {
     this.game = game;
     this.xmlDoc = xmlDoc;
     if (newDoc) {
-      this.addGameElement('#board', 'space');
-      this.addGameElement('#pile', 'space');
+      this.addSpace('#board');
+      this.addSpace('#pile');
     }
   }
 

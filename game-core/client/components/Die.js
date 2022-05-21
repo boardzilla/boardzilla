@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 
-export default function Die({id, number, rolls, faces, gameAction}) {
+export default function Die({number, rolls, faces, action}) {
   const [override, setOverride] = useState();
   const [rolls2, setRolls2] = useState(rolls);
   const [shake, setShake] = useState({x:0, y:0});
@@ -8,7 +8,7 @@ export default function Die({id, number, rolls, faces, gameAction}) {
   const roll = () => {
     const rolling = setInterval(() => setOverride(Math.floor(Math.random() * faces + 1)), 100);
     setTimeout(() => {clearInterval(rolling); setOverride(null)}, 1000);
-    gameAction('rollDie', id);
+    action('roll');
   };
 
   const shakeIt = (f=100) => setShake({x: (Math.random() - .5) * f, y: (Math.random() - .5) * f})
@@ -22,7 +22,7 @@ export default function Die({id, number, rolls, faces, gameAction}) {
   }
 
   const rollD6 = () => {
-    gameAction('rollDie', id);
+    action('roll');
     setRolls2(rolls2 + 1);
     shakeSequence()
   };

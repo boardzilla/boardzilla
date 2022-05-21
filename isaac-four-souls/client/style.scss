@@ -212,17 +212,37 @@
         color: #c30;
       }
     }
-    &[display="hp"] img {
+    &[name="health"] img, &[name="boss health"] img {
       width: 24px;
       margin: 0 0px;
       position: relative;
       top: 7px;
     }
-    &[display="attack"] img {
+    &[name="attack"] img {
       width: 32px;
       margin: 0 -4px;
       position: relative;
       top: 10px;
+    }
+    &[name="coins"] {
+      color: white;
+      width: 35px;
+      display: inline-block;
+      font-size: 15px;
+      padding: 0px 2px;
+      text-align: center;
+      position: relative;
+      font-weight: bold;
+      font-family: sans-serif;
+      img {
+        width: 30px;
+        position: absolute;
+        z-index: -1;
+        filter: none;
+      }
+      button:last-child {
+        margin-left: 28px;
+      }
     }
   }
 
@@ -250,24 +270,6 @@
     }
   }
 
-  .coins {
-    color: white;
-    width: 35px;
-    display: inline-block;
-    font-size: 15px;
-    padding: 0px 2px;
-    text-align: center;
-    position: relative;
-    font-weight: bold;
-    font-family: sans-serif;
-    img.penny {
-      width: 30px;
-      position: absolute;
-      z-index: -1;
-      left: 5px;
-      filter: none;
-    }
-  }
   div.nametag {
     position: absolute;
     top: 170px;

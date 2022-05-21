@@ -1,12 +1,13 @@
-const { times, nodeClass, isPieceNode, nanoid } = require('./utils');
+const { times, isPieceNode, nanoid, elementClasses } = require('./utils');
 
 class GameElement {
-  constructor({ node, game, document }) {
+  constructor({ node, game, document }, attrs) {
     this.node = node;
     this.document = document;
     this.game = game;
     this.id = node.id; // TODO reserved id's? game, board...
     this.type = node.nodeName.toLowerCase();
+    this.set(attrs);
   }
 
   assignUUID() {
@@ -27,12 +28,8 @@ class GameElement {
   get(name) {
     const attr = this.node.attributes[name];
     if (!attr || !attr.value) return undefined;
-    const value = unescape(!attr.value || Number.isNaN(Number(attr.value)) ? attr.value : Number(attr.value));
-    try {
-      return JSON.parse(value);
-    } catch (e) {
-      return value;
-    }
+    const value = !attr.value || Number.isNaN(Number(attr.value)) ? unescape(attr.value) : Number(attr.value);
+    return ['[', '{'].includes(value[0]) ? JSON.parse(value) : value;
   }
 
   /**
@@ -48,7 +45,8 @@ class GameElement {
         this.unset(name);
       }
     } else {
-      this.node.setAttribute(name, escape(value)); // TODO reserved attributes? class, className, id, style & special attributes: player, layout, x,y,top,left,right,bottom...?
+      value = typeof value === 'object' ? JSON.stringify(value) : value;
+      this.node.setAttribute(name, escape(value)); // TODO reserved attributes? class, className, id, style  & special attributes: player, layout, component, x,y,top,left,right,bottom...?
     }
   }
 
@@ -160,38 +158,25 @@ class GameElement {
   }
 
   addPiece(name, type, attrs) {
-    return this.addGameElement(name, type, attrs);
+    return this.addGameElement(elementClasses.Piece, name, type, attrs);
   }
 
   addPieces(num, name, type, attrs) {
     return times(num, () => this.addPiece(name, type, attrs));
   }
 
-  addComponent(name, attrs = {}) {
-    if (name === 'counter') {
-      const id = this.game.registerId('counter');
-      this.addPiece(`#${id}`, 'counter', {
-        value: attrs.initialValue || 0,
-        min: attrs.min || 0,
-        max: attrs.max,
-        moves: 0,
-        ...attrs,
-      });
-    }
-    if (name === 'die') {
-      const id = this.game.registerId('die');
-      this.addPiece(`#${id}`, 'die', { number: 1, rolls: 0, ...attrs });
-    }
+  addInteractivePiece(pieceClass, attrs = {}) {
+    if (!pieceClass || !pieceClass.name) throw Error(`No interactive piece class found: ${pieceClass}`);
+    const name = pieceClass.name.toLowerCase();
+    return this.addGameElement(pieceClass, `#${this.game.registerId(name)}`, name, attrs);
   }
 
-  addGameElement(id, type, attrs = {}) {
+  addGameElement(elementClass, id, type, attrs = {}) {
     const el = this.document.xmlDoc.createElement(type);
     if (id[0] !== '#') throw Error(`id ${id} must start with #`);
     el.id = id.slice(1);
-    Object.keys(attrs).forEach(attr => el.setAttribute(attr, escape(attrs[attr])));
     this.node.appendChild(el);
-    const ElementClass = nodeClass(el);
-    const gameElement = new ElementClass({ node: el, game: this.game, document: this.document });
+    const gameElement = new elementClass({ node: el, game: this.game, document: this.document }, attrs);
     el.gameElement = gameElement;
     if (isPieceNode(el) && this.get('layout') !== 'stack') gameElement.assignUUID();
     return gameElement;

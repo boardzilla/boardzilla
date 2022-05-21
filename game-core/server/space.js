@@ -1,6 +1,6 @@
 const GameElement = require('./element');
 const Piece = require('./piece');
-const { times, registerElement } = require('./utils');
+const { times, elementClasses } = require('./utils');
 
 class Space extends GameElement {
   space(q) {
@@ -70,7 +70,7 @@ class Space extends GameElement {
   }
 
   addSpace(name, attrs) {
-    return this.addGameElement(name, 'space', attrs);
+    return this.addGameElement(elementClasses.Space, name, 'space', attrs);
   }
 
   addSpaces(num, name, attrs) {
@@ -78,6 +78,6 @@ class Space extends GameElement {
   }
 }
 
-registerElement('space', Space);
+elementClasses.Space = Space;
 
 module.exports = Space;

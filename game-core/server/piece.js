@@ -1,5 +1,5 @@
 const GameElement = require('./element');
-const { registerElement } = require('./utils');
+const { elementClasses } = require('./utils');
 
 class Piece extends GameElement {
   move(to, position = 0) {
@@ -15,6 +15,6 @@ class Piece extends GameElement {
   }
 }
 
-registerElement('piece', Piece);
+elementClasses.Piece = Piece;
 
 module.exports = Piece;

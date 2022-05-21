@@ -9,14 +9,7 @@ const isSpaceNode = node => node && node.nodeName === 'space';
 const isPieceNode = node => node && !isSpaceNode(node);
 
 const elementClasses = {};
-const registerElement = (name, classType) => { elementClasses[name] = classType; };
-
-const nodeClass = node => {
-  if (isSpaceNode(node)) return elementClasses.space;
-  if (isPieceNode(node)) return elementClasses.piece;
-  throw Error('could not construct element from node');
-};
 
 const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 10);
 
-module.exports = { times, range, asyncTimes, isSpaceNode, isPieceNode, registerElement, nodeClass, nanoid };
+module.exports = { times, range, asyncTimes, isSpaceNode, isPieceNode, elementClasses, nanoid };

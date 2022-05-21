@@ -20,8 +20,6 @@ import {
   currentGridPosition,
   deserialize,
 } from './utils';
-import Counter from './Counter';
-import Die from './Die';
 import Spinner from './Spinner';
 import './style.scss';
 
@@ -61,10 +59,6 @@ export default class Page extends Component {
       replies: {} // action callbacks { id: { time, callback }, ... }
     };
     this.componentCleanup = this.componentCleanup.bind(this);
-    this.components = {
-      counter: Counter,
-      die: Die,
-    };
   }
 
   componentCleanup() {
@@ -257,7 +251,6 @@ export default class Page extends Component {
       window.addEventListener('resize', () => {
         const playArea = document.getElementById('play-area');
         const scaledPlayArea = document.getElementById('scaled-play-area');
-        console.log(playArea.offsetHeight, scaledPlayArea.offsetHeight);
         if (playArea) this.setState({ playAreaScale: Math.min(
           (playArea.offsetWidth - 20) / scaledPlayArea.offsetWidth,
           playArea.offsetHeight / scaledPlayArea.offsetHeight
@@ -545,10 +538,6 @@ export default class Page extends Component {
     return this.state.dragging.moveAnchor === key;
   }
 
-  bindMethods(...methods) {
-    return methods.reduce((list, method) => {list[method] = this[method].bind(this); return list}, {});
-  }
-
   scrollLogs() {
     const logUI = document.querySelector('#log ul');
     if (logUI) logUI.scrollTop = logUI.scrollHeight;
@@ -581,7 +570,11 @@ export default class Page extends Component {
     if (!node || !node.attributes) return null;
     const attributes = Array.from(node.attributes).
                              filter(attr => attr.name !== 'class' && attr.name !== 'id' && attr.name !== 'uuid').
-                             reduce((attrs, attr) => Object.assign(attrs, { [attr.name.toLowerCase()]: !attr.value || isNaN(attr.value) ? attr.value : +attr.value }), {});
+                             reduce((attrs, attr) => {
+                               let value = !attr.value || isNaN(attr.value) ? unescape(attr.value) : +attr.value;
+                               if (['[', '{'].includes(value[0])) value = JSON.parse(value);
+                               return Object.assign(attrs, { [attr.name.toLowerCase()]: value });
+                             }, {});
 
     const type = node.nodeName.toLowerCase();
     const key = choiceForXmlNode(node);
@@ -682,14 +675,17 @@ export default class Page extends Component {
         </div>
       );
     }
-    if (this.components[type]) {
+
+    if (attributes.component) {
+      if (!this.props.components[attributes.component]) throw Error(`No component found named '${attributes.component}'. Components must be added to the 'components' prop in render`);
       props.className += ' component';
       contents = React.createElement(
-        this.components[type],
-        {...props, display: this.props.counterDisplays[props.display] || (v=>v), ...this.bindMethods('gameAction')},
+        this.props.components[attributes.component],
+        {...props, action: (...args) => this.gameAction('interactWithPiece', key, ...args)},
         contents
       );
     }
+
     if (this.props.pieces[type]) {
       contents = React.createElement(this.props.pieces[type], {...props}, frozen || contents);
     }

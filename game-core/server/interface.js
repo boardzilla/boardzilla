@@ -55,31 +55,6 @@ class GameInterface {
     this.currentActions = [];
     this.promptMessage = null;
     this.changeset = []; // list of changes this action [[old-id, new-id],...]
-    this.builtinActions = { // TODO this interface still needs work. Needs to look more like #actions? e.g. How set permissions?
-      setCounter: (key, value) => {
-        const counter = this.doc.find(`counter#${key}`);
-        let newValue = value;
-        if (counter) {
-          newValue = Math.max(newValue, 0, counter.get('min'));
-          if (counter.get('max')) newValue = Math.min(newValue, counter.get('max'));
-          counter.set({
-            value: newValue,
-            moves: counter.get('moves') + 1,
-          });
-          return `${this.currentPlayer().colorEncodedName()} set ${counter.get('name') || 'counter'} to ${newValue}`;
-        }
-        return null;
-      },
-      rollDie: key => {
-        const die = this.doc.find(`die#${key}`);
-        if (die) {
-          const number = this.random(die.get('faces')) + 1;
-          die.set({ number, rolls: die.get('rolls') + 1 });
-          return `${this.currentPlayer().colorEncodedName()} rolled a ${number}`;
-        }
-        return null;
-      },
-    };
   }
 
   /**
@@ -413,7 +388,7 @@ class GameInterface {
     if (this.currentPlayerPosition !== undefined && player !== this.currentPlayerPosition) return {};
     return this.currentActions.reduce((choices, action) => {
       // console.time('choicesFromActions:' + action);
-      const { key } = this.builtinActions[action] || this.#actions[action];
+      const { key } = this.#actions[action] || {};
       try {
         const { prompt } = this.testAction(action, player);
         choices[action] = { prompt, key };
@@ -439,18 +414,20 @@ class GameInterface {
 
   // function that tries to run an action and delegates to the various main types of actions to determine outcome, returns {prompt, log}
   runAction(actionIdentifier, args = [], argIndex = 0, test = false) {
-    if (this.builtinActions[actionIdentifier]) {
-      return { log: this.builtinActions[actionIdentifier](...args) };
-    }
-
     let actionName;
     let action = actionIdentifier;
 
-    if (typeof actionIdentifier === 'string' && this.#actions[actionIdentifier]) {
-      actionName = actionIdentifier;
-      action = this.#actions[actionIdentifier];
+    if (actionIdentifier === 'interactWithPiece') {
+      let interactivePiece;
+      ([interactivePiece, actionName, ...args] = args);
+      action = interactivePiece.actions[actionName];
     } else {
-      actionName = action.prompt;
+      if (typeof actionIdentifier === 'string' && this.#actions[actionIdentifier]) {
+        actionName = actionIdentifier;
+        action = this.#actions[actionIdentifier];
+      } else {
+        actionName = action.prompt;
+      }
     }
 
     const prompt = action.prompt + (action.key ? ` (${action.key.toUpperCase()})` : '');
@@ -609,11 +586,13 @@ class GameInterface {
 
   logEntry(action, ...args) {
     if (action.drag) args = args.slice(0, 2);
-    const name = this.currentPlayer().colorEncodedName();
+    const name = this.currentPlayer() && this.currentPlayer().colorEncodedName();
     return this.#players.reduce((entry, { position, userId }) => {
       position -= 1;
       if (action.log) {
-        entry[userId] = action.log.replace(/\$(\d+)/g, sub => {
+        let { log } = action;
+        if (typeof log === 'function') log = log(...args);
+        entry[userId] = log.replace(/\$(\d+)/g, sub => {
           if (sub[1] === '0') return name;
           const namedArg = args[parseInt(sub[1], 10) - 1];
           if (namedArg instanceof Array && namedArg[position]) return namedArg[position].shown || namedArg[position].hidden;
