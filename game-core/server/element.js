@@ -101,6 +101,16 @@ class GameElement {
     return Array.from(this.findNodes(q)).map(node => node?.gameElement);
   }
 
+  piece(q) {
+    if (q instanceof GameElement) return q;
+    return this.pieces(q)[0];
+  }
+
+  pieces(q) {
+    if (q instanceof Array) return q;
+    return this.findAll(q).filter(el => isPieceNode(el.node));
+  }
+
   player() {
     return this.get('player') || (this.node.parentNode && this.parent().player());
   }
@@ -153,12 +163,24 @@ class GameElement {
     return this.pile().move(pieces, to);
   }
 
+  add(pieces, num) {
+    return this.move(this.pile().pieces(pieces), this, num);
+  }
+
+  clear(pieces, num) {
+    return this.move(pieces, this.pile(), num);
+  }
+
   destroy() {
     this.node.parentNode.removeChild(this.node);
   }
 
+  destroyContents(pieces) {
+    this.findAll(pieces).forEach(p => p.destroy());
+  }
+
   addPiece(name, type, attrs) {
-    return this.addGameElement(elementClasses.Piece, name, type, attrs);
+    return this.addGameElement(elementClasses.Piece, name, type, 'piece', attrs);
   }
 
   addPieces(num, name, type, attrs) {
@@ -168,13 +190,15 @@ class GameElement {
   addInteractivePiece(pieceClass, attrs = {}) {
     if (!pieceClass || !pieceClass.name) throw Error(`No interactive piece class found: ${pieceClass}`);
     const name = pieceClass.name.toLowerCase();
-    return this.addGameElement(pieceClass, `#${this.game.registerId(name)}`, name, attrs);
+    return this.addGameElement(pieceClass, `#${this.game.registerId(name)}`, name, 'interactive-piece', attrs);
   }
 
-  addGameElement(elementClass, id, type, attrs = {}) {
+  addGameElement(elementClass, id, type, className, attrs = {}) {
     const el = this.document.xmlDoc.createElement(type);
     if (id[0] !== '#') throw Error(`id ${id} must start with #`);
     el.id = id.slice(1);
+    el.setAttribute('class', `${attrs.class || ''} ${className}`.trim());
+    delete attrs.class;
     this.node.appendChild(el);
     const gameElement = new elementClass({ node: el, game: this.game, document: this.document }, attrs);
     el.gameElement = gameElement;

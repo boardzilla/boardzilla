@@ -3,15 +3,14 @@ const Player = require('./player');
 const GameDocument = require('./document');
 const GameElement = require('./element');
 const ActionQueue = require('./actionqueue');
-const { range, asyncTimes, isSpaceNode } = require('./utils');
+const { asyncTimes, isSpaceNode } = require('./utils');
 
 class InvalidChoiceError extends Error {}
 class InvalidActionError extends Error {}
 class IncompleteActionError extends Error {
-  constructor({ choices, prompt }) {
-    super(prompt);
-    this.choices = choices;
-    this.prompt = prompt;
+  constructor(args) {
+    super(args.prompt);
+    this.args = args;
   }
 }
 
@@ -394,7 +393,7 @@ class GameInterface {
         choices[action] = { prompt, key };
       } catch (e) {
         if (e instanceof IncompleteActionError) {
-          choices[action] = { prompt: e.prompt, choices: e.choices, key };
+          choices[action] = { ...e.args, key };
         } else if (e instanceof InvalidActionError) {
           console.log('skip action', action);
           return choices; // skip
@@ -470,7 +469,7 @@ class GameInterface {
         throw Error(`'select' for ${actionName} must be a list or a finder`);
       }
     } else if (action.max !== undefined || action.min !== undefined) { // simple numerical
-      nextPrompt = this.chooseAction(range(action.min, action.max), prompt, nextAction, argIndex)(args);
+      nextPrompt = this.chooseNumberAction(action.min, action.max, prompt, nextAction, argIndex)(args);
     } else if (nextAction) {
       argIndex -= 1; // simple prompt does not consume an arg
       const result = nextAction(...args);
@@ -505,6 +504,27 @@ class GameInterface {
         1,
       )(args),
     );
+  }
+
+  // returns a fn (...choices) -> action that throws appropriate choice errors
+  chooseNumberAction(min, max, prompt, action, argIndex = 0) {
+    return args => {
+      const choice = args[argIndex];
+      if (choice === undefined) {
+        if (min === max && action && argIndex > 0) {
+          // auto-select simgle choice if not the first arg
+          args.push(min);
+          action(args);
+        } else {
+          throw new IncompleteActionError({ min, max, prompt });
+        }
+      } else {
+        if (Number.isNaN(choice)) throw new InvalidChoiceError(`${choice} is not a number`);
+        if (min > choice || max < choice) throw new InvalidChoiceError(`${choice} not between ${min} and ${max}`);
+        if (action) action(args);
+      }
+      return prompt;
+    };
   }
 
   // returns a fn (...choices) -> action that throws appropriate choice errors
@@ -578,7 +598,7 @@ class GameInterface {
     } catch (e) {
       console.log('got processAction error', e);
       if (e instanceof IncompleteActionError) {
-        return { type: 'incomplete', choices: e.choices, prompt: e.prompt };
+        return { type: 'incomplete', ...e.args };
       }
       return { type: 'error', message: e.message };
     }

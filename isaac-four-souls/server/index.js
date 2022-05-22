@@ -65,7 +65,10 @@ game.setupBoard(board => {
 
 game.afterMove(
   '#hand card, .deck card',
-  card => card.set({ active: false, flipped: false }),
+  card => {
+    card.destroyContents();
+    card.set({ active: false, flipped: false });
+  },
 );
 
 game.hideBoard(
@@ -349,7 +352,7 @@ game.defineActions({
     log: '$0 removed counter from $1',
     key: 'c',
     select: '.mine card:not(:empty), #board card:not(:empty)',
-    action: card => card.find('counter').destroy(),
+    action: card => card.destroyContents(),
   },
   intoCharDeckTop: {
     prompt: 'Put back in deck',
@@ -369,7 +372,7 @@ game.defineActions({
   removeP3: {
     prompt: 'Remove 3+ player cards',
     if: () => game.doc.find('card[p3]'),
-    action: () => game.doc.destroy('card[p3]'),
+    action: () => game.doc.destroyContents('card[p3]'),
   },
   remove: {
     prompt: 'Put back in your hand',
@@ -424,7 +427,7 @@ Object.entries(editions).forEach(([i, edition]) => {
 });
 
 game.play(async () => {
-  game.playersMayAlwaysMove('.mine card, .mine counter, #board counter, .mine die, #shop card, #dungeon card, #bonus-souls card');
+  game.playersMayAlwaysMove('.mine *, #board *');
   game.playersMayAlwaysPlay(['interactWithPiece']);
 
   let action;

@@ -11,7 +11,7 @@ class Counter extends InteractivePiece {
   actions = {
     set: {
       min: 0,
-      max: 9999999,
+      max: 99,
       log: () => `$0 set ${this.get('name') || 'counter'} to $1`,
       action: value => {
         let newValue = value;

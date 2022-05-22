@@ -224,7 +224,7 @@
       position: relative;
       top: 10px;
     }
-    &[name="coins"] {
+   .coins {
       color: white;
       width: 35px;
       display: inline-block;
@@ -236,12 +236,10 @@
       font-family: sans-serif;
       img {
         width: 30px;
+        left: 5px;
         position: absolute;
         z-index: -1;
         filter: none;
-      }
-      button:last-child {
-        margin-left: 28px;
       }
     }
   }
