@@ -393,14 +393,12 @@ game.defineActions({
     prompt: 'Show hand',
     log: '$0 showed hand to $1',
     if: '.mine #hand:not([showTo])',
-    next: {
-      select: () => {
-        const players = game.otherPlayers();
-        if (players.length > 1) players.push('Everyone');
-        return players;
-      },
-      action: player => game.doc.find('.mine #hand').set({ showTo: player.position || player, label: `Showing to ${player.name || player}` }),
+    select: () => {
+      const players = game.otherPlayers();
+      if (players.length > 1) players.push('Everyone');
+      return players;
     },
+    action: player => game.doc.find('.mine #hand').set({ showTo: player.position || player, label: `Showing to ${player.name || player}` }),
   },
   hideHand: {
     prompt: 'Stop showing hand',

@@ -26,6 +26,7 @@ module.exports = {
     'no-await-in-loop': 0,
     'arrow-parens': 0,
     'no-plusplus': 0,
+    'no-nested-ternary': 0,
     'max-classes-per-file': 0,
     'object-curly-newline': 0,
     'max-len': 0,

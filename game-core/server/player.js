@@ -3,7 +3,7 @@ class Player {
     this.name = name;
     this.color = color;
     this.userId = userId;
-    this.position = position;
+    this.position = position; // table position, as opposed to turn order
   }
 
   colorEncodedName() {
