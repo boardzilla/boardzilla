@@ -404,6 +404,7 @@ export default class Page extends Component {
   }
 
   stopDrag(choice, x, y, event) {
+    this.send('releaseLock', {key: choice});
     const {dragging, dragOver} = this.state;
     this.setState({dragging: null, dragOver: null});
     if (dragging && dragging.key === choice && Math.abs(dragging.x - x) + Math.abs(dragging.y - y) > DRAG_TOLERANCE) {
@@ -446,7 +447,6 @@ export default class Page extends Component {
         this.setPieceAt(choice, {x: dragging.x, y: dragging.y});
         this.send('drag', {key: choice});
       }
-      this.send('releaseLock', {key: choice});
       event.stopPropagation();
     } else {
       if (window.TouchEvent && event instanceof window.TouchEvent) {
@@ -700,7 +700,7 @@ export default class Page extends Component {
 
     const draggable = !frozen && (this.isAllowedMove(node) || this.isAllowedDrag(key)) && (this.state.zoomPiece == key || !IS_MOBILE_PORTRAIT);
 
-    if (position && (position.x != undefined && position.x != 0 || position.y == undefined && position.y != 0) && !frozen && !draggable) {
+    if (position && (position.x !== undefined && position.x !== 0 || position.y !== undefined && position.y !== 0) && !frozen && !draggable) {
       wrappedStyle.transform = `translate(${position.x}px, ${position.y}px)`;
     }
 

@@ -696,7 +696,6 @@ class GameInterface {
 
   moveElement(el, positioning) {
     if (el.matches(this.allowedMoveElements)) {
-      // preserve any initial positioning
       if (positioning.pos !== undefined) {
         el.move(null, -1 - positioning.pos);
       } else {
