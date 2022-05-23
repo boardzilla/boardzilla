@@ -626,13 +626,17 @@ export default class Page extends Component {
       props.className = classNames(props.className, {
         flipped,
         hilited: (
-          (this.state.dragging && key == this.state.dragOver && (
+          this.state.dragging && (
             this.allowedDragSpaces(this.state.dragging.key)[key] ||
-            this.state.dragOver == parentChoice(this.state.dragging.key))
-          ) ||
-          (this.state.choices instanceof Array && this.state.choices.includes(key))
+            key == parentChoice(this.state.dragging.key) ||
+            (this.state.choices instanceof Array && this.state.choices.includes(key))
+          )
         )
       });
+      if (this.state.dragging && this.state.dragging.key == key) {
+        const dragAction = this.allowedDragSpaces(key)[this.state.dragOver];
+        if (dragAction) label = this.state.data.allowedActions[dragAction].prompt;
+      }
 
       if (this.state.dragging) props.onMouseEnter = () => this.isValidDropSpace(key) && this.setState({dragOver: key});
       if (this.state.dragging && this.state.dragOver === key) {
@@ -726,9 +730,9 @@ export default class Page extends Component {
       wrappedStyle.transition = 'none';
     }
 
-    if (node.id) contents = <>
+    if (label) contents = <>
       {contents}
-      {label && <label>{label}</label>}
+      <label><span>{label}</span></label>
     </>;
 
     contents = <div {...props}>{contents}</div>;

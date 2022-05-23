@@ -260,16 +260,31 @@ div.nametag {
   }
 }
 
-.space label, .piece label {
+.space > label {
   color: white;
   position: absolute;
   display: block;
-  padding: 3px;
   right: 2px;
   top: 2px;
   background: #006;
-  padding: 0 5px;
+  padding: 3px 5px;
   border-radius: 5px;
+}
+
+.piece > label {
+  position: absolute;
+  display: inline-block;
+  top: 0;
+  left: -80%;
+  right: -80%;
+  margin: 50% 0;
+  text-align: center;
+  span {
+    color: white;
+    padding: 3px 5px;
+    background: #006;
+    border-radius: 5px;
+  }
 }
 
 /* @media(orientation: landscape) { */
