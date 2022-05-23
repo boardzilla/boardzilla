@@ -40,7 +40,7 @@ class GameInterface {
   // main game loop function
   #play;
 
-  // 1-indexed from list of players, or undefined if any player can play
+  // position of current player, or undefined if any player can play
   #currentPlayerPosition;
 
   constructor() {
@@ -132,7 +132,7 @@ class GameInterface {
     this.#setupBoard.push(fn);
   }
 
-  playerMat(player = this.currentPlayerPosition) {
+  playerMat(player) {
     if (!player) throw Error('playerMat called without a player or a current player');
     return this.doc.find(`#player-mat[player="${player}"]`);
   }
@@ -274,7 +274,7 @@ class GameInterface {
 
       playerView.findNodes('.mine').forEach(n => n.classList.add('mine'));
       playerView.findNodes('[player]:not(.mine)').forEach(n => (
-        n.setAttribute('player-after-me', (parseInt(n.attributes.player.value, 10) - this.currentPlayerPosition + this.players.length) % this.players.length)
+        n.setAttribute('player-after-me', (parseInt(n.attributes.player.value, 10) - player + this.players.length) % this.players.length)
       ));
 
       const view = this.currentActions.reduce((drags, action) => {
@@ -299,7 +299,6 @@ class GameInterface {
       variables: this.shownVariables(),
       phase: this.phase,
       players: this.players,
-      currentPlayer: this.currentPlayerPosition,
       sequence: this.sequence,
       doc: playerView.node.outerHTML,
       changes: this.changeset,
@@ -354,7 +353,7 @@ class GameInterface {
 
   // runs provided async block for each player, starting with the current
   async playersInTurn(fn) {
-    if (!this.currentPlayerPosition) this.currentPlayerPosition = 1;
+    if (!this.currentPlayerPosition) this.currentPlayerPosition = this.players[0].position;
     await asyncTimes(this.#players.length, async turn => {
       await fn(turn);
       this.endTurn();
@@ -471,7 +470,6 @@ class GameInterface {
     } else if (action.max !== undefined || action.min !== undefined) { // simple numerical
       nextPrompt = this.chooseNumberAction(action.min, action.max, prompt, nextAction, argIndex)(args);
     } else if (nextAction) {
-      argIndex -= 1; // simple prompt does not consume an arg
       const result = nextAction(...args);
       if (result && result.prompt) nextPrompt = prompt;
     }
@@ -631,7 +629,7 @@ class GameInterface {
     return Object.entries(elements).map(([i, el]) => {
       if (el instanceof Player) return el.name;
       if (!(el instanceof GameElement)) return el;
-      return this.#players.map(({ position }) => {
+      return this.playersInPositionOrder().map(({ position }) => {
         if (previousNames[i] && previousNames[i][position - 1].shown) return previousNames[i][position - 1];
         const hidden = this.inScopeAsPlayer(position, () => !!this.hiddenElements.find(([selector]) => el.matches(selector)));
         const name = el.name(position, hidden);
@@ -651,8 +649,8 @@ class GameInterface {
     return this.#currentPlayerPosition;
   }
 
-  player(p) {
-    return this.#players[p - 1];
+  player(position) {
+    return this.#players.find(p => p.position === position);
   }
 
   currentPlayer() {
@@ -668,7 +666,17 @@ class GameInterface {
   }
 
   otherPlayers() {
-    return this.players.slice(0, this.currentPlayerPosition - 1).concat(this.players.slice(this.currentPlayerPosition));
+    return this.players.filter(p => p.position !== this.currentPlayerPosition);
+  }
+
+  reorderPlayersBy(fn) {
+    if (typeof fn !== 'function') throw Error('reorderPlayersBy must be called with a player ranking function, e.g. "reorderPlayersBy(playerNumber => getScore(playerNumber))"');
+    const ranks = this.playersInPositionOrder().map(p => fn(p.position));
+    this.players.sort((p1, p2) => (ranks[p1.position] > ranks[p2.position] ? 1 : (ranks[p1.position] < ranks[p2.position] ? -1 : 0)));
+  }
+
+  playersInPositionOrder() {
+    return this.players.sort((p1, p2) => (p1.position > p2.position ? 1 : -1));
   }
 
   inScopeAsPlayer(player, fn) {
@@ -682,13 +690,13 @@ class GameInterface {
   }
 
   playerByUserId(userId) {
-    const player = this.#players.findIndex(p => p.userId === userId);
-    if (player < 0) throw Error(`No such player ${userId}`);
-    return player + 1;
+    const player = this.#players.find(p => p.userId === userId);
+    if (!player) throw Error(`No such player ${userId}`);
+    return player.position;
   }
 
   endTurn() {
-    this.currentPlayerPosition = (this.currentPlayerPosition % this.#players.length) + 1;
+    this.currentPlayerPosition = (this.players.findIndex(p => p.position === this.currentPlayerPosition) % this.#players.length) + 1;
   }
 
   moveElement(el, positioning) {

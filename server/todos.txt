@@ -23,7 +23,7 @@ powergrid
 - addGrid
 X piece drag on to piece
 X numerical action type
-- turn order changes
+X turn order changes
 - display component?
 - inc, toggle
 - graph, adjacency

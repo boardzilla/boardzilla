@@ -375,7 +375,7 @@ export default class Page extends Component {
   }
 
   updatePosition(key, x, y) {
-      this.setState(state => ({positions: Object.assign({}, state.positions, {[key]: x !== undefined ? {x, y} : undefined })}));
+    this.setState(state => ({positions: Object.assign({}, state.positions, {[key]: x !== undefined ? {x, y} : undefined })}));
   }
 
   dragging(key, x, y, event, moveAnchor) {
