@@ -20,9 +20,9 @@ import {
   currentGridPosition,
   deserialize,
 } from './utils';
-import Counter from './Counter';
-import Die from './Die';
 import Spinner from './Spinner';
+import Counter from './components/Counter';
+import Die from './components/Die';
 import './style.scss';
 
 const DRAG_TOLERANCE = 1;
@@ -43,6 +43,8 @@ export default class Page extends Component {
       args: [], // current action args
       prompt: null, // current prompt
       choices: null, // current choices (array, "text" or {min, max})
+      min: null, // current choice min
+      max: null, // current choice max
       data: {}, // complete server state
       changes: {}, // set of changes to get to current state
       input: '',
@@ -61,10 +63,7 @@ export default class Page extends Component {
       replies: {} // action callbacks { id: { time, callback }, ... }
     };
     this.componentCleanup = this.componentCleanup.bind(this);
-    this.components = {
-      counter: Counter,
-      die: Die,
-    };
+    this.components = {...(props.components || {}), Counter, Die };
   }
 
   componentCleanup() {
@@ -218,7 +217,7 @@ export default class Page extends Component {
     });
     document.addEventListener('keydown', e => {
       if (e.key == "z") {
-        const zoomKey = choiceAtPoint(mouse.x, mouse.y, el => el.matches('.piece:not(.component)'));
+        const zoomKey = choiceAtPoint(mouse.x, mouse.y, el => el.matches('.piece'));
         zoomKey && this.handleClick(zoomKey, e);
       }
       if (e.key == "Escape") this.cancel();
@@ -230,6 +229,10 @@ export default class Page extends Component {
           if (choices.length === 1) {
             this.gameAction(this.state.action, ...this.state.args, choices[0]);
           }
+        }
+      } else if (this.state.min !== null || this.state.max !== null) {
+        if (e.key === 'Enter') {
+          this.gameAction(this.state.action, ...this.state.args, this.state.input);
         }
       } else {
         let choice = this.state.zoomPiece || (mouse.x != undefined && choiceAtPoint(mouse.x, mouse.y));
@@ -257,7 +260,6 @@ export default class Page extends Component {
       window.addEventListener('resize', () => {
         const playArea = document.getElementById('play-area');
         const scaledPlayArea = document.getElementById('scaled-play-area');
-        console.log(playArea.offsetHeight, scaledPlayArea.offsetHeight);
         if (playArea) this.setState({ playAreaScale: Math.min(
           (playArea.offsetWidth - 20) / scaledPlayArea.offsetWidth,
           playArea.offsetHeight / scaledPlayArea.offsetHeight
@@ -326,11 +328,13 @@ export default class Page extends Component {
         const end = Date.now();
         console.log('gameAction', action, args, reply.start - start, reply.end - start, reply.reply - start, end - start);
         if (zoomPiece === this.state.zoomPiece) this.setState({ zoomPiece: null });
-        this.setState({action: null, args: [], choices: null, prompt: null, actions: null, filter: '' });
+        this.setState({action: null, args: [], choices: null, min: null, max: null, prompt: null, actions: null, filter: '' });
       } else if (reply.type === 'incomplete') {
-        this.setState({ action, args, prompt: reply.prompt, choices: deserialize(reply.choices), zoomPiece: null, filter: '' });
+        if (reply.choices) reply.choices = deserialize(reply.choices);
+        const input = (reply.min !== undefined || reply.max !== undefined) ? reply.min || 0 : '';
+        this.setState({ choices: null, min: null, max: null, ...reply, action, args, zoomPiece: null, filter: '', input });
       } else if (reply.type === 'error') {
-        this.setState({action: null, args: [], choices: null, prompt: null, actions: null, filter: '' });
+        this.setState({action: null, args: [], choices: null, min: null, max: null, prompt: null, actions: null, filter: '' });
         console.error(reply);
       }
     });
@@ -461,10 +465,10 @@ export default class Page extends Component {
       event.stopPropagation();
     } else {
       if (this.state.prompt) {
-        this.setState({action: null, args: [], prompt: null, choices: null});
+        this.setState({action: null, args: [], prompt: null, choices: null, min: null, max: null});
       }
       let zooming = false;
-      if (isEl(choice) && elByChoice(choice).classList.contains('piece') && !elByChoice(choice).classList.contains('component')) {
+      if (isEl(choice) && (elByChoice(choice).classList.contains('piece'))) {
         this.zoomOnPiece(elByChoice(choice));
         event.stopPropagation();
         zooming = true;
@@ -482,7 +486,7 @@ export default class Page extends Component {
   }
 
   cancel() {
-    this.setState({action: null, args: [], actions: null, zoomPiece: null, choices: null, prompt: null, help: false});
+    this.setState({action: null, args: [], actions: null, zoomPiece: null, choices: null, min: null, max: null, prompt: null, help: false});
   }
 
   zoomOnPiece(element) {
@@ -500,12 +504,12 @@ export default class Page extends Component {
   actionsFor(choice) {
     if (!this.state.data.allowedActions) return [];
     return Object.entries(this.state.data.allowedActions).reduce((actions, [action, {choices, prompt, key}]) => {
-      let anotherChoice = choice;
-      while (anotherChoice) {
-        if (choices && choices.includes(anotherChoice)) {
-          actions[action] = {choice: anotherChoice, prompt, key};
+      let upChoice = choice;
+      while (upChoice) {
+        if (choices && choices.includes(upChoice)) {
+          actions[action] = {choice: upChoice, prompt, key};
         }
-        anotherChoice = parentChoice(anotherChoice);
+        upChoice = parentChoice(upChoice);
       }
       return actions;
     }, {});
@@ -520,6 +524,15 @@ export default class Page extends Component {
       }
       return actions;
     }, {});
+  }
+
+  setNumberInput(input) {
+    if (input !== '') {
+      input = (this.state.step && this.state.step < 1 ? parseFloat : parseInt)(input);
+      if (this.state.min && input < this.state.min) return;
+      if (this.state.max && input > this.state.max) return;
+    }
+    this.setState({ input });
   }
 
   isAllowedMove(node) {
@@ -543,10 +556,6 @@ export default class Page extends Component {
     if (!this.state.dragging || !this.state.dragging.key) return false;
     if (this.allowedDragSpaces(this.state.dragging.key)[key]) return true;
     return this.state.dragging.moveAnchor === key;
-  }
-
-  bindMethods(...methods) {
-    return methods.reduce((list, method) => {list[method] = this[method].bind(this); return list}, {});
   }
 
   scrollLogs() {
@@ -581,7 +590,11 @@ export default class Page extends Component {
     if (!node || !node.attributes) return null;
     const attributes = Array.from(node.attributes).
                              filter(attr => attr.name !== 'class' && attr.name !== 'id' && attr.name !== 'uuid').
-                             reduce((attrs, attr) => Object.assign(attrs, { [attr.name.toLowerCase()]: !attr.value || isNaN(attr.value) ? attr.value : +attr.value }), {});
+                             reduce((attrs, attr) => {
+                               let value = !attr.value || isNaN(attr.value) ? unescape(attr.value) : +attr.value;
+                               if (['[', '{'].includes(value[0])) value = JSON.parse(value);
+                               return Object.assign(attrs, { [attr.name.toLowerCase()]: value });
+                             }, {});
 
     const type = node.nodeName.toLowerCase();
     const key = choiceForXmlNode(node);
@@ -596,7 +609,7 @@ export default class Page extends Component {
       "data-key": key,
       "data-parent": choiceForXmlNode(node.parentNode),
       ...attributes,
-      className: classNames(type, node.className, { piece: type !== 'space' }),
+      className: classNames([...new Set([type, ...node.classList])]),
     };
     if (node.id) props.id = node.id;
 
@@ -682,14 +695,16 @@ export default class Page extends Component {
         </div>
       );
     }
-    if (this.components[type]) {
-      props.className += ' component';
+
+    if (attributes.component) {
+      if (!this.components[attributes.component]) throw Error(`No component found named '${attributes.component}'. Components must be added to the 'components' prop in render`);
       contents = React.createElement(
-        this.components[type],
-        {...props, display: this.props.counterDisplays[props.display] || (v=>v), ...this.bindMethods('gameAction')},
+        this.components[attributes.component],
+        {...props, action: (...args) => this.gameAction('interactWithPiece', key, ...args)},
         contents
       );
     }
+
     if (this.props.pieces[type]) {
       contents = React.createElement(this.props.pieces[type], {...props}, frozen || contents);
     }
@@ -698,7 +713,7 @@ export default class Page extends Component {
       wrappedStyle.pointerEvents = "none";
     }
 
-    const draggable = !frozen && (this.isAllowedMove(node) || this.isAllowedDrag(key)) && (this.state.zoomPiece == key || !IS_MOBILE_PORTRAIT);
+    const draggable = !frozen && !node.classList.contains('space') && (this.isAllowedMove(node) || this.isAllowedDrag(key)) && (this.state.zoomPiece == key || !IS_MOBILE_PORTRAIT);
 
     if (position && (position.x !== undefined && position.x !== 0 || position.y !== undefined && position.y !== 0) && !frozen && !draggable) {
       wrappedStyle.transform = `translate(${position.x}px, ${position.y}px)`;
@@ -754,6 +769,7 @@ export default class Page extends Component {
 
   render() {
     const textChoices = this.state.choices instanceof Array && this.state.choices.filter(choice => !isEl(choice));
+    const numberChoice = (this.state.min !== null || this.state.max !== null) && { min: this.state.min, max: this.state.max };
     const nonBoardActions = this.nonBoardActions();
 
     let messagesPane = 'hidden', zoomScale, actions = this.state.actions;
@@ -762,8 +778,10 @@ export default class Page extends Component {
     if (!IS_MOBILE_PORTRAIT || (!this.state.dragging && !this.state.touchMoving)) {
       if (this.state.help) {
         messagesPane = 'help';
-      } else if (this.state.choices) {
+      } else if (textChoices) {
         messagesPane = 'choices';
+      } else if (numberChoice) {
+        messagesPane = 'number';
       } else if (actions && Object.keys(actions).length || zoomXmlNode) {
         messagesPane = 'actions';
         if (zoomXmlNode) {
@@ -806,7 +824,7 @@ export default class Page extends Component {
           <div id="choices">
             {messagesPane == 'choices' &&
              <div>
-               {textChoices.length > 0 && <input id="choiceFilter" placeholder="Filter" autoFocus={!IS_MOBILE_PORTRAIT} onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
+               {textChoices.length > 0 && <input id="choiceFilter" autoFocus={!IS_MOBILE_PORTRAIT} onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
                {textChoices && (
                  <div>
                    {Array.from(new Set(textChoices.filter(choice => String(choice).toLowerCase().includes(this.state.filter.toLowerCase())))).sort().map(choice => (
@@ -814,6 +832,20 @@ export default class Page extends Component {
                    ))}
                  </div>
                )}
+             </div>
+            }
+
+            {messagesPane == 'number' &&
+             <div>
+               <input
+                 id="number"
+                 type="number"
+                 {...numberChoice}
+                 autoFocus
+                 onFocus={e => e.target.select()}
+                 onChange={e => this.setNumberInput(e.target.value)}
+                 value={this.state.input}
+               />
              </div>
             }
 

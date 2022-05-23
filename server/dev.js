@@ -82,16 +82,17 @@ async function build() {
 async function run() {
   const numberOfPlayers = parseInt(process.env.PLAYERS_NUM || 2, 10);
   const playerInfo = allPlayerInfo.slice(0, numberOfPlayers);
-  const players = await Promise.all(playerInfo.map(info => db.User.create(info)));
-  const game = await db.Game.create({
-    name: gameName,
-  });
-  const gameVersion = await db.GameVersion.create({
-    gameId: game.id,
-    version: 0,
-    clientDigest: 'build',
-    serverDigest: 'build',
-    notes: `Bunch of smaller quality-of-life fixes are live now, as promised:
+  if (!(await db.User.findOne())) {
+    const players = await Promise.all(playerInfo.map(info => db.User.create(info)));
+    const game = await db.Game.create({
+      name: gameName,
+    });
+    const gameVersion = await db.GameVersion.create({
+      gameId: game.id,
+      version: 0,
+      clientDigest: 'build',
+      serverDigest: 'build',
+      notes: `Bunch of smaller quality-of-life fixes are live now, as promised:
 
 **Four Souls**
 - Eternal is automatically selected along with the character
@@ -103,10 +104,11 @@ async function run() {
 **General**
 - Better rearrangement of items in splayed space (e.g. cards in your hand)
 - Better translation of drag location when scaling the play area
-`,
-  });
-  const session = await db.Session.create({ creatorId: players[0].id, gameVersionId: gameVersion.id, seed: 0 });
-  await Promise.all(players.map((player, i) => db.SessionUser.create({ sessionId: session.id, userId: player.id, color: colors[player.id], position: i })));
+      `,
+    });
+    const session = await db.Session.create({ creatorId: players[0].id, gameVersionId: gameVersion.id, seed: 0 });
+    await Promise.all(players.map((player, i) => db.SessionUser.create({ sessionId: session.id, userId: player.id, color: colors[player.id], position: i })));
+  }
   const buildHandle = await build();
   const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
   const secretKey = process.env.SECRET_KEY || 'some secret';

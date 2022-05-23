@@ -1,17 +1,13 @@
-const { customAlphabet } = require('nanoid/non-secure');
-const { times } = require('./utils');
-
-const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 10);
-
-const gameElements = [];
+const { times, isPieceNode, nanoid, elementClasses } = require('./utils');
 
 class GameElement {
-  constructor(node, caller = {}) {
+  constructor({ node, game, document }, attrs) {
     this.node = node;
-    this.document = caller.document;
-    this.game = caller.game;
+    this.document = document;
+    this.game = game;
     this.id = node.id; // TODO reserved id's? game, board...
     this.type = node.nodeName.toLowerCase();
+    this.set(attrs);
   }
 
   assignUUID() {
@@ -26,29 +22,14 @@ class GameElement {
       .replace(/="([^"]+)/g, (_, p1) => `="${escape(p1)}`);
   }
 
-  wrap(node) {
-    if (!node) return null;
-    const element = gameElements.find(el => el && el.test(node));
-    if (!element) throw Error(`No wrapper for node ${node.nodeName}`);
-    return new element.className(node, { game: this.game, document: this.document });
-  }
-
-  static wrapNodeAs(index, className, test) {
-    gameElements[index] = { className, test };
-  }
-
   /**
    * get attribute on this element
    */
   get(name) {
     const attr = this.node.attributes[name];
     if (!attr || !attr.value) return undefined;
-    const value = unescape(!attr.value || Number.isNaN(Number(attr.value)) ? attr.value : Number(attr.value));
-    try {
-      return JSON.parse(value);
-    } catch (e) {
-      return value;
-    }
+    const value = !attr.value || Number.isNaN(Number(attr.value)) ? unescape(attr.value) : Number(attr.value);
+    return ['[', '{'].includes(value[0]) ? JSON.parse(value) : value;
   }
 
   /**
@@ -64,7 +45,8 @@ class GameElement {
         this.unset(name);
       }
     } else {
-      this.node.setAttribute(name, escape(value)); // TODO reserved attributes? class, className, id, style & special attributes: player, layout, x,y,top,left,right,bottom...?
+      value = typeof value === 'object' ? JSON.stringify(value) : value;
+      this.node.setAttribute(name, escape(value)); // TODO reserved attributes? class, className, id, style  & special attributes: player, layout, component, x,y,top,left,right,bottom...?
     }
   }
 
@@ -110,13 +92,23 @@ class GameElement {
 
   find(q) {
     if (q instanceof GameElement) return q;
-    return this.wrap(this.findNode(q));
+    return this.findNode(q)?.gameElement;
   }
 
   findAll(q) {
     if (q instanceof GameElement) return [q];
     if (q instanceof Array) return q;
-    return Array.from(this.findNodes(q)).map(node => this.wrap(node));
+    return Array.from(this.findNodes(q)).map(node => node?.gameElement);
+  }
+
+  piece(q) {
+    if (q instanceof GameElement) return q;
+    return this.pieces(q)[0];
+  }
+
+  pieces(q) {
+    if (q instanceof Array) return q;
+    return this.findAll(q).filter(el => isPieceNode(el.node));
   }
 
   player() {
@@ -124,7 +116,7 @@ class GameElement {
   }
 
   parent() {
-    return this.node.parentNode && this.wrap(this.node.parentNode);
+    return this.node?.parentNode?.gameElement;
   }
 
   matches(q) {
@@ -151,77 +143,72 @@ class GameElement {
     return `$el(${branches.join('-')})`;
   }
 
-  root() {
-    return this.wrap(this.document);
-  }
-
   boardNode() {
-    return this.document.getRootNode().children[0];
+    return this.document.node.children[0];
   }
 
   board() {
-    return this.wrap(this.boardNode());
+    return this.boardNode()?.gameElement;
   }
 
   pileNode() {
-    return this.document.getRootNode().children[1];
+    return this.document.node.children[1];
   }
 
   pile() {
-    return this.wrap(this.pileNode());
+    return this.pileNode()?.gameElement;
   }
 
   place(pieces, to) {
     return this.pile().move(pieces, to);
   }
 
-  duplicate() {
-    return this.wrap(this.node.parentNode.appendChild(this.node.cloneNode(true)));
+  add(pieces, num) {
+    return this.move(this.pile().pieces(pieces), this, num);
+  }
+
+  clear(pieces, num) {
+    return this.move(pieces, this.pile(), num);
   }
 
   destroy() {
     this.node.parentNode.removeChild(this.node);
   }
 
+  destroyContents(pieces) {
+    this.findAll(pieces).forEach(p => p.destroy());
+  }
+
   addPiece(name, type, attrs) {
-    return this.addGameElement(name, type, attrs);
+    return this.addGameElement(elementClasses.Piece, name, type, 'piece', attrs);
   }
 
   addPieces(num, name, type, attrs) {
     return times(num, () => this.addPiece(name, type, attrs));
   }
 
-  addComponent(name, attrs = {}) {
-    if (name === 'counter') {
-      const id = this.game.registerId('counter');
-      this.addPiece(`#${id}`, 'counter', {
-        value: attrs.initialValue || 0,
-        min: attrs.min || 0,
-        max: attrs.max,
-        moves: 0,
-        ...attrs,
-      });
-    }
-    if (name === 'die') {
-      const id = this.game.registerId('die');
-      this.addPiece(`#${id}`, 'die', { number: 1, rolls: 0, ...attrs });
-    }
+  addInteractivePiece(pieceClass, attrs = {}) {
+    if (!pieceClass || !pieceClass.name) throw Error(`No interactive piece class found: ${pieceClass}`);
+    const name = pieceClass.name.toLowerCase();
+    return this.addGameElement(pieceClass, `#${this.game.registerId(name)}`, name, 'interactive-piece', attrs);
   }
 
-  addGameElement(name, type, attrs = {}) {
-    const el = this.document.createElement(type);
-    if (name[0] !== '#') throw Error(`id ${name} must start with #`);
-    el.id = name.slice(1);
-    Object.keys(attrs).forEach(attr => el.setAttribute(attr, escape(attrs[attr])));
+  addGameElement(elementClass, id, type, className, attrs = {}) {
+    const el = this.document.xmlDoc.createElement(type);
+    if (id[0] !== '#') throw Error(`id ${id} must start with #`);
+    el.id = id.slice(1);
+    el.setAttribute('class', `${attrs.class || ''} ${className}`.trim());
+    delete attrs.class;
     this.node.appendChild(el);
-    const gameElement = this.wrap(this.node.lastChild);
-    if (GameElement.isPieceNode(this.node.lastChild) && this.get('layout') !== 'stack') gameElement.assignUUID();
+    const gameElement = new elementClass({ node: el, game: this.game, document: this.document }, attrs);
+    el.gameElement = gameElement;
+    if (isPieceNode(el) && this.get('layout') !== 'stack') gameElement.assignUUID();
     return gameElement;
   }
 
   // move pieces to a space, at end of list (on top). use num to limit the number moved. use position to control child placement (same as slice)
   move(pieces, to, num, position = 0) {
-    const space = this.root().find(to);
+    const space = this.document.find(to);
     if (!space) throw new Error(`No space found "${to}"`);
     let movables = this.pieces(pieces);
     if (num !== undefined) movables = movables.slice(-num);
@@ -237,7 +224,7 @@ class GameElement {
       piece.unset('x', 'y', 'left', 'top', 'right', 'bottom');
       outOfSplay = outOfSplay || (piece.parent().get('layout') === 'splay' && piece.parent());
       const previousId = piece.serialize();
-      if (GameElement.isPieceNode(piece.node) && !piece.hasParent(space) && space.get('layout') !== 'stack') piece.assignUUID();
+      if (isPieceNode(piece.node) && !piece.hasParent(space) && space.get('layout') !== 'stack') piece.assignUUID();
       space.node.insertBefore(piece.node, space.node.children[position]);
       if (space.get('layout') === 'grid' && piece.get('cell') === undefined) {
         piece.set({ cell: space.findOpenCell() });
@@ -247,13 +234,13 @@ class GameElement {
     this.game.processAfterMoves(movables);
     if (space.get('layout') === 'splay') {
       Array.from(space.node.children).forEach(c => {
-        const nextId = this.wrap(c).serialize();
+        const nextId = c.gameElement.serialize();
         if (!this.game.changeset.find(cs => cs[1] === nextId)) this.game.changeset.push([nextId, nextId]);
       });
     }
     if (outOfSplay && outOfSplay.node !== space.node) {
       Array.from(outOfSplay.node.children).forEach(c => {
-        const nextId = this.wrap(c).serialize();
+        const nextId = c.gameElement.serialize();
         if (!this.game.changeset.find(cs => cs[1] === nextId)) this.game.changeset.push([nextId, nextId]);
       });
     }
@@ -269,25 +256,10 @@ class GameElement {
     this.node.parentNode.appendChild(this.node);
   }
 
-  static isSpaceNode(node) {
-    return node && node.nodeName === 'space';
-  }
-
-  static isPieceNode(node) {
-    return node && !GameElement.isSpaceNode(node);
-  }
-
   // return string representation, e.g. "$el(2-1-3)"
   serialize() {
     if (this.get('uuid')) return `$uuid(${this.get('uuid')})`;
     return this.branch();
-  }
-
-  // return element from branch
-  pieceAt(key) {
-    return this.root().find(
-      `game > ${key.split('-').map(index => `*:nth-child(${index})`).join(' > ')}`,
-    );
   }
 
   toString() {

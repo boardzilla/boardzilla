@@ -3,15 +3,14 @@ const Player = require('./player');
 const GameDocument = require('./document');
 const GameElement = require('./element');
 const ActionQueue = require('./actionqueue');
-const { range, asyncTimes } = require('./utils');
+const { asyncTimes, isSpaceNode } = require('./utils');
 
 class InvalidChoiceError extends Error {}
 class InvalidActionError extends Error {}
 class IncompleteActionError extends Error {
-  constructor({ choices, prompt }) {
-    super(prompt);
-    this.choices = choices;
-    this.prompt = prompt;
+  constructor(args) {
+    super(args.prompt);
+    this.args = args;
   }
 }
 
@@ -55,31 +54,6 @@ class GameInterface {
     this.currentActions = [];
     this.promptMessage = null;
     this.changeset = []; // list of changes this action [[old-id, new-id],...]
-    this.builtinActions = { // TODO this interface still needs work. Needs to look more like #actions? e.g. How set permissions?
-      setCounter: (key, value) => {
-        const counter = this.doc.find(`counter#${key}`);
-        let newValue = value;
-        if (counter) {
-          newValue = Math.max(newValue, 0, counter.get('min'));
-          if (counter.get('max')) newValue = Math.min(newValue, counter.get('max'));
-          counter.set({
-            value: newValue,
-            moves: counter.get('moves') + 1,
-          });
-          return `${this.currentPlayer().colorEncodedName()} set ${counter.get('name') || 'counter'} to ${newValue}`;
-        }
-        return null;
-      },
-      rollDie: key => {
-        const die = this.doc.find(`die#${key}`);
-        if (die) {
-          const number = this.random(die.get('faces')) + 1;
-          die.set({ number, rolls: die.get('rolls') + 1 });
-          return `${this.currentPlayer().colorEncodedName()} rolled a ${number}`;
-        }
-        return null;
-      },
-    };
   }
 
   /**
@@ -88,7 +62,7 @@ class GameInterface {
   initialize(rseed) {
     console.log('I: initialize');
     this.random = random.create(rseed);
-    this.doc = new GameDocument(null, { game: this });
+    this.doc = new GameDocument(this);
     this.board = this.doc.board();
     this.pile = this.doc.pile();
     this.variables = this.initialVariables || {};
@@ -292,9 +266,7 @@ class GameInterface {
         playerView.findNodes(selector).forEach(n => {
           n.removeAttribute('id');
           attrs.forEach(attr => n.removeAttribute(attr));
-          if (GameElement.isSpaceNode(n)) {
-            n.innerHTML = ''; // space contents are hidden
-          }
+          if (isSpaceNode(n)) n.innerHTML = ''; // space contents are hidden
         });
       });
       console.log('getPlayerView:hidden');
@@ -415,13 +387,13 @@ class GameInterface {
     if (this.currentPlayerPosition !== undefined && player !== this.currentPlayerPosition) return {};
     return this.currentActions.reduce((choices, action) => {
       // console.time('choicesFromActions:' + action);
-      const { key } = this.builtinActions[action] || this.#actions[action];
+      const { key } = this.#actions[action] || {};
       try {
         const { prompt } = this.testAction(action, player);
         choices[action] = { prompt, key };
       } catch (e) {
         if (e instanceof IncompleteActionError) {
-          choices[action] = { prompt: e.prompt, choices: e.choices, key };
+          choices[action] = { ...e.args, key };
         } else if (e instanceof InvalidActionError) {
           console.log('skip action', action);
           return choices; // skip
@@ -441,18 +413,20 @@ class GameInterface {
 
   // function that tries to run an action and delegates to the various main types of actions to determine outcome, returns {prompt, log}
   runAction(actionIdentifier, args = [], argIndex = 0, test = false) {
-    if (this.builtinActions[actionIdentifier]) {
-      return { log: this.builtinActions[actionIdentifier](...args) };
-    }
-
     let actionName;
     let action = actionIdentifier;
 
-    if (typeof actionIdentifier === 'string' && this.#actions[actionIdentifier]) {
-      actionName = actionIdentifier;
-      action = this.#actions[actionIdentifier];
+    if (actionIdentifier === 'interactWithPiece') {
+      let interactivePiece;
+      ([interactivePiece, actionName, ...args] = args);
+      action = interactivePiece.actions[actionName];
     } else {
-      actionName = action.prompt;
+      if (typeof actionIdentifier === 'string' && this.#actions[actionIdentifier]) {
+        actionName = actionIdentifier;
+        action = this.#actions[actionIdentifier];
+      } else {
+        actionName = action.prompt;
+      }
     }
 
     const prompt = action.prompt + (action.key ? ` (${action.key.toUpperCase()})` : '');
@@ -495,7 +469,7 @@ class GameInterface {
         throw Error(`'select' for ${actionName} must be a list or a finder`);
       }
     } else if (action.max !== undefined || action.min !== undefined) { // simple numerical
-      nextPrompt = this.chooseAction(range(action.min, action.max), prompt, nextAction, argIndex)(args);
+      nextPrompt = this.chooseNumberAction(action.min, action.max, prompt, nextAction, argIndex)(args);
     } else if (nextAction) {
       argIndex -= 1; // simple prompt does not consume an arg
       const result = nextAction(...args);
@@ -530,6 +504,27 @@ class GameInterface {
         1,
       )(args),
     );
+  }
+
+  // returns a fn (...choices) -> action that throws appropriate choice errors
+  chooseNumberAction(min, max, prompt, action, argIndex = 0) {
+    return args => {
+      const choice = args[argIndex];
+      if (choice === undefined) {
+        if (min === max && action && argIndex > 0) {
+          // auto-select simgle choice if not the first arg
+          args.push(min);
+          action(args);
+        } else {
+          throw new IncompleteActionError({ min, max, prompt });
+        }
+      } else {
+        if (Number.isNaN(choice)) throw new InvalidChoiceError(`${choice} is not a number`);
+        if (min > choice || max < choice) throw new InvalidChoiceError(`${choice} not between ${min} and ${max}`);
+        if (action) action(args);
+      }
+      return prompt;
+    };
   }
 
   // returns a fn (...choices) -> action that throws appropriate choice errors
@@ -603,7 +598,7 @@ class GameInterface {
     } catch (e) {
       console.log('got processAction error', e);
       if (e instanceof IncompleteActionError) {
-        return { type: 'incomplete', choices: e.choices, prompt: e.prompt };
+        return { type: 'incomplete', ...e.args };
       }
       return { type: 'error', message: e.message };
     }
@@ -611,11 +606,13 @@ class GameInterface {
 
   logEntry(action, ...args) {
     if (action.drag) args = args.slice(0, 2);
-    const name = this.currentPlayer().colorEncodedName();
+    const name = this.currentPlayer() && this.currentPlayer().colorEncodedName();
     return this.#players.reduce((entry, { position, userId }) => {
       position -= 1;
       if (action.log) {
-        entry[userId] = action.log.replace(/\$(\d+)/g, sub => {
+        let { log } = action;
+        if (typeof log === 'function') log = log(...args);
+        entry[userId] = log.replace(/\$(\d+)/g, sub => {
           if (sub[1] === '0') return name;
           const namedArg = args[parseInt(sub[1], 10) - 1];
           if (namedArg instanceof Array && namedArg[position]) return namedArg[position].shown || namedArg[position].hidden;

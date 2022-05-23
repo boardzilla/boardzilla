@@ -21,8 +21,8 @@ powergrid
 - turn order summary
 
 - addGrid
-- piece drag on to piece
-- numerical action type
+X piece drag on to piece
+X numerical action type
 - turn order changes
 - display component?
 - inc, toggle
@@ -31,7 +31,8 @@ powergrid
   - element.findAdjacent(selector)
   - element.findWithinDistance(cost, selector)
 
-- components packaged better (+/- n counter options, mobile?)
+X components packaged better (+/- n counter options)
+- components on mobile? recognize move-set somehow?
 - mobile landscape
 X grid-snapping dungeon, tableau, space->piece rules
 X space labels?

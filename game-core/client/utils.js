@@ -83,3 +83,5 @@ export const deserialize = value => {
   }
   return JSON.parse(value);
 };
+
+export const times = (n, fn) => Array.from(Array(n)).map((_, i) => fn(i + 1));

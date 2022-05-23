@@ -1,6 +1,5 @@
 const GameElement = require('./element');
-const Piece = require('./piece');
-const { times } = require('./utils');
+const { times, elementClasses } = require('./utils');
 
 class Space extends GameElement {
   space(q) {
@@ -11,28 +10,6 @@ class Space extends GameElement {
   spaces(q) {
     if (q instanceof Array) return q;
     return this.findAll(q).filter(el => el instanceof Space);
-  }
-
-  piece(q) {
-    if (q instanceof Piece) return q;
-    return this.pieces(q)[0];
-  }
-
-  pieces(q) {
-    if (q instanceof Array) return q;
-    return this.findAll(q).filter(el => el instanceof Piece);
-  }
-
-  add(pieces, num) {
-    return this.move(this.pile().pieces(pieces), this, num);
-  }
-
-  clear(pieces, num) {
-    return this.move(pieces, this.pile(), num);
-  }
-
-  destroy(pieces) {
-    this.pieces(pieces).forEach(p => p.destroy());
   }
 
   shuffle() {
@@ -52,7 +29,7 @@ class Space extends GameElement {
   }
 
   sort(fn) {
-    Space.sort(Array.from(this.node.children).map(node => this.wrap(node)), fn)
+    Space.sort(Array.from(this.node.children).map(node => node.gameElement), fn)
       .map(pair => pair.node)
       .forEach(i => this.node.insertBefore(i, null));
   }
@@ -70,7 +47,7 @@ class Space extends GameElement {
   }
 
   addSpace(name, attrs) {
-    return this.addGameElement(name, 'space', attrs);
+    return this.addGameElement(elementClasses.Space, name, 'space', 'space', attrs);
   }
 
   addSpaces(num, name, attrs) {
@@ -78,6 +55,6 @@ class Space extends GameElement {
   }
 }
 
-GameElement.wrapNodeAs(1, Space, GameElement.isSpaceNode);
+elementClasses.Space = Space;
 
 module.exports = Space;
