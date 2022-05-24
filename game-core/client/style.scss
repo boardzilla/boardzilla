@@ -239,6 +239,9 @@ div.nametag {
   pointer-events: none;
   opacity: .3;
   color: black;
+  position: absolute;
+  width: 100%;
+  text-align: center;
   .player-mat[color="red"] & {
     color: #900;
     text-shadow: 1px 1px #fcc;
@@ -260,7 +263,7 @@ div.nametag {
   }
 }
 
-.space > label {
+.space > label, .interactive-piece > label {
   color: white;
   position: absolute;
   display: block;
@@ -275,8 +278,8 @@ div.nametag {
   position: absolute;
   display: inline-block;
   top: 0;
-  left: -80%;
-  right: -80%;
+  left: -200%;
+  right: -200%;
   margin: 50% 0;
   text-align: center;
   span {
@@ -285,6 +288,20 @@ div.nametag {
     background: #006;
     border-radius: 5px;
   }
+}
+
+.space {
+  width: 400px;
+  height: 100px;
+  .debug & {
+    outline: 1px solid red;
+  }
+}
+
+.piece .unstyled-piece {
+  background: white;
+  padding: 10px;
+  border: 1px solid #333;
 }
 
 /* @media(orientation: landscape) { */
@@ -374,7 +391,8 @@ div.nametag {
   position: relative;
   margin-bottom: 8px;
   .scaler {
-    transform-origin: top left;
+    margin: 0 auto;
+    transform-origin: top center;
   }
   .piece {
     transform: none !important;

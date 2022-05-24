@@ -1,3 +1,14 @@
+setup scaffold game
+  game/
+    server/
+      index.js
+      package.json
+    client/
+      index.js
+      package.json
+add to GAMES
+./scripts/install
+
 container
  zone - fixed size
   space - area, deck, spread?
@@ -6,7 +17,9 @@ container
  zone
 
 powergrid
-- board with city spaces, resource squares, hide/show regions
+X token zoom?
+- $p player-mat selector dumb idea?
+- board with city spaces, resource squares, hide/show regions??
 - houses free move into cities (22p - 2)
 - resource tokens, onto factories and resource squares (24/24/24/12)
 - score meter, money counter (+/- 5, 10, 50 ?)

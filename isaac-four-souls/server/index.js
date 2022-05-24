@@ -1,6 +1,4 @@
-const game = require('game-core-server');
-const Counter = require('game-core-server/counter');
-const Die = require('game-core-server/die');
+const { game, Counter, Die } = require('game-core-server');
 const { editions, cards } = require('./data');
 
 game.setPlayers({

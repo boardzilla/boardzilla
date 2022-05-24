@@ -1,4 +1,4 @@
-const InteractivePiece = require('./interactivepiece');
+const InteractivePiece = require('./interactive-piece');
 
 class Die extends InteractivePiece {
   static component = 'Die';

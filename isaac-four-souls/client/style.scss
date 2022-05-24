@@ -10,6 +10,7 @@
   border-width: 10px;
   border-color: #960 #640 #430 #850;
   border-style: solid;
+  box-sizing: border-box;
   [data-players="3"] &, [data-players="4"] & {
     width: 1980px;
     background-size: 100% 110%;
@@ -24,12 +25,6 @@
 }
 
 #container {
-  #layout {
-    width: 1400px;
-    [data-players="3"] &, [data-players="4"] & {
-      width: 2000px;
-    }
-  }
   #board {
     position: absolute;
     left: 0;
@@ -269,9 +264,6 @@
   }
 
   div.nametag {
-    position: absolute;
     top: 170px;
-    width: 100%;
-    text-align: center;
   }
 }

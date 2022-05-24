@@ -495,17 +495,18 @@ export default class Page extends Component {
   }
 
   zoomOnPiece(element) {
+    const style = window.getComputedStyle(element);
     this.setState({
       zoomPiece: choiceByEl(element),
       zoomId: element.id,
       zoomOriginalSize: {
-        height: element.offsetHeight,
-        width: element.offsetWidth
+        height: parseFloat(style.height.slice(0, -2), 10),
+        width: parseFloat(style.width.slice(0, -2), 10),
       }
     });
   }
 
-  // return available actions association to this element {action: {choice, prompt},...}
+      // return available actions association to this element {action: {choice, prompt},...}
   actionsFor(choice) {
     if (!this.state.data.allowedActions) return [];
     return Object.entries(this.state.data.allowedActions).reduce((actions, [action, {choices, prompt, key}]) => {
@@ -607,6 +608,8 @@ export default class Page extends Component {
     if (attributes.label !== undefined) {
       label = unescape(attributes.label);
       delete attributes.label;
+    } else if (this.props.debug && type==='space') {
+      label = `#${node.id}`;
     }
 
     const props = {
@@ -712,10 +715,10 @@ export default class Page extends Component {
         {...props, action: (...args) => this.gameAction('interactWithPiece', key, ...args)},
         contents
       );
-    }
-
-    if (this.props.pieces[type]) {
+    } else if (this.props.pieces[type]) {
       contents = React.createElement(this.props.pieces[type], {...props}, frozen || contents);
+    } else if (type !== 'space') {
+      contents = <div className="unstyled-piece">{props.id}{contents}</div>;
     }
 
     if (this.state.dragging && this.state.dragging.key == key) {
@@ -797,6 +800,7 @@ export default class Page extends Component {
         messagesPane = 'actions';
         if (zoomXmlNode) {
           zoomScale = SIDEBAR_WIDTH / this.state.zoomOriginalSize.width * (this.state.bigZoom ? 2 : 1);
+          if (zoomXmlNode.getAttribute('zoom') && zoomScale > zoomXmlNode.getAttribute('zoom')) zoomScale = zoomXmlNode.getAttribute('zoom');
         }
       } else if (this.state.data) {
         if (this.state.data.phase == 'setup') {

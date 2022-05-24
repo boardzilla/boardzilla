@@ -48,7 +48,7 @@ class GameInterface {
     this.hiddenKeys = [];
     this.hiddenElements = [];
     this.variables = {};
-    this.allowedMoveElements = ''; // piece selector that is always valid for moving
+    this.allowedMoveElements = '.piece'; // piece selector that is always valid for moving
     this.alwaysAllowedPlays = []; // actions that anyone can take at any time
     this.drags = {};
     this.currentActions = [];
@@ -93,7 +93,7 @@ class GameInterface {
   initializeBoardWithPlayers() {
     this.#players.forEach(({ position, color }) => {
       const playerMat = this.doc.addSpace(`#player-mat-${position}`, { player: position, class: 'player-mat', color });
-      this.#setupPlayerMat.forEach(f => f(playerMat));
+      this.#setupPlayerMat.forEach(f => f(playerMat, position, color));
     });
     this.#setupBoard.forEach(f => f(this.board));
     this.currentPlayerPosition = 1;
@@ -111,7 +111,7 @@ class GameInterface {
         throw Error(`${name} has an 'onto' with no spaces.`);
       }
     }
-    if (action.toPlayer && action.toPlayer !== 'other' && action.toPlayer !== 'all') throw Error(`${name} 'toPlayer' must be 'other' or 'all'`);
+    if (action.toPlayer && !['other', 'all', 'me'].includes(action.toPlayer)) throw Error(`${name} 'toPlayer' must be 'me', 'other' or 'all'`);
     if (action.max === undefined ? action.min !== undefined : action.min === undefined) {
       throw Error(`${name} has 'min' or 'max' but needs both`);
     }
@@ -138,7 +138,7 @@ class GameInterface {
   }
 
   setupPlayerMat(fn) {
-    if (typeof fn !== 'function') throw Error('usage: setupPlayerMat(mat => { ... add things to `mat` ... });');
+    if (typeof fn !== 'function') throw Error('usage: setupPlayerMat((mat, player, color) => { ... add things to `mat` ... });');
     this.#setupPlayerMat.push(fn);
   }
 
@@ -549,11 +549,15 @@ class GameInterface {
   ontoSelector(action) {
     let { onto, toPlayer } = this.#actions[action]; // eslint-disable-line prefer-const
     if (toPlayer) {
+      onto = onto || '';
       if (toPlayer === 'other') {
         onto = `.player-mat:not(.mine) ${onto}`;
       }
       if (toPlayer === 'all') {
         onto = `.player-mat ${onto}`;
+      }
+      if (toPlayer === 'me') {
+        onto = `.player-mat.mine ${onto}`;
       }
     }
     return onto;
