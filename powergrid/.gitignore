@@ -1,0 +1,6 @@
+# build artifacts
+/client/build
+/server/build
+/dist
+
+node_modules
