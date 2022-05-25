@@ -73,7 +73,7 @@ game.afterMove(
 
 game.hideBoard(
   'card[flipped], .player-mat:not(.mine) #hand:not([showTo=$me]):not([showTo="Everyone"]) card, #loot card, #treasure card, #monsters card, #characters card, #eternals card, #rooms card',
-  ['front', 'name', 'edition', 'p3'],
+  ['front', 'frontLow', 'name', 'edition', 'p3'],
 );
 
 game.defineActions({

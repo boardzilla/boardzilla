@@ -3,6 +3,12 @@ import { render } from 'game-core-client';
 import { times } from 'game-core-client/utils.js';
 import Counter from 'game-core-client/components/Counter.js';
 import './style.scss';
+import images from './images.json';
+
+for (const imageSrc of images) {
+  const i = new Image();
+  i.src = imageSrc;
+}
 
 const HealthCounter = props => <Counter {...props} display={n => times(n, i => <img key={i} src="images/heart.png"/>)}/>;
 const AttackCounter = props => <Counter {...props} display={n => times(n, i => <img key={i} src="images/sword.png"/>)}/>;
@@ -18,7 +24,9 @@ render({
   pieces: {
     card: props => (
       <div>
-        <img src={`images/cards/${props.id ? props.front : props.back}`} />
+        <img src={`images/cards/${props.frontlow || props.back}`} onLoad={function(t) {
+          t.target.src = `images/cards/${props.id ? props.front : props.back}`
+        }} />
         {props.children}
       </div>
     )
