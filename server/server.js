@@ -207,7 +207,7 @@ module.exports = ({
 
   app.get('/sessions', async (req, res) => {
     if (!req.user) return unauthorized(req, res, 'permission denied');
-    let where = {};
+    let where = {state: {[Op.ne]: "expired"}};
     if (req.query.show !== 'all') {
       const mySessions = await db.SessionUser.findAll({ where: { userId: req.user.id } });
       where = { id: mySessions.map((s) => s.sessionId) };

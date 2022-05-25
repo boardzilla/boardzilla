@@ -7,20 +7,32 @@ async function cleanup() {
   const actionExchangeName = 'session-actions';
   const eventExchangeName = 'session-events';
 
-  const [results, _] = await db.sequelize.query(
+  const [oldSessionResults, _] = await db.sequelize.query(
 	  'select "sessionId", max("createdAt") as max_created_at from "SessionActions" group by "sessionId" having NOW() - max("createdAt") >= interval \'24 hours\'',
   );
 
-  for (const row of results) {
-    console.log(`Deleting session ${row.sessionId}`);
-    await db.SessionAction.destroy({ where: { sessionId: row.sessionId } });
-    await db.Session.destroy({ where: { id: row.sessionId } });
-	    await channel.deleteExchange(`${eventExchangeName}-${row.sessionId}`);
-	    await channel.deleteQueue(`${actionExchangeName}-${row.sessionId}-queue`);
-  }
+  await cleanupSessionIds(oldSessionResults.map(r => r.sessionId))
+
+  const [emptySessionResults, __] = await db.sequelize.query(
+    'select id from "Sessions" as s where NOW() - "createdAt" >= interval \'24 hours\' and NOT EXISTS(select id from "SessionActions" where "sessionId" = s.id)',
+  );
+
+  await cleanupSessionIds(emptySessionResults.map(r => r.id))
 
   console.log('Done');
   process.exit(0);
 }
 
 cleanup();
+
+
+async function cleanupSessionIds(sessionIds) {
+  for (const sessionId of sessionIds) {
+    console.log(`Deleting session ${sessionId}`);
+    await db.SessionAction.destroy({ where: { sessionId: sessionId } });
+    await db.ElementLock.destroy({ where: { sessionId: sessionId } });
+    await db.Session.update({state: "expired"}, { where: { id: sessionId } });
+    await channel.deleteExchange(`${eventExchangeName}-${sessionId}`);
+    await channel.deleteQueue(`${actionExchangeName}-${sessionId}-queue`);
+  }
+}
