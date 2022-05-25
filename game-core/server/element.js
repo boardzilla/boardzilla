@@ -16,10 +16,8 @@ class GameElement {
 
   enhanceQuery(q) {
     return q.replace(/\.mine/g, `[player="${this.game.currentPlayerPosition}"]`)
-      .replace(/\$me/g, this.game.currentPlayerPosition)
-      .replace(/#(\d)/g, '#\\3$1 ')
+      .replace(/=([^\]"]+)/g, '="$1"')
       .replace(/([#=])(\d)/g, '$1\\3$2 ')
-      .replace(/="([^"]+)/g, (_, p1) => `="${escape(p1)}`);
   }
 
   /**
@@ -221,6 +219,7 @@ class GameElement {
     position = Math.min(Math.max(position, 0), space.node.childElementCount);
     let outOfSplay = false;
     movables.forEach(piece => {
+
       piece.unset('x', 'y', 'left', 'top', 'right', 'bottom');
       outOfSplay = outOfSplay || (piece.parent().get('layout') === 'splay' && piece.parent());
       const previousId = piece.serialize();

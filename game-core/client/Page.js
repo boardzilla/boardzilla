@@ -609,7 +609,7 @@ export default class Page extends Component {
       label = unescape(attributes.label);
       delete attributes.label;
     } else if (this.props.debug && type==='space') {
-      label = `#${node.id}`;
+      //label = `#${node.id}`;
     }
 
     const props = {
@@ -618,6 +618,7 @@ export default class Page extends Component {
       "data-parent": choiceForXmlNode(node.parentNode),
       ...attributes,
       className: classNames([...new Set([type, ...node.classList])]),
+      style: {},
     };
     if (node.id) props.id = node.id;
 
@@ -641,6 +642,7 @@ export default class Page extends Component {
           )
         )
       });
+
       if (this.state.dragging && this.state.dragging.key == key) {
         const dragAction = this.allowedDragSpaces(key)[this.state.dragOver];
         if (dragAction) label = this.state.data.allowedActions[dragAction].prompt;
@@ -653,30 +655,33 @@ export default class Page extends Component {
         });
       }
 
-      if (externallyControlled && this.state.positions[key]) {
-        position = this.state.positions[key];
-      } else if (node.parentNode.getAttribute('layout') === 'stack' && !attributes.moved) {
-        position = {x: 0, y: 0};
-      } else {
-        const x = attributes.x;
-        const y = attributes.y;
-        if (!position && !isNaN(x) && !isNaN(y) && !isNaN(parseFloat(x)) && !isNaN(parseFloat(y))) {
-          position = {x, y};
-        } else if (node.parentNode.nodeName === 'space') {
-          position = {x: 0, y: 0};
-        }
-      }
       ['left', 'right', 'top', 'bottom'].forEach(p => {
-        if (props[p] != undefined) {
-          wrappedStyle[p] = props[p];
+        if (props[p] !== undefined) {
+          (type === 'space' ? props.style : wrappedStyle)[p] = props[p];
           delete props[p];
         }
       });
 
-      // ensure minimal positioning for a positioned piece
-      if (type !== 'space' && node.parentNode.getAttribute('layout') !== 'stretch') {
-        if (wrappedStyle.right === undefined && wrappedStyle.left === undefined) wrappedStyle.left = 0;
-        if (wrappedStyle.bottom === undefined && wrappedStyle.top === undefined) wrappedStyle.top = 0;
+      if (type !== 'space') {
+        if (externallyControlled && this.state.positions[key]) {
+          position = this.state.positions[key];
+        } else if (node.parentNode.getAttribute('layout') === 'stack' && !attributes.moved) {
+          position = {x: 0, y: 0};
+        } else {
+          const x = attributes.x;
+          const y = attributes.y;
+          if (!position && !isNaN(x) && !isNaN(y) && !isNaN(parseFloat(x)) && !isNaN(parseFloat(y))) {
+            position = {x, y};
+          } else if (node.parentNode.nodeName === 'space') {
+            position = {x: 0, y: 0};
+          }
+        }
+
+        // ensure minimal positioning for a positioned piece
+        if (node.parentNode.getAttribute('layout') !== 'stretch') {
+          if (wrappedStyle.right === undefined && wrappedStyle.left === undefined) wrappedStyle.left = 0;
+          if (wrappedStyle.bottom === undefined && wrappedStyle.top === undefined) wrappedStyle.top = 0;
+        }
       }
     }
 
@@ -686,6 +691,7 @@ export default class Page extends Component {
         columns = Math.max(columns, Math.ceil(node.childElementCount / (props.rows || 1)));
       }
       props.style = {
+        ...props.style,
         gridTemplateColumns: `repeat(${(columns || 1) - 1}, 1fr) ${props.minwidth ? props.minwidth + 'px' : '1fr'}`,
         gridTemplateRows: `repeat(${(props.rows || 1) - 1}, 1fr) ${props.minheight ? props.minheight + 'px' : '1fr'}`,
         gap: `${props.gutter || 0}px`,
@@ -822,7 +828,7 @@ export default class Page extends Component {
 
     return (
       <>
-        <div id="play-area">
+        <div id="play-area" className={classNames({ debug: this.props.debug, dragging: this.state.dragging })}>
           <div id="scaled-play-area" style={{ transform: `translate(-50%, -50%) scale(${this.state.playAreaScale})` }}>
             {this.props.background}
 

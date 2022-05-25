@@ -190,8 +190,21 @@ button {
   .table {
     z-index: -100;
   }
+  
+  .piece .unstyled-piece {
+    background: white;
+    padding: 10px;
+    border: 1px solid #333;
+  }
+
+  .debug .space:not(.hilited) {
+    outline: 1px solid red;
+  }
+
   .space {
-    position: relative;
+    position: absolute;
+    width: 400px;
+    height: 100px;
     &.flipped {
       transform: scale(-1);
     }
@@ -213,6 +226,7 @@ button {
       }
     }
   }
+
   .positioned-piece {
     position: absolute;
     transition: transform .2s;
@@ -288,20 +302,6 @@ div.nametag {
     background: #006;
     border-radius: 5px;
   }
-}
-
-.space {
-  width: 400px;
-  height: 100px;
-  .debug & {
-    outline: 1px solid red;
-  }
-}
-
-.piece .unstyled-piece {
-  background: white;
-  padding: 10px;
-  border: 1px solid #333;
 }
 
 /* @media(orientation: landscape) { */
@@ -404,15 +404,18 @@ div.nametag {
   transform: translateX(-9999px);
 }
 
+
 .react-draggable-dragging, .external-dragging {
   z-index: 100;
   position: relative;
-  .piece {
-    transform: scale(1.2);
-  }
-  img {
-    filter: drop-shadow(5px 5px 5px #222);
-    will-change: filter;
+  #play-area.dragging & {
+    .piece {
+      transform: scale(1.2);
+    }
+    img {
+      filter: drop-shadow(5px 5px 5px #222);
+      will-change: filter;
+    }
   }
 }
 

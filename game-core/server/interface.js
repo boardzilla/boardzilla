@@ -22,6 +22,8 @@ class GameInterface {
   // list of Player objects in turn order
   #players = [];
 
+  #numberOfPlayers;;
+
   // phase state machine: setup (can addPlayer) -> ready (can receive player actions)
   #phase;
 
@@ -169,6 +171,7 @@ class GameInterface {
     if (this.phase !== 'setup') throw Error('not able to add players while playing');
     if (players.length > this.#maxPlayers) throw Error('too many players');
     this.#players = Object.entries(players).map(([index, { id, name, color }]) => new Player({ userId: id, name, color, position: parseInt(index, 10) + 1 }));
+    this.#numberOfPlayers = this.#players.length;
   }
 
   get(key) {
@@ -667,6 +670,10 @@ class GameInterface {
 
   get players() {
     return this.#players;
+  }
+
+  get numberOfPlayers() {
+    return this.#numberOfPlayers;
   }
 
   otherPlayers() {

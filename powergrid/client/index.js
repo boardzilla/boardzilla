@@ -106,9 +106,9 @@ render({
   ),
   
   pieces: {
-    card: ({ image, children }) => (
+    card: ({ id, image, children }) => (
       <div>
-        <img src={`images/cards/${image}`} />
+        <img src={`images/cards/${id ? image : 'plug.webp'}`} />
         {children}
       </div>
     ),
@@ -126,4 +126,5 @@ render({
   },
   components: {
   },
+  debug: true,
 });

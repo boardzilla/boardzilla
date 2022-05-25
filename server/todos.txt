@@ -17,6 +17,21 @@ container
  zone
 
 powergrid
+- rules
+  X sort cards
+  X play out 03-10
+  X auto-remove 8/8/4 cards, add 13 top, step-3 bottom
+  X bid action
+  - buy resource (multi-select??)
+  - auto-refill
+  - >2 players?
+  - bottom deck??
+
+  - sort players (start turn)
+  - score spaces? manual->auto
+  - auto-remove less than players score
+  - pay last bid
+
 X token zoom?
 - $p player-mat selector dumb idea?
 - board with city spaces, resource squares, hide/show regions??

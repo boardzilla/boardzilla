@@ -58,21 +58,22 @@
 
 #container {
   #board {
-    position: absolute;
     left: 800px;
     top: 200px;
     height: 300px;
     width: 400px;
     #resources {
-      position: absolute;
       left: -75px;
       top: -120px;
       width: 60px;
       height: 545px;
+      .space[resource] {
+        width: 10px;
+        height: 10px;
+      }
     }
 
     #map {
-      position: absolute;
       left: -775px;
       top: -120px;
       width: 700px;
@@ -80,7 +81,6 @@
     }
 
     #deck {
-      position: absolute;
       left: 10px;
       bottom: 20px;
       width: 75px;
@@ -88,7 +88,6 @@
     }
 
     #discard {
-      position: absolute;
       left: 100px;
       bottom: 20px;
       width: 75px;
@@ -96,7 +95,6 @@
     }
 
     #powerplants {
-      position: absolute;
       left: 10px;
       top: 20px;
       width: 300px;
@@ -112,7 +110,6 @@
   }
 
   .player-mat {
-    position: absolute;
     left: 800px;
     top: 50px;
     height: 150px;
@@ -142,8 +139,9 @@
   }
 
   .resource {
+    line-height: 10px;
     &[type=coal] {
-      color: brown;
+      color: #420;
     }
     &[type=oil] {
       color: black;
