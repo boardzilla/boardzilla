@@ -1,11 +1,12 @@
 const amqp = require('amqplib');
 const db = require('./models');
 
+const actionExchangeName = 'session-actions';
+const eventExchangeName = 'session-events';
+
 async function cleanup() {
   const rabbit = await amqp.connect(process.env.RABBIT_URL);
   const channel = await rabbit.createChannel();
-  const actionExchangeName = 'session-actions';
-  const eventExchangeName = 'session-events';
 
   const [oldSessionResults, _] = await db.sequelize.query(
 	  'select "sessionId", max("createdAt") as max_created_at from "SessionActions" group by "sessionId" having NOW() - max("createdAt") >= interval \'24 hours\'',
@@ -24,7 +25,6 @@ async function cleanup() {
 }
 
 cleanup();
-
 
 async function cleanupSessionIds(channel, sessionIds) {
   for (const sessionId of sessionIds) {
