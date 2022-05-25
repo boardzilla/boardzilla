@@ -24,7 +24,7 @@ render({
   pieces: {
     card: props => (
       <div>
-        <img src={`images/cards/${props.id ? props.front : props.back}`} />
+        <img lowsrc={props.frontLow || props.back} src={`images/cards/${props.id ? props.front : props.back}`} />
         {props.children}
       </div>
     )
