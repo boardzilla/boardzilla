@@ -52,6 +52,10 @@ class GameElement {
     names.forEach(name => this.node.removeAttribute(name));
   }
 
+  increment(name, value) {
+    this.set(name, this.get(name) + value);
+  }
+
   // human readable name of this element from the perspective of player
   name(player, hidden) {
     const noun = this.id && !hidden ? this.get('name') || this.id : this.type;
@@ -219,7 +223,6 @@ class GameElement {
     position = Math.min(Math.max(position, 0), space.node.childElementCount);
     let outOfSplay = false;
     movables.forEach(piece => {
-
       piece.unset('x', 'y', 'left', 'top', 'right', 'bottom');
       outOfSplay = outOfSplay || (piece.parent().get('layout') === 'splay' && piece.parent());
       const previousId = piece.serialize();

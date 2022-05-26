@@ -190,7 +190,7 @@ button {
   .table {
     z-index: -100;
   }
-  
+
   .piece .unstyled-piece {
     background: white;
     padding: 10px;
@@ -409,7 +409,7 @@ div.nametag {
   z-index: 100;
   position: relative;
   #play-area.dragging & {
-    .piece {
+    .piece, .interactive-piece {
       transform: scale(1.2);
     }
     img {

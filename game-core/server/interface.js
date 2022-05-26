@@ -93,11 +93,11 @@ class GameInterface {
   }
 
   initializeBoardWithPlayers() {
-    this.#players.forEach(({ position, color }) => {
-      const playerMat = this.doc.addSpace(`#player-mat-${position}`, { player: position, class: 'player-mat', color });
-      this.#setupPlayerMat.forEach(f => f(playerMat, position, color));
-    });
     this.#setupBoard.forEach(f => f(this.board));
+    Object.entries(this.#players).forEach(([turn, { position, color }]) => {
+      const playerMat = this.doc.addSpace(`#player-mat-${position}`, { player: position, class: 'player-mat', color });
+      this.#setupPlayerMat.forEach(f => f(playerMat, position, color, parseInt(turn, 10)));
+    });
     this.currentPlayerPosition = 1;
   }
 
@@ -135,12 +135,12 @@ class GameInterface {
   }
 
   playerMat(player) {
-    if (!player) throw Error('playerMat called without a player or a current player');
+    if (!player) throw Error('playerMat called without a player');
     return this.doc.find(`#player-mat[player="${player}"]`);
   }
 
   setupPlayerMat(fn) {
-    if (typeof fn !== 'function') throw Error('usage: setupPlayerMat((mat, player, color) => { ... add things to `mat` ... });');
+    if (typeof fn !== 'function') throw Error('usage: setupPlayerMat((mat, player, color, turnOrder) => { ... add things to `mat` ... });');
     this.#setupPlayerMat.push(fn);
   }
 
@@ -431,7 +431,9 @@ class GameInterface {
       }
     }
 
-    const prompt = action.prompt + (action.key ? ` (${action.key.toUpperCase()})` : '');
+    let { prompt } = action;
+    if (typeof prompt === 'function') prompt = prompt(...args);
+    if (action.key) prompt += ` (${action.key.toUpperCase()})`;
 
     if (!action) {
       throw Error(`No such action: ${actionName}`);
@@ -439,7 +441,7 @@ class GameInterface {
 
     if (action.if) {
       let result = true;
-      if (typeof action.if === 'function') result = action.if();
+      if (typeof action.if === 'function') result = action.if(...args);
       if (typeof action.if === 'string') result = this.doc.contains(action.if);
       if (!result) throw new InvalidActionError(`${actionName} not allowed due to "if" condition`);
     }
@@ -473,12 +475,13 @@ class GameInterface {
     } else if (action.max !== undefined || action.min !== undefined) { // simple numerical
       nextPrompt = this.chooseNumberAction(action.min, action.max, prompt, nextAction, argIndex)(args);
     } else if (nextAction) {
-      const result = nextAction(...args);
+      const result = nextAction(args);
       if (result && result.prompt) nextPrompt = prompt;
     }
     let log;
     if (!test) {
       namedArgs = this.namedElements(args, namedArgs);
+      console.log(namedArgs);
       log = this.logEntry(action, ...namedArgs);
     }
     return { prompt: nextPrompt || prompt, log };

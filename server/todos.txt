@@ -1,3 +1,7 @@
+- select el (user must click el and hit prompt button to initiate)
+- select text (user must hit prompt button and select to initiate)
+- 
+
 setup scaffold game
   game/
     server/
@@ -22,8 +26,8 @@ powergrid
   X play out 03-10
   X auto-remove 8/8/4 cards, add 13 top, step-3 bottom
   X bid action
-  - buy resource (multi-select??)
-  - auto-refill
+  X buy resource (multi-select??)
+  X auto-refill
   - >2 players?
   - bottom deck??
 

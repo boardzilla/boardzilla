@@ -126,5 +126,4 @@ render({
   },
   components: {
   },
-  debug: true,
 });

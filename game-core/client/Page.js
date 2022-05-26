@@ -845,10 +845,10 @@ export default class Page extends Component {
           <div id="choices">
             {messagesPane == 'choices' &&
              <div>
-               {textChoices.length > 0 && <input id="choiceFilter" autoFocus={!IS_MOBILE_PORTRAIT} onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
+               {textChoices.length > 10 && <input id="choiceFilter" autoFocus={!IS_MOBILE_PORTRAIT} onChange={e => this.setState({filter: e.target.value})} value={this.state.filter}/>}
                {textChoices && (
                  <div>
-                   {Array.from(new Set(textChoices.filter(choice => String(choice).toLowerCase().includes(this.state.filter.toLowerCase())))).sort().map(choice => (
+                   {Array.from(new Set(textChoices.filter(choice => String(choice).toLowerCase().includes(this.state.filter.toLowerCase())))).map(choice => (
                      <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, choice)}>{this.choiceText(choice)}</button>
                    ))}
                  </div>

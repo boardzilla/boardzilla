@@ -149,7 +149,7 @@ game.defineActions({
     key: 'i',
     next: {
       prompt: 'Select card',
-      select: deck => deck.findAll('card').map(c => c.get('name')),
+      select: deck => deck.findAll('card').map(c => c.get('name')).sort(),
       action: (deck, name) => {
         const card = deck.find(`card[name="${name}"]`);
         card.move('.mine #hand');

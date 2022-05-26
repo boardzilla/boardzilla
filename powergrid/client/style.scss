@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Teko:wght@500&family=Voltaire&display=swap');
+
 .table {
   width: 1200px;
   height: 600px;
@@ -20,14 +22,15 @@
     transform: rotate(270deg);
   }
   .cost {
-    color: #eef;
+    padding-left: 2px;
+    color: #f0f0ff;
     position: absolute;
-    text-shadow: 0px 0px 4px black;
+    text-shadow: 2px 2px 2px black;
     font-weight: bold;
-    font-size: 16px;
+    font-size: 19px;
     &.high {
-      text-shadow: 0px 0px 6px black;
-      font-size: 19px;
+      text-shadow: 2px 2px 3px black;
+      font-size: 23px;
       color: #ffc;
     }
   }
@@ -51,14 +54,16 @@
     border-radius: 50%;
   }
 }
+
 #scaled-play-area {
   width: 1200px;
   height: 700px;
 }
 
 #container {
+  font-family: 'Voltaire', sans-serif;
   #board {
-    left: 800px;
+    left: 795px;
     top: 200px;
     height: 300px;
     width: 400px;
@@ -102,7 +107,7 @@
     }
 
     #hammer {
-      width: 50px;
+      width: 35px;
       img {
         filter: drop-shadow(0px 0px 4px #222);
       }
@@ -110,7 +115,7 @@
   }
 
   .player-mat {
-    left: 800px;
+    left: 795px;
     top: 50px;
     height: 150px;
     width: 400px;
@@ -139,8 +144,10 @@
   }
 
   .resource {
+    font-family: system-ui;
     line-height: 10px;
     &[type=coal] {
+      font-size: 20px;
       color: #420;
     }
     &[type=oil] {
