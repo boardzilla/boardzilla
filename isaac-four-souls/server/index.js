@@ -271,7 +271,7 @@ game.defineActions({
     prompt: 'Discard',
     log: '$0 discarded $1',
     key: 'f',
-    drag: ".mine card[type='bonus']",
+    drag: '.mine card[type=bonus]',
     onto: '#bonus-souls',
   },
   takeSoul: {
@@ -285,21 +285,21 @@ game.defineActions({
     prompt: 'Play',
     log: '$0 played $1',
     key: 'p',
-    drag: '#rooms card:last-child, .mine card[type="room"]',
+    drag: '#rooms card:last-child, .mine card[type=room]',
     onto: '#room',
   },
   discardRoom: {
     prompt: 'Discard',
     log: '$0 discarded $1',
     key: 'f',
-    drag: '#rooms card:last-child, #room card:last-child, .mine card[type="room"]',
+    drag: '#rooms card:last-child, #room card:last-child, .mine card[type=room]',
     onto: '#room-discard',
   },
   inRoomDeck: {
     prompt: 'Put back in deck',
     log: '$0 put $1 back into deck',
     key: 't',
-    drag: '#room-discard card:last-child, #room card:last-child, .mine card[type="room"]',
+    drag: '#room-discard card:last-child, #room card:last-child, .mine card[type=room]',
     onto: '#rooms',
   },
   giveCard: {
@@ -307,7 +307,7 @@ game.defineActions({
     promptOnto: 'Which player',
     log: '$0 gave $1 to $2',
     key: 'g',
-    drag: ".mine #tableau card, .mine card[type='monster']",
+    drag: '.mine #tableau card, .mine card[type=monster]',
     toPlayer: 'other',
     onto: '#tableau',
   },
@@ -325,8 +325,9 @@ game.defineActions({
     promptOnto: 'Which player',
     log: '$0 gave $1',
     key: 'g',
-    drag: ".mine #hand card[type='loot']",
-    onto: '.player-mat:not(.mine) #hand',
+    drag: '.mine #hand card[type=\'loot\']',
+    toPlayer: 'all',
+    onto: '#hand',
   },
   giveAllLoot: {
     prompt: 'Give all cards to player',
@@ -356,7 +357,7 @@ game.defineActions({
     prompt: 'Put back in deck',
     log: '$0 put $1 back into deck',
     key: 'f',
-    drag: '.mine card[type="character"]',
+    drag: '.mine card[type=character]',
     onto: '#characters',
     action: card => { if (card.get('eternal')) game.doc.move(`.mine #${card.get('eternal')}`, '#eternals'); },
   },
@@ -364,7 +365,7 @@ game.defineActions({
     prompt: 'Put back in deck',
     log: '$0 put $1 back into deck',
     key: 'f',
-    drag: '.mine card[type="eternal"]',
+    drag: '.mine card[type=eternal]',
     onto: '#eternals',
   },
   removeP3: {
@@ -446,17 +447,17 @@ game.play(async () => {
   const lootDeck = game.board.find('#loot');
   lootDeck.clear();
   lootDeck.unset('bonus');
-  lootDeck.add('card[type="loot"]');
+  lootDeck.add('card[type=loot]');
   lootDeck.shuffle();
   const treasureDeck = game.board.find('#treasure');
-  treasureDeck.add('card[type="treasure"]');
+  treasureDeck.add('card[type=treasure]');
   treasureDeck.shuffle();
   const monsterDeck = game.board.find('#monsters');
-  monsterDeck.add('card[type="monster"]');
+  monsterDeck.add('card[type=monster]');
   monsterDeck.shuffle();
   game.board.addInteractivePiece(Counter, { name: 'boss health', component: 'HealthCounter', initialValue: 1, max: 8, left: game.players.length > 2 ? 1290 : 990, top: 110 });
   const roomDeck = game.board.find('#rooms');
-  roomDeck.add('card[type="room"]');
+  roomDeck.add('card[type=room]');
   roomDeck.shuffle();
   game.prompt(null);
 

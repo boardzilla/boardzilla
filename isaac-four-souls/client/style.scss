@@ -1,6 +1,6 @@
 .table {
-  width: 1380px;
-  height: 560px;
+  width: 1400px;
+  height: 580px;
   top: 120px;
   left: 0;
   position: absolute;
@@ -12,7 +12,7 @@
   border-style: solid;
   box-sizing: border-box;
   [data-players="3"] &, [data-players="4"] & {
-    width: 1980px;
+    width: 2000px;
     background-size: 100% 110%;
   }
 }
