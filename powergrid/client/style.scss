@@ -189,6 +189,9 @@
       left: 0;
       top: 0;
     }
+    &[powered] img {
+      filter: brightness(1.5);
+    }
   }
 
   div.nametag {

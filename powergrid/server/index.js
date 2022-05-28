@@ -126,7 +126,7 @@ game.defineActions({
   },
   power: {
     prompt: 'Power this plant',
-    select: '.mine card',
+    select: '.mine card:not([powered])',
     log: '$0 powered $1',
     key: 'p',
     action: (card, oilChoice) => {
@@ -153,6 +153,7 @@ game.defineActions({
         if (resourceType) card.clear(`#${resourceType}`, resources);
       }
       times(card.get('power'), () => game.board.find('#map #building.mine:not([powered])').set({ powered: true }));
+      card.set({ powered: true });
     },
   },
   income: {
@@ -166,6 +167,7 @@ game.defineActions({
         income[Math.min(income.length - 1, game.board.count('#building.mine[powered]'))]
       );
       game.board.findAll('#building.mine[powered]').forEach(b => b.unset('powered'));
+      game.doc.findAll('.mine card[powered]').forEach(b => b.unset('powered'));
     },
   },
   remove: {

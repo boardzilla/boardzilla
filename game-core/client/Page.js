@@ -482,7 +482,7 @@ export default class Page extends Component {
         this.setState({action: null, args: [], prompt: null, choices: null, min: null, max: null});
       }
       let zooming = false;
-      if (isEl(choice) && (elByChoice(choice).classList.contains('piece'))) {
+      if (isEl(choice) && elByChoice(choice).classList.contains('piece')) {
         this.zoomOnPiece(elByChoice(choice));
         event.stopPropagation();
         zooming = true;
