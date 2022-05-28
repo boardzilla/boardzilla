@@ -1,0 +1,12 @@
+<%- include('../partials/header') %>
+
+<h1>Edit message</h1>
+
+<form action="/admin/messages/<%=message.id%>" method="POST">
+  <label for="title">Title</label> <input required type="text" name="title" id="email" value="<%=message.title%>">
+  <label for="notes">Notes</label> <textarea required name="notes" id="notes"><%=message.notes%></textarea>
+  <input type="submit" value="Submit">
+</form>
+
+
+<%- include('../partials/footer') %>

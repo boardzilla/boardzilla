@@ -202,7 +202,10 @@ module.exports = ({
 
   app.get('/', async (req, res) => {
     const versions = await db.GameVersion.findAll({ include: db.Game, limit: 5, order: [['createdAt', 'desc']], where: { notes: { [Op.not]: null } } });
-    res.render('home', { versions });
+    const messages = await db.ServerMessage.findAll({ limit: 5, order: [['createdAt', 'desc']] });
+    const messagesAndVersions = versions.concat(messages)
+    messagesAndVersions.sort((a,b) => b.createdAt.getTime() - a.createdAt.getTime())
+    res.render('home', { messagesAndVersions });
   });
 
   app.get('/sessions', async (req, res) => {
@@ -246,6 +249,12 @@ module.exports = ({
     res.render('admin/games', { games });
   });
 
+  app.get('/admin/messages', async (req, res) => {
+    if (!req.user && req.user.role !== 'admin') return unauthorized(req, res, 'permission denied');
+    const messages = await db.ServerMessage.findAll();
+    res.render('admin/messages', { messages });
+  });
+
   app.get('/admin/games/:id', async (req, res) => {
     if (!req.user && req.user.role !== 'admin') return unauthorized(req, res, 'permission denied');
     const game = await db.Game.findByPk(req.params.id);
@@ -277,6 +286,49 @@ module.exports = ({
     await needle('post', process.env.DISCORD_RELEASE_WEBHOOK, { content });
     res.redirect(`/admin/games/${req.params.id}`);
   });
+
+  app.get('/admin/messages/new', async (req, res) => {
+    if (!req.user && req.user.role !== 'admin') return unauthorized(req, res, 'permission denied');
+    res.render('admin/message-new');
+  });
+
+  app.post('/admin/messages', async (req, res) => {
+    if (!req.user && req.user.role !== 'admin') return unauthorized(req, res, 'permission denied');
+    await db.ServerMessage.create({
+      title: req.body.title,
+      notes: req.body.notes,
+    })
+
+    res.redirect(`/admin/messages`);
+  });
+
+  app.post('/admin/messages/:id', async (req, res) => {
+    if (!req.user && req.user.role !== 'admin') return unauthorized(req, res, 'permission denied');
+    await db.ServerMessage.update({
+      title: req.body.title,
+      notes: req.body.notes,
+    },{
+      where: {id:req.params.id},
+    });
+
+    res.redirect(`/admin/messages/${req.params.id}/edit`);
+  });
+
+  app.get('/admin/messages/:id/edit', async (req, res) => {
+    if (!req.user && req.user.role !== 'admin') return unauthorized(req, res, 'permission denied');
+    const message = await db.ServerMessage.findByPk(req.params.id);
+    res.render('admin/message-edit', { message });
+  });
+
+  app.post('/admin/messages/:id/announce', async (req, res) => {
+    if (!req.user && req.user.role !== 'admin') return unauthorized(req, res, 'permission denied');
+    const message = await db.ServerMessage.findByPk(req.params.id);
+
+    const content = `${message.title}\n\n${message.notes}`;
+    await needle('post', process.env.DISCORD_RELEASE_WEBHOOK, { content });
+    res.redirect(`/admin/messages`);
+  });
+
 
   app.put('/publish', async (req, res) => {
     if (req.headers['x-publish-token'] !== process.env.PUBLISH_TOKEN) {
