@@ -20,6 +20,7 @@ import {
   currentGridPosition,
   deserialize,
 } from './utils';
+import ErrorPane from './ErrorPane';
 import Spinner from './Spinner';
 import Counter from './components/Counter';
 import Die from './components/Die';
@@ -60,7 +61,8 @@ export default class Page extends Component {
       help: false, // show help content
       playerStatus: {[props.userId]: new Date()}, // timestamps of last ping from each player
       logs: {},
-      replies: {} // action callbacks { id: { time, callback }, ... }
+      replies: {}, // action callbacks { id: { time, callback }, ... }
+      error: null,
     };
     this.componentCleanup = this.componentCleanup.bind(this);
     this.components = {...(props.components || {}), Counter, Die };
@@ -163,6 +165,9 @@ export default class Page extends Component {
           break;
         case "active":
           this.setState(state => ({playerStatus: Object.assign({}, state.playerStatus, {[payload]: new Date()})}));
+          break;
+        case 'showError':
+          this.setState(state => ({error:payload}));
           break;
         case 'error':
         case 'reload':
@@ -772,6 +777,8 @@ export default class Page extends Component {
   }
 
   render() {
+    if (this.state.error) return <ErrorPane error={this.state.error} />;
+
     const textChoices = this.state.choices instanceof Array && this.state.choices.filter(choice => !isEl(choice));
     const numberChoice = (this.state.min !== null || this.state.max !== null) && { min: this.state.min, max: this.state.max };
     const nonBoardActions = this.nonBoardActions();
