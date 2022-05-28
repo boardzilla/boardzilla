@@ -345,6 +345,7 @@ export default class Page extends Component {
       } else if (reply.type === 'error') {
         this.setState({action: null, args: [], choices: null, min: null, max: null, prompt: null, actions: null, filter: '' });
         console.error(reply);
+        window.alert(reply.message);
       }
     });
     actionId++;
