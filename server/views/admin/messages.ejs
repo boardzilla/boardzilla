@@ -1,0 +1,28 @@
+<%- include('../partials/header') %>
+
+<h1>Messages</h1>
+
+<table>
+
+<% messages.forEach(message => { %>
+<tr>
+<td>
+<h2><%=message.title%></h2>
+<h3><%=message.formattedCreatedAt()%></h3>
+<p><%- message.notesHTML() %></p>
+</td>
+<td>
+	<form action="/admin/messages/<%=message.id%>/edit" method="GET">
+		<input type="submit" value="Edit message">
+	</form>
+
+	<form action="/admin/messages/<%=message.id%>/announce" method="POST">
+		<input type="submit" value="Announce">
+	</form>
+</td>
+</tr>
+<% }) %>
+</table>
+<p><a href="/admin/messages/new">Create new message</a></p>
+
+<%- include('../partials/footer') %>
