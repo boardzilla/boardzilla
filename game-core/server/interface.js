@@ -22,7 +22,7 @@ class GameInterface {
   // list of Player objects in turn order
   #players = [];
 
-  #numberOfPlayers;;
+  #numberOfPlayers;
 
   // phase state machine: setup (can addPlayer) -> ready (can receive player actions)
   #phase;
@@ -136,7 +136,7 @@ class GameInterface {
 
   playerMat(player = this.currentPlayerPosition) {
     if (!player) throw Error('playerMat called without a player');
-    return this.doc.find(`#player-mat[player="${player}"]`);
+    return this.doc.find(`.player-mat[player="${player}"]`);
   }
 
   setupPlayerMat(fn) {
@@ -687,7 +687,7 @@ class GameInterface {
   reorderPlayersBy(fn) {
     if (typeof fn !== 'function') throw Error('reorderPlayersBy must be called with a player ranking function, e.g. "reorderPlayersBy(playerNumber => getScore(playerNumber))"');
     const ranks = this.playersInPositionOrder().map(p => fn(p.position));
-    this.players.sort((p1, p2) => (ranks[p1.position] > ranks[p2.position] ? 1 : (ranks[p1.position] < ranks[p2.position] ? -1 : 0)));
+    this.players.sort((p1, p2) => (ranks[p1.position - 1] > ranks[p2.position - 1] ? 1 : (ranks[p1.position - 1] < ranks[p2.position - 1] ? -1 : 0)));
   }
 
   playersInPositionOrder() {

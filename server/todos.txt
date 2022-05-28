@@ -21,7 +21,7 @@ container
 
 powergrid
 - rules
-  - pass
+  X pass
   X sort cards
   X play out 03-10
   X auto-remove 8/8/4 cards, add 13 top, step-3 bottom

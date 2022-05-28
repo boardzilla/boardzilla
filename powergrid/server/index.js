@@ -46,12 +46,9 @@ const refill = {
 
 game.afterMove('#powerplants card', sortPowerplants);
 
-game.setupPlayerMat((mat, player, color, position) => {
+game.setupPlayerMat((mat, player, color) => {
   mat.addPieces(22, '#building', 'token', { player, color, zoom: 2, left: 15, bottom: 15 });
   mat.addInteractivePiece(Counter, { name: 'Elektro', steps: [-50, -10, -5, -1, 1, 5, 10, 50], right: 10, bottom: 10, initialValue: 50 });
-  const [scoreToken, turnToken] = mat.move('token', '#map', 2);
-  scoreToken.set({ left: 10, top: 220 + player * 10 });
-  turnToken.set({ left: 10, top: 475 + position * 25 });
 });
 
 game.setupBoard(board => {
@@ -250,6 +247,15 @@ game.play(async () => {
   resources.findAll('[resource=oil]').filter(r => r.get('cost') > 2).forEach(r => r.add('#oil', 1));
   resources.findAll('[resource=garbage]').filter(r => r.get('cost') > 6).forEach(r => r.add('#garbage', 1));
   resources.findAll('[resource=uranium][cost=14], [resource=uranium][cost=16]').forEach(r => r.add('#uranium', 1));
+
+  game.reorderPlayersBy(game.random);
+  let turn = 0;
+  game.players.forEach(player => {
+    const [scoreToken, turnToken] = game.playerMat(player.position).move('token', '#map', 2);
+    scoreToken.set({ left: 14, top: 250 + player.position * 5 });
+    turnToken.set({ left: 14, top: 500 - turn * 25 });
+    turn++;
+  });
 
   while (true) { // eslint-disable-line no-constant-condition
     await game.anyPlayerPlay(game.getAllActions());
