@@ -258,6 +258,13 @@ class GameElement {
     this.node.parentNode.appendChild(this.node);
   }
 
+  findOpenCell() {
+    const cells = (this.get('columns') || 1) * (this.get('rows') || 1);
+    let cell = 0;
+    while (this.contains(`[cell="${cell}"]`)) cell += 1;
+    return cell >= cells ? 0 : cell;
+  }
+
   // return string representation, e.g. "$el(2-1-3)"
   serialize() {
     if (this.get('uuid')) return `$uuid(${this.get('uuid')})`;

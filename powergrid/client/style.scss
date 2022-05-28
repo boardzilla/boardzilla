@@ -171,6 +171,13 @@
   .card {
     width: 75px;
     height: 75px;
+    padding: 20px 10px;
+    box-sizing: border-box;
+    img {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
   }
 
   div.nametag {

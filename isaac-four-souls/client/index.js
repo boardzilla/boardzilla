@@ -17,10 +17,10 @@ render({
   background: <div className="table"/>,
   pieces: {
     card: props => (
-      <div>
+      <>
         <img src={`images/cards/${props.id ? props.front : props.back}`} />
         {props.children}
-      </div>
+      </>
     )
   },
   components: {

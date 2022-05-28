@@ -106,11 +106,11 @@ render({
   ),
   
   pieces: {
-    card: ({ id, image, children }) => (
-      <div>
+    card: ({ id, image, children }) => ( // doc must indicate that children should be included at top level if piece needs to be able to hold other pieces
+      <>
         <img src={`images/cards/${id ? image : 'plug.webp'}`} />
         {children}
-      </div>
+      </>
     ),
 
     token: ({ player, color }) => <img src={`images/${color}-token.png`} player={player}/>,

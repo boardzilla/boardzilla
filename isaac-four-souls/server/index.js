@@ -106,7 +106,7 @@ game.defineActions({
     key: 'd',
     drag: '.mine #hand card',
     onto: '.mine #tableau',
-    action: card => { if (card.get('eternal')) game.doc.find(`.mine #hand #${card.get('eternal')}`).move('.mine #tableau'); },
+    action: card => { if (card.get('eternal')) game.doc.find(`.mine #hand #${card.get('eternal')}`).moveTo('.mine #tableau'); },
   },
   draw: {
     prompt: 'Draw',
@@ -152,7 +152,7 @@ game.defineActions({
       select: deck => deck.findAll('card').map(c => c.get('name')).sort(),
       action: (deck, name) => {
         const card = deck.find(`card[name="${name}"]`);
-        card.move('.mine #hand');
+        card.moveTo('.mine #hand');
         if (card.get('eternal')) game.board.move(`#${card.get('eternal')}`, '.mine #hand');
       },
     },
@@ -183,7 +183,7 @@ game.defineActions({
     log: '$0 put $1 on the bottom of the deck',
     key: 'b',
     select: '.mine card[type="loot"]',
-    action: card => card.moveToBottom('#loot'),
+    action: card => card.moveToBottomOf('#loot'),
   },
   intoShop: {
     prompt: 'Put into shop',
@@ -211,7 +211,7 @@ game.defineActions({
     log: '$0 put $1 on the bottom of the deck',
     key: 'b',
     select: '#treasure-discard card:last-child, #shop card, .mine card[type="treasure"]',
-    action: card => card.moveToBottom('#treasure'),
+    action: card => card.moveToBottomOf('#treasure'),
   },
   intoDungeon: {
     prompt: 'Put into dungeon',
@@ -246,7 +246,7 @@ game.defineActions({
     log: '$0 put $1 in the bottom of the deck',
     key: 'b',
     select: '#dungeon card[type="monster"], #monsters-discard card:last-child, .mine card[type="monster"]',
-    action: card => card.moveToBottom('#monsters'),
+    action: card => card.moveToBottomOf('#monsters'),
   },
   intoMonsterDeckAt: {
     prompt: 'Put nth card down in deck',
@@ -257,7 +257,7 @@ game.defineActions({
       prompt: 'How far down into deck?',
       min: 2,
       max: 6,
-      action: (card, position) => card.move('#monsters', position - 1),
+      action: (card, position) => card.moveTo('#monsters', position - 1),
     },
   },
   replaceBonus: {
@@ -265,7 +265,7 @@ game.defineActions({
     log: false,
     drag: '#bonus-souls card',
     onto: '#loot',
-    action: card => { card.moveToBottom(); game.board.find('#loot card:last-child').move('#bonus-souls'); },
+    action: card => { card.moveToBottomOf('#loot'); game.board.find('#loot card:last-child').moveTo('#bonus-souls'); },
   },
   discardBonus: {
     prompt: 'Discard',

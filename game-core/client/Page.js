@@ -240,10 +240,14 @@ export default class Page extends Component {
           this.gameAction(this.state.action, ...this.state.args, this.state.input);
         }
       } else {
-        let choice = this.state.zoomPiece || (mouse.x != undefined && choiceAtPoint(mouse.x, mouse.y));
-        if (choice) {
-          const action = Object.entries(this.state.actions || this.actionsFor(choice)).find(([_, a]) => a.key && a.key.toLowerCase() == e.key);
-          if (action) this.gameAction(action[0], ...this.state.args, action[1].choice);
+        let choices = this.state.actions || this.nonBoardActions() || this.actionsFor(this.state.zoomPiece || (mouse.x != undefined && choiceAtPoint(mouse.x, mouse.y)));
+        if (choices) {
+          const action = Object.entries(choices).find(([_, a]) => a.key && a.key.toLowerCase() == e.key);
+          if (action) {
+            const { args } = this.state;
+            if (action[1].choice) args.push(action[1].choice);
+            this.gameAction(action[0], ...args);
+          }
         }
       }
     });
@@ -336,7 +340,7 @@ export default class Page extends Component {
         this.setState({action: null, args: [], choices: null, min: null, max: null, prompt: null, actions: null, filter: '' });
       } else if (reply.type === 'incomplete') {
         if (reply.choices) reply.choices = deserialize(reply.choices);
-        const input = (reply.min !== undefined || reply.max !== undefined) ? reply.min || 0 : '';
+        const input = (reply.min !== undefined || reply.max !== undefined) ? Math.min(reply.max || 0, Math.max(reply.min || 0, 0)) : '';
         this.setState({ choices: null, min: null, max: null, ...reply, action, args, zoomPiece: null, filter: '', input });
       } else if (reply.type === 'error') {
         this.setState({action: null, args: [], choices: null, min: null, max: null, prompt: null, actions: null, filter: '' });
@@ -469,7 +473,7 @@ export default class Page extends Component {
       this.gameAction(this.state.action, ...this.state.args, choice);
       event.stopPropagation();
     } else {
-      if (this.state.prompt) {
+      if (this.state.prompt || this.state.choices) {
         this.setState({action: null, args: [], prompt: null, choices: null, min: null, max: null});
       }
       let zooming = false;
@@ -477,6 +481,8 @@ export default class Page extends Component {
         this.zoomOnPiece(elByChoice(choice));
         event.stopPropagation();
         zooming = true;
+      } else {
+        this.setState({ zoomPiece: null });
       }
 
       const actions = this.actionsFor(choice);
@@ -506,7 +512,7 @@ export default class Page extends Component {
     });
   }
 
-      // return available actions association to this element {action: {choice, prompt},...}
+  // return available actions association to this element {action: {choice, prompt, key},...}
   actionsFor(choice) {
     if (!this.state.data.allowedActions) return [];
     return Object.entries(this.state.data.allowedActions).reduce((actions, [action, {choices, prompt, key}]) => {
@@ -524,9 +530,9 @@ export default class Page extends Component {
   // actions that have no element to click. returns { action: prompt,... }
   nonBoardActions() {
     if (!this.state.data.allowedActions) return [];
-    return Object.entries(this.state.data.allowedActions).reduce((actions, [action, {choices, prompt}]) => {
+    return Object.entries(this.state.data.allowedActions).reduce((actions, [action, {choices, prompt, key}]) => {
       if (!choices || choices.find(choice => !isEl(choice))) {
-        actions[action] = prompt;
+        actions[action] = {prompt, key};
       }
       return actions;
     }, {});
@@ -661,6 +667,11 @@ export default class Page extends Component {
           delete props[p];
         }
       });
+
+      if (this.state.dragging && key === this.state.dragging.moveAnchor) {
+        // elevate drag parent to help the drag item be higher than it's cousins (grand-cousins?)
+        (type === 'space' ? props.style : wrappedStyle).zIndex = 200;
+      }
 
       if (type !== 'space') {
         if (externallyControlled && this.state.positions[key]) {
@@ -826,6 +837,8 @@ export default class Page extends Component {
       return <span><span className="keybind">{key}</span>{message}</span>;
     };
 
+    const prompt = (this.state.prompt || this.state.data.prompt || '').replace(/\s*\((\w)\)$/, '');
+
     return (
       <>
         <div id="play-area" className={classNames({ debug: this.props.debug, dragging: this.state.dragging })}>
@@ -841,7 +854,7 @@ export default class Page extends Component {
           style={IS_MOBILE_PORTRAIT ? {width: 2 * SIDEBAR_WIDTH}: {}}
         > {/* why is this 2 and not devicePixelRatio ?? */}
           <div>{Object.keys(this.state.replies).length ? <span id="spinner"><Spinner/> connected</span> : (this.selfActivePlayer() ? "🟢 connected" : "🔴 not connected")}</div>
-          <div className="prompt">{this.state.prompt || this.state.data.prompt}</div>
+          <div className="prompt">{prompt}</div>
           <div id="choices">
             {messagesPane == 'choices' &&
              <div>
@@ -907,7 +920,7 @@ export default class Page extends Component {
              <div id="actions">
                <button className="undo" onClick={() => this.send('undo')}>Undo</button>
                <button className="reset" onClick={() => confirm("Reset and lose all game history? This cannot be undone") && this.reset()}>Reset</button>
-               {nonBoardActions && Object.entries(nonBoardActions).map(([action, prompt]) => (
+               {nonBoardActions && Object.entries(nonBoardActions).map(([action, {prompt}]) => (
                  <button key={action} onClick={() => this.gameAction(action)}>{showKeybind(prompt)}</button>
                ))}
                <button className="fab help" onClick={() => this.setState({help: true})}>?</button>

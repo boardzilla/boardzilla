@@ -134,7 +134,7 @@ class GameInterface {
     this.#setupBoard.push(fn);
   }
 
-  playerMat(player) {
+  playerMat(player = this.currentPlayerPosition) {
     if (!player) throw Error('playerMat called without a player');
     return this.doc.find(`#player-mat[player="${player}"]`);
   }
@@ -195,7 +195,7 @@ class GameInterface {
   }
 
   hideBoard(selector, attrs) {
-    if (typeof selector !== 'string' || !(attrs instanceof Array)) throw Error('usage: hideBoard(selector, attributes) e.g. hideBoard(\'card.flipped\', [\'name\'])');
+    if (typeof selector !== 'string' || (attrs && !(attrs instanceof Array))) throw Error('usage: hideBoard(selector, attributes) e.g. hideBoard(\'card.flipped\', [\'name\'])');
     this.hiddenElements.push([selector, attrs]);
   }
 
@@ -268,7 +268,9 @@ class GameInterface {
       this.hiddenElements.forEach(([selector, attrs]) => {
         playerView.findNodes(selector).forEach(n => {
           n.removeAttribute('id');
-          attrs.forEach(attr => n.removeAttribute(attr));
+          (attrs || n.getAttributeNames())
+            .filter(attr => !['class', 'className', 'style', 'player', 'layout', 'component', 'x', 'y', 'top', 'left', 'right', 'bottom'].includes(attr))
+            .forEach(attr => n.removeAttribute(attr));
           if (isSpaceNode(n)) n.innerHTML = ''; // space contents are hidden
         });
       });
@@ -481,7 +483,6 @@ class GameInterface {
     let log;
     if (!test) {
       namedArgs = this.namedElements(args, namedArgs);
-      console.log(namedArgs);
       log = this.logEntry(action, ...namedArgs);
     }
     return { prompt: nextPrompt || prompt, log };
@@ -496,9 +497,9 @@ class GameInterface {
         promptOnto || prompt,
         ([piece, space, positioning]) => {
           if (positioning && positioning.pos !== undefined) {
-            piece.move(space, -1 - positioning.pos);
+            piece.moveTo(space, -1 - positioning.pos);
           } else {
-            piece.move(space);
+            piece.moveTo(space);
             if (positioning) piece.set(positioning);
           }
           if (action) {
@@ -716,7 +717,7 @@ class GameInterface {
   moveElement(el, positioning) {
     if (el.matches(this.allowedMoveElements)) {
       if (positioning.pos !== undefined) {
-        el.move(null, -1 - positioning.pos);
+        el.moveTo(null, -1 - positioning.pos);
       } else {
         el.moveToTop();
         el.set(positioning);
@@ -727,4 +728,4 @@ class GameInterface {
   }
 }
 
-module.exports = GameInterface;
+module.exports = { GameInterface, InvalidChoiceError, IncompleteActionError, InvalidActionError };

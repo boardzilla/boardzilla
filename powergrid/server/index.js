@@ -1,10 +1,10 @@
-const { game, Counter } = require('game-core-server');
-const { range, sumBy } = require('game-core-server/utils.js');
+const { game, Counter, InvalidChoiceError, IncompleteActionError } = require('game-core-server');
+const { times, range, sumBy } = require('game-core-server/utils.js');
 const cards = require('./cards');
 
 game.setPlayers({
   min: 1,
-  max: 4,
+  max: 2,
 });
 
 const sortPowerplants = () => game.board.find('#powerplants').sort(card => card.get('cost'));
@@ -77,7 +77,7 @@ game.setupBoard(board => {
   const powerplants = board.addSpace('#powerplants', { layout: 'splay', columns: 4, rows: 2 });
   const deck = board.addSpace('#deck', { layout: 'stack' });
   board.addSpace('#discard', { layout: 'stack' });
-  cards.forEach(({ id, image, cost }) => (cost <= 10 ? powerplants : deck).addPiece(id, 'card', { image, cost }));
+  cards.forEach(({ id, ...attrs }) => (attrs.cost <= 10 ? powerplants : deck).addPiece(id, 'card', { layout: 'splay', rows: 2, columns: 3, ...attrs }));
 
   board.addPiece('#hammer', 'hammer', { top: 50, right: 20 });
 
@@ -87,55 +87,88 @@ game.setupBoard(board => {
   game.pile.addPieces(12, '#uranium', 'resource', { type: 'uranium', zoom: 1 });
 });
 
-game.hideBoard(
-  '#deck card',
-  ['cost', 'image', 'resource'],
-);
+game.hideBoard('#deck card');
 
 game.defineActions({
   play: {
     prompt: 'Play',
     key: 'p',
+    log: false,
     drag: '#deck card',
     onto: '#powerplants',
   },
   buy: {
     prompt: 'Buy',
     key: 'b',
+    log: '$0 bought $1',
     drag: '#powerplants card',
     toPlayer: 'me',
   },
   build: {
     prompt: 'Build',
     key: 'b',
+    log: '$0 built a house',
     drag: '.mine token',
     onto: '#map',
   },
   bid: {
-    prompt: 'Bid',
+    prompt: 'Bid...',
+    key: 'c',
+    log: '$0 bid $1',
     min: 1,
     max: 999,
   },
-  store: {
-    prompt: 'Store',
-    drag: '.mine > resource',
-    onto: '.mine card',
+  pass: {
+    prompt: 'Pass',
+    log: '$0 passed',
+    key: 'p',
   },
   power: {
-    prompt: 'Spend',
-    select: '.mine card > resource',
-    action: resource => resource.remove(),
+    prompt: 'Power this plant',
+    select: '.mine card',
+    log: '$0 powered $1',
+    key: 'p',
+    action: (card, oilChoice) => {
+      const resources = card.get('resources');
+      const resourceType = card.get('resourceType');
+      if (resourceType === 'hybrid') {
+        let oil = Math.min(resources, card.count('#oil'));
+        let coal = Math.min(resources, card.count('#coal'));
+        const overage = oil + coal - resources;
+        if (overage < 0) throw new InvalidChoiceError('Not enough oil/coal to power this plant');
+        if (overage > 0 && oilChoice === undefined) throw new IncompleteActionError({ prompt: 'How much oil?', choices: range(oil - overage, oil) });
+        if (oilChoice !== undefined) {
+          oil = oilChoice;
+          coal = resources - oilChoice;
+        }
+        card.clear('#oil', oil);
+        card.clear('#coal', coal);
+      } else {
+        if (card.count(`#${resourceType}`) < resources) throw new InvalidChoiceError(`Not enough ${resourceType} to power this plant`);
+        if (resourceType) card.clear(`#${resourceType}]`, resources);
+      }
+    },
   },
-  discard: {
-    prompt: 'Discard',
-    key: 'd',
+  remove: {
+    prompt: 'Remove',
+    key: 'r',
+    log: '$0 removed $1',
+    select: '#powerplants card',
+    action: card => card.remove(),
+  },
+  bottom: {
+    prompt: 'Bottom of deck',
+    key: 'b',
+    log: '$0 bottomed $1',
     drag: '#powerplants card',
-    onto: '#discard',
+    onto: '#deck',
+    action: (card, deck) => card.moveToBottomOf(deck),
   },
   buyResource: {
     prompt: 'Buy resources...',
     select: resourceTypes,
     log: '$0 bought $2 $1',
+    key: 'r',
     next: {
       min: 1,
       max: 30,
@@ -145,30 +178,52 @@ game.defineActions({
         action: (resource, amount) => {
           const cost = costOf(resource, amount);
           const elektro = game.doc.find('.mine [name=Elektro]');
-          if (elektro.get('value') < cost) throw Error('Not enough Elektro');
-          game.board.move(`#resources #${resource}`, '.player-mat.mine', amount);
+          if (elektro.get('value') < cost) throw new InvalidChoiceError('Not enough Elektro');
+          let freeSpaces = 0;
+          game.doc.findAll('.mine card[resources]').forEach(card => {
+            if (card.get('resourceType') === resource || (card.get('resourceType') === 'hybrid' && ['oil', 'coal'].includes(resource))) {
+              freeSpaces += card.get('resources') * 2 - card.count('resource');
+            }
+          });
+          if (freeSpaces < amount) throw new InvalidChoiceError(`Not enough storage space for ${amount} ${resource}`);
+          times(amount, () => {
+            const freeSpace = game.doc.findAll('.mine card').find(card => (
+              card.get('resources') && card.get('resources') * 2 > card.count('resource')
+              && (card.get('resourceType') === resource || (card.get('resourceType') === 'hybrid' && ['oil', 'coal'].includes(resource)))
+            ));
+            game.board.move(`#resources #${resource}`, freeSpace, 1);
+          });
           elektro.increment('value', -cost);
         },
       },
     },
   },
+  moveResource: {
+    prompt: 'Move',
+    drag: '.mine resource',
+    log: false,
+    onto: '.mine card',
+  },
   refill: {
     select: ['Step 1', 'Step 2', 'Step 3'],
-    prompt: 'Refill resources',
+    prompt: 'Refill resources...',
+    log: '$0 refilled resources',
     action: step => {
-      resourceTypes.forEach(resource => {
-        game.board.find('#resources')
-          .findAll(`[resource=${resource}]:empty`)
-          .slice(0, refill[resource][game.numberOfPlayers][step.slice(-1) - 1])
-          .forEach(r => r.add(`#${resource}`, 1))
-      });
+      resourceTypes.forEach(resource => game.board.find('#resources')
+        .findAll(`[resource=${resource}]:empty`)
+        .slice(0, refill[resource][game.numberOfPlayers][step.slice(-1) - 1])
+        .forEach(r => r.add(`#${resource}`, 1)));
     },
   },
   adjustElektro: {
     prompt: 'Elektro +/-',
+    key: 'e',
     select: '.mine [name=Elektro]',
+    log: '$0 adjusted Elektro by $2',
     next: {
-      select: [-50, -10, -5, -1, 1, 5, 10, 50],
+      prompt: 'Add or subtract how much Elektro?',
+      min: -150,
+      max: 150,
       action: (elektro, amount) => elektro.increment('value', amount),
     },
   },
@@ -188,8 +243,8 @@ game.play(async () => {
   if (game.numberOfPlayers === 4) removals = 4;
   if (game.numberOfPlayers < 4) removals = 8;
   if (removals) deck.clear('card', removals);
-  game.board.find('[cost=13]').move(deck);
-  game.board.find('#step-3').moveToBottom(deck);
+  game.board.find('[cost=13]').moveTo(deck);
+  game.board.find('#step-3').moveToBottomOf(deck);
 
   resources.findAll('[resource=coal]').forEach(r => r.add('#coal', 1));
   resources.findAll('[resource=oil]').filter(r => r.get('cost') > 2).forEach(r => r.add('#oil', 1));

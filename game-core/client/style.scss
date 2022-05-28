@@ -213,19 +213,24 @@ button {
         margin: 2px 0 0 2px;
       }
     }
-    &[layout="splay"], &[layout="grid"] {
-      display: grid;
-      > .positioned-piece {
-        position: relative;
-        > .piece, > .space {
-          position: absolute;
-        }
-      }
-      &[direction="rtl"] {
-        direction: rtl;
+  }
+
+  [layout="splay"], [layout="grid"] {
+    display: grid;
+    > * {
+      position: absolute;
+    }
+    > .positioned-piece {
+      position: relative;
+      > .piece, > .space {
+        position: absolute;
       }
     }
+    &[direction="rtl"] {
+      direction: rtl;
+    }
   }
+
 
   .positioned-piece {
     position: absolute;
@@ -315,7 +320,7 @@ div.nametag {
     #play-area {
       position: relative;
       grid-area: game;
-      overflow: auto;
+      overflow: hidden;
       #scaled-play-area {
         position: absolute;
         left: 50%;
