@@ -43,7 +43,7 @@ export default class Page extends Component {
       action: null, // currently selected action
       args: [], // current action args
       prompt: null, // current prompt
-      choices: null, // current choices (array, "text" or {min, max})
+      choices: null, // current choices (array or key-value pairs)
       min: null, // current choice min
       max: null, // current choice max
       data: {}, // complete server state
@@ -230,9 +230,13 @@ export default class Page extends Component {
     document.addEventListener('keyup', e => {
       if (this.state.choices) {
         if (e.key === 'Enter') {
-          const choices = this.state.choices.filter(choice => !isEl(choice) && String(choice).toLowerCase().includes(this.state.filter.toLowerCase()));
-          if (choices.length === 1) {
-            this.gameAction(this.state.action, ...this.state.args, choices[0]);
+          if (Object.keys(this.state.choices).length === 2 && this.state.choices[false] !== undefined) {
+            this.gameAction(this.state.action, ...this.state.args, true);
+          } else {
+            const choices = Object.values(this.state.choices).filter(choice => !isEl(choice) && String(choice).toLowerCase().includes(this.state.filter.toLowerCase()));
+            if (choices.length === 1) {
+              this.gameAction(this.state.action, ...this.state.args, this.choiceKeyFor(choices[0]));
+            }
           }
         }
       } else if (this.state.min !== null || this.state.max !== null) {
@@ -470,8 +474,8 @@ export default class Page extends Component {
   }
 
   handleClick(choice, event) {
-    if (this.state.choices && this.state.choices instanceof Array && this.state.choices.includes(choice)) {
-      this.gameAction(this.state.action, ...this.state.args, choice);
+    if (this.state.choices && Object.values(this.state.choices).includes(choice)) {
+      this.gameAction(this.state.action, ...this.state.args, this.choiceKeyFor(choice));
       event.stopPropagation();
     } else {
       if (this.state.prompt || this.state.choices) {
@@ -582,6 +586,12 @@ export default class Page extends Component {
     event.preventDefault();
   }
 
+  choiceKeyFor(choice) {
+    if (this.state.choices instanceof Array) return choice;
+    const value = Object.entries(this.state.choices).find(([_, v]) => v === choice)[0];
+    return isNaN(value) ? value : +value
+  }
+
   choiceText(choice) {
     if (choice && choice.slice && choice.slice(0, 3) === '$p(') return this.state.data.players[choice.slice(3, -1) - 1].name;
     return choice;
@@ -643,7 +653,7 @@ export default class Page extends Component {
         flipped,
         hilited: (
           this.state.dragging && (this.allowedDragSpaces(this.state.dragging.key)[key] || key == parentChoice(this.state.dragging.key))
-          || (this.state.choices instanceof Array && this.state.choices.includes(key))
+          || (this.state.choices && Object.values(this.state.choices).includes(key))
         )
       });
 
@@ -797,7 +807,7 @@ export default class Page extends Component {
   render() {
     if (this.state.error) return <ErrorPane error={this.state.error} />;
 
-    const textChoices = this.state.choices instanceof Array && this.state.choices.filter(choice => !isEl(choice));
+    const textChoices = this.state.choices && Object.values(this.state.choices).filter(choice => !isEl(choice));
     const numberChoice = (this.state.min !== null || this.state.max !== null) && { min: this.state.min, max: this.state.max };
     const nonBoardActions = this.nonBoardActions();
 
@@ -860,7 +870,9 @@ export default class Page extends Component {
                {textChoices && (
                  <div>
                    {Array.from(new Set(textChoices.filter(choice => String(choice).toLowerCase().includes(this.state.filter.toLowerCase())))).map(choice => (
-                     <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, choice)}>{this.choiceText(choice)}</button>
+                     <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, this.choiceKeyFor(choice))} className={classNames({ reset: this.choiceKeyFor(choice) === 'false' })}>
+                       {this.choiceText(choice)}
+                     </button>
                    ))}
                  </div>
                )}

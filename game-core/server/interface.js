@@ -103,9 +103,20 @@ class GameInterface {
 
   defineAction(name, action) {
     if (typeof name !== 'string' || typeof action !== 'object') throw Error('usage: defineAction(someAction, { ...action properties... })');
-    const unknownAttrs = Object.keys(action).filter(a => !['select', 'prompt', 'promptOnto', 'log', 'if', 'key', 'action', 'next', 'drag', 'onto', 'min', 'max', 'toPlayer'].includes(a));
+    this.validateAction(name, action);
+    this.#actions[name] = action;
+  }
+
+  defineActions(actions) {
+    if (typeof actions !== 'object') throw Error('usage: defineActions({ someAction: { ...action properties... },... })');
+    Object.entries(actions).forEach(action => this.defineAction(...action));
+  }
+
+  validateAction(name, action) {
+    const unknownAttrs = Object.keys(action).filter(a => !['select', 'prompt', 'promptOnto', 'confirm', 'log', 'if', 'key', 'action', 'next', 'drag', 'onto', 'min', 'max', 'toPlayer'].includes(a));
     if (unknownAttrs.length) throw Error(`${name} has unknown properties: '${unknownAttrs.join('\', \'')}'`);
     if (!action.prompt) throw Error(`${name} is missing 'prompt'`);
+    if (action.confirm && action.select) throw Error(`${name} has both 'confirm' and 'select'`);
     if (action.next && action.action) throw Error(`${name} may not have both 'next' and 'action'. Use 'next' for a follow-up action, and 'action' only at the end.`);
     if (action.drag) {
       if (!action.onto && !action.toPlayer) throw Error(`${name} has a 'drag' but no 'onto' or 'toPlayer'`);
@@ -117,12 +128,7 @@ class GameInterface {
     if (action.max === undefined ? action.min !== undefined : action.min === undefined) {
       throw Error(`${name} has 'min' or 'max' but needs both`);
     }
-    this.#actions[name] = action;
-  }
-
-  defineActions(actions) {
-    if (typeof actions !== 'object') throw Error('usage: defineActions({ someAction: { ...action properties... },... })');
-    Object.entries(actions).forEach(action => this.defineAction(...action));
+    if (action.next) this.validateAction(`${name}.next`, action.next);
   }
 
   getAllActions() {
@@ -456,6 +462,7 @@ class GameInterface {
       nextAction = () => this.runAction(action.next, args, argIndex + 1);
     }
 
+    console.log('action', action);
     let namedArgs;
     if (!test) namedArgs = this.namedElements(args, []);
     let nextPrompt;
@@ -474,6 +481,9 @@ class GameInterface {
       } else {
         throw Error(`'select' for ${actionName} must be a list or a finder`);
       }
+    } else if (action.confirm) {
+      const confirmationOptions = action.confirm instanceof Array ? { true: action.confirm[0], false: action.confirm[1] } : { true: action.confirm, false: 'Cancel' };
+      nextPrompt = this.chooseAction(confirmationOptions, prompt, nextAction, argIndex)(args);
     } else if (action.max !== undefined || action.min !== undefined) { // simple numerical
       nextPrompt = this.chooseNumberAction(action.min, action.max, prompt, nextAction, argIndex)(args);
     } else if (nextAction) {

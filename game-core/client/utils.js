@@ -80,6 +80,7 @@ export const deserialize = value => {
   if (value && value.slice && (value.slice(0, 4) === '$el(' || value.slice(0, 6) === '$uuid(' || value.slice(0, 3) === '$p(')) {
     return value;
   }
+  if (typeof value === 'object') return value;
   return JSON.parse(value);
 };
 

@@ -31,8 +31,11 @@ powergrid
   - >2 players?
   X bottom deck
 
-  - sort players (start turn)
+  - results in log?
+
   - score spaces? manual->auto
+  - hammer action
+  - sort players (start turn)
   - auto-remove less than players score
   - pay last bid
 

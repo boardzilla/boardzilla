@@ -13,9 +13,6 @@
   box-sizing: border-box;
   #map {
     position: absolute;
-    /* left: 10px; */
-    /* top: 10px; */
-    /* height: 560px; */
     left: 115px;
     top: -95px;
     width: 560px;
@@ -83,6 +80,20 @@
       top: -120px;
       width: 700px;
       height: 545px;
+    }
+
+    #score {
+      left: -765px;
+      top: -112px;
+      width: 52px;
+      height: 270px;
+    }
+
+    #turns {
+      left: -765px;
+      top: 250px;
+      width: 32px;
+      height: 168px
     }
 
     #deck {
@@ -163,8 +174,8 @@
 
   #building {
     width: 20px;
-    [color=red] {
-      color: red;
+    &[powered] {
+      filter: drop-shadow(0px 0px 6px #efe) drop-shadow(0px 0px 6px #efe) brightness(2);
     }
   }
 

@@ -44,6 +44,8 @@ const refill = {
   },
 };
 
+const income = [10, 22, 33, 44, 54, 64, 73, 82, 90, 98, 105, 112, 118, 124, 129, 134, 138, 142, 145, 148, 150];
+
 game.afterMove('#powerplants card', sortPowerplants);
 
 game.setupPlayerMat((mat, player, color) => {
@@ -71,6 +73,8 @@ game.setupBoard(board => {
   });
 
   board.addSpace('#map');
+  board.addSpace('#score');
+  board.addSpace('#turns');
   const powerplants = board.addSpace('#powerplants', { layout: 'splay', columns: 4, rows: 2 });
   const deck = board.addSpace('#deck', { layout: 'stack' });
   board.addSpace('#discard', { layout: 'stack' });
@@ -109,7 +113,7 @@ game.defineActions({
     onto: '#map',
   },
   bid: {
-    prompt: 'Bid...',
+    prompt: 'Bid',
     key: 'c',
     log: '$0 bid $1',
     min: 1,
@@ -133,17 +137,35 @@ game.defineActions({
         let coal = Math.min(resources, card.count('#coal'));
         const overage = oil + coal - resources;
         if (overage < 0) throw new InvalidChoiceError('Not enough oil/coal to power this plant');
-        if (overage > 0 && oilChoice === undefined) throw new IncompleteActionError({ prompt: 'How much oil?', choices: range(oil - overage, oil) });
+        if (overage > 0 && oilChoice === undefined) {
+          const choices = {};
+          for (let o = oil; o + overage >= oil; o--) choices[o] = `${o} oil + ${resources - o} coal`;
+          throw new IncompleteActionError({ prompt: 'Power with?', choices });
+        }
         if (oilChoice !== undefined) {
           oil = oilChoice;
           coal = resources - oilChoice;
         }
-        card.clear('#oil', oil);
-        card.clear('#coal', coal);
+        if (oil) card.clear('#oil', oil);
+        if (coal) card.clear('#coal', coal);
       } else {
         if (card.count(`#${resourceType}`) < resources) throw new InvalidChoiceError(`Not enough ${resourceType} to power this plant`);
-        if (resourceType) card.clear(`#${resourceType}]`, resources);
+        if (resourceType) card.clear(`#${resourceType}`, resources);
       }
+      times(card.get('power'), () => game.board.find('#map #building.mine:not([powered])').set({ powered: true }));
+    },
+  },
+  income: {
+    prompt: 'Collect income',
+    if: () => '#building.mine[powered]',
+    key: 'i',
+    log: '$0 collected income',
+    action: () => {
+      game.doc.find('.mine [name=Elektro]').increment(
+        'value',
+        income[Math.min(income.length - 1, game.board.count('#building.mine[powered]'))]
+      );
+      game.board.findAll('#building.mine[powered]').forEach(b => b.unset('powered'));
     },
   },
   remove: {
@@ -162,16 +184,17 @@ game.defineActions({
     action: (card, deck) => card.moveToBottomOf(deck),
   },
   buyResource: {
-    prompt: 'Buy resources...',
+    prompt: 'Buy resources',
     select: resourceTypes,
     log: '$0 bought $2 $1',
     key: 'r',
     next: {
+      prompt: 'Amount',
       min: 1,
       max: 30,
       next: {
         prompt: (resource, amount) => `Buy ${amount} ${resource} for ${costOf(resource, amount)} Elektro?`,
-        select: (resource, amount) => [`Buy ${amount} ${resource}`, 'Cancel'],
+        confirm: ['Buy', 'Cancel'],
         action: (resource, amount) => {
           const cost = costOf(resource, amount);
           const elektro = game.doc.find('.mine [name=Elektro]');
@@ -203,7 +226,7 @@ game.defineActions({
   },
   refill: {
     select: ['Step 1', 'Step 2', 'Step 3'],
-    prompt: 'Refill resources...',
+    prompt: 'Refill resources',
     log: '$0 refilled resources',
     action: step => {
       resourceTypes.forEach(resource => game.board.find('#resources')
@@ -251,9 +274,10 @@ game.play(async () => {
   game.reorderPlayersBy(game.random);
   let turn = 0;
   game.players.forEach(player => {
-    const [scoreToken, turnToken] = game.playerMat(player.position).move('token', '#map', 2);
-    scoreToken.set({ left: 14, top: 250 + player.position * 5 });
-    turnToken.set({ left: 14, top: 500 - turn * 25 });
+    const [scoreToken] = game.playerMat(player.position).move('token', '#score', 1);
+    const [turnToken] = game.playerMat(player.position).move('token', '#turns', 1);
+    scoreToken.set({ left: 3, bottom: player.position * 5 - 8 });
+    turnToken.set({ left: 5, bottom: turn * 23 });
     turn++;
   });
 

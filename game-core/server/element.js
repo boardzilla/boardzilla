@@ -213,6 +213,7 @@ class GameElement {
     const space = this.document.find(to);
     if (!space) throw new Error(`No space found "${to}"`);
     let movables = this.pieces(pieces);
+    if (num === 0) return [];
     if (num !== undefined) movables = movables.slice(-num);
     if (!movables.length) return [];
     if (position < 0) {
