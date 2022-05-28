@@ -566,6 +566,12 @@ module.exports = ({
     };
 
     sessionRunner.once('error', async (error) => {
+      log.warn('WS error...', error);
+      if (!production) {
+        sendWS('showError', { message: error.message, stack: error.stack });
+        return;
+      }
+
       await sessionRunner.stop();
       log.error('error starting session!', error);
 
