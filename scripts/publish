@@ -73,4 +73,5 @@ if [[ -z "$publish_mode" ]]; then
     exit 1
 fi
 
+aws s3 sync --size-only assets "s3://${S3_GAME_BUCKET}/assets"
 build $game $publish_mode

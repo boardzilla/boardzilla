@@ -1,5 +1,5 @@
 const path = require('path');
-const TerserPlugin = require('terser-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin');
 
 const mode = process.env.NODE_ENV || 'development';
 

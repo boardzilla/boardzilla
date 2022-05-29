@@ -40,13 +40,6 @@ module.exports = {
       }
     ],
   },
-  plugins: [
-    new CopyPlugin({
-      patterns: [
-        { from: path.resolve(path.dirname(__filename), 'images'), to: path.join(__dirname, 'build', 'images') },
-      ],
-    }),
-  ],
   optimization: {
     minimizer: [
       new TerserPlugin({

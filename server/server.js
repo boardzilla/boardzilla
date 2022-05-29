@@ -203,14 +203,14 @@ module.exports = ({
   app.get('/', async (req, res) => {
     const versions = await db.GameVersion.findAll({ include: db.Game, limit: 5, order: [['createdAt', 'desc']], where: { notes: { [Op.not]: null } } });
     const messages = await db.ServerMessage.findAll({ limit: 5, order: [['createdAt', 'desc']] });
-    const messagesAndVersions = versions.concat(messages)
-    messagesAndVersions.sort((a,b) => b.createdAt.getTime() - a.createdAt.getTime())
+    const messagesAndVersions = versions.concat(messages);
+    messagesAndVersions.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     res.render('home', { messagesAndVersions });
   });
 
   app.get('/sessions', async (req, res) => {
     if (!req.user) return unauthorized(req, res, 'permission denied');
-    let where = {state: {[Op.ne]: "expired"}};
+    let where = { state: { [Op.ne]: 'expired' } };
     if (req.query.show !== 'all') {
       const mySessions = await db.SessionUser.findAll({ where: { userId: req.user.id } });
       where = { id: mySessions.map((s) => s.sessionId) };
@@ -297,9 +297,9 @@ module.exports = ({
     await db.ServerMessage.create({
       title: req.body.title,
       notes: req.body.notes,
-    })
+    });
 
-    res.redirect(`/admin/messages`);
+    res.redirect('/admin/messages');
   });
 
   app.post('/admin/messages/:id', async (req, res) => {
@@ -307,8 +307,8 @@ module.exports = ({
     await db.ServerMessage.update({
       title: req.body.title,
       notes: req.body.notes,
-    },{
-      where: {id:req.params.id},
+    }, {
+      where: { id: req.params.id },
     });
 
     res.redirect(`/admin/messages/${req.params.id}/edit`);
@@ -326,9 +326,8 @@ module.exports = ({
 
     const content = `${message.title}\n\n${message.notes}`;
     await needle('post', process.env.DISCORD_RELEASE_WEBHOOK, { content });
-    res.redirect(`/admin/messages`);
+    res.redirect('/admin/messages');
   });
-
 
   app.put('/publish', async (req, res) => {
     if (req.headers['x-publish-token'] !== process.env.PUBLISH_TOKEN) {
@@ -388,6 +387,26 @@ module.exports = ({
     const gameVersion = session.GameVersion;
     const game = gameVersion.Game;
     const s3Path = path.join(game.name, 'client', gameVersion.clientDigest, req.params[0]);
+    const s3Params = { Key: s3Path };
+    try {
+      const info = await s3Provider.headObject(s3Params).promise();
+      res.set('Content-Type', info.ContentType);
+      res.set('Content-Length', info.ContentLength);
+      if (process.env.NODE_ENV === 'production') res.set('Cache-Control', 'public, max-age=604800, immutable');
+      const stream = s3Provider.getObject(s3Params).createReadStream();
+      stream.on('error', (e) => {
+        log.error('error while streaming', e);
+      });
+      stream.pipe(res);
+    } catch (e) {
+      log.error('error getting', s3Path, e);
+      res.status(404).end('not found');
+    }
+  });
+
+  app.get('/a/*', async (req, res) => {
+    if (!req.user) return unauthorized(req, res, 'permission denied');
+    const s3Path = path.join('assets', req.params[0]);
     const s3Params = { Key: s3Path };
     try {
       const info = await s3Provider.headObject(s3Params).promise();
@@ -676,9 +695,9 @@ module.exports = ({
 
     (await session.getChats()).forEach(publishChat);
 
-    console.log("publish the initial refresh...");
+    console.log('publish the initial refresh...');
     sessionRunner.publishAction({ type: session.state === 'initial' ? 'updatePlayers' : 'refreshAll' }).catch(e => {
-      console.error("error", e);
+      console.error('error', e);
       ws.close(1011);
     });
 
