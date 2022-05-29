@@ -601,7 +601,7 @@ export default class Page extends Component {
     return (
       <div id="game-dom">
         {[...board.querySelectorAll('.player-mat:not(.mine)')].map(
-          mat => this.renderGameElement(mat, mat.getAttribute('player-after-me') != '3')
+          mat => this.renderGameElement(mat, mat.getAttribute('player-after-me') === '1' || mat.getAttribute('player-after-me') === '2' || (mat.getAttribute('player-after-me') === '3' && this.state.data.players.length > 4))
         )}
         {this.renderGameElement(board.querySelector('#board'))}
         {this.renderGameElement(board.querySelector(`.player-mat.mine`))}

@@ -11,6 +11,9 @@
   border-color: #a52 #642 #421 #953;;
   border-style: solid;
   box-sizing: border-box;
+  [data-players="3"] &, [data-players="4"] &, [data-players="5"] &, [data-players="6"] & {
+    width: 1600px;
+  }
   #map {
     position: absolute;
     left: 115px;
@@ -55,6 +58,9 @@
 #scaled-play-area {
   width: 1200px;
   height: 700px;
+  [data-players="3"] &, [data-players="4"] &, [data-players="5"] &, [data-players="6"] & {
+    width: 1600px;
+  }
 }
 
 #container {
@@ -133,6 +139,21 @@
     &.mine {
       top: 500px;
     }
+    &[player-after-me="2"] {
+      top: 50px;
+    }
+    [data-players="4"] &[player-after-me="3"], [data-players="5"] &[player-after-me="4"], [data-players="6"] &[player-after-me="5"] {
+      top: 500px;
+    }
+    [data-players="5"] &[player-after-me="3"], [data-players="6"] &[player-after-me="3"] {
+      top: 200px;
+    }
+    [data-players="6"] &[player-after-me="4"] {
+      top: 350px;
+    }
+    &[player-after-me="2"], &[player-after-me="3"], &[player-after-me="4"], &[player-after-me="5"] {
+      left: 1195px;
+    }
     .counter[name=Elektro] {
       button {
         font-size: 10px;
@@ -175,8 +196,16 @@
   #building {
     width: 20px;
     &[powered] {
-      filter: drop-shadow(0px 0px 6px #efe) drop-shadow(0px 0px 6px #efe) brightness(2);
+      filter: drop-shadow(0px 0px 6px #efe) drop-shadow(0px 0px 6px #efe) brightness(1.75);
     }
+  }
+
+  #score #building {
+    width: 10px;
+  }
+
+  #turns #building {
+    width: 15px;
   }
 
   .card {
@@ -195,7 +224,14 @@
   }
 
   div.nametag {
-    text-align: center;
-    bottom: -40px;
+    text-align: right;
+    top: 0;
+    font-size: 20px;
+    margin: 0 3%;
+    width: 94%;
+  }
+
+  .flipped div.nametag {
+    text-align: left;
   }
 }

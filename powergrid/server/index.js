@@ -4,7 +4,7 @@ const cards = require('./cards');
 
 game.setPlayers({
   min: 1,
-  max: 2,
+  max: 6,
 });
 
 const sortPowerplants = () => game.board.find('#powerplants').sort(card => card.get('cost'));
@@ -50,7 +50,7 @@ game.afterMove('#powerplants card', sortPowerplants);
 
 game.setupPlayerMat((mat, player, color) => {
   mat.addPieces(22, '#building', 'token', { player, color, zoom: 2, left: 15, bottom: 15 });
-  mat.addInteractivePiece(Counter, { name: 'Elektro', steps: [-50, -10, -5, -1, 1, 5, 10, 50], right: 10, bottom: 10, initialValue: 50 });
+  mat.addInteractivePiece(Counter, { name: 'Elektro', steps: [-50, -10, -5, -1, 1, 5, 10, 50], left: 62, bottom: 10, initialValue: 50 });
 });
 
 game.setupBoard(board => {
@@ -278,8 +278,8 @@ game.play(async () => {
   game.players.forEach(player => {
     const [scoreToken] = game.playerMat(player.position).move('token', '#score', 1);
     const [turnToken] = game.playerMat(player.position).move('token', '#turns', 1);
-    scoreToken.set({ left: 3, bottom: player.position * 5 - 8 });
-    turnToken.set({ left: 5, bottom: turn * 23 });
+    scoreToken.set({ left: 3, bottom: player.position * 3 - 8 });
+    turnToken.set({ left: 8, bottom: 25 + turn * 20 });
     turn++;
   });
 

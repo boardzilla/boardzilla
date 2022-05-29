@@ -265,20 +265,28 @@ div.nametag {
   width: 100%;
   text-align: center;
   .player-mat[color="red"] & {
-    color: #900;
-    text-shadow: 1px 1px #fcc;
+    color: #600;
+    text-shadow: 1px 1px #fcc, -1px 1px #fcc, -1px -1px #fcc, 1px -1px #fcc;
   }
   .player-mat[color="green"] & {
-    color: #090;
-    text-shadow: 1px 1px #cfc;
+    color: #060;
+    text-shadow: 1px 1px #cfc, -1px 1px #cfc, -1px -1px #cfc, 1px -1px #cfc;
   }
   .player-mat[color="blue"] & {
-    color: #009;
-    text-shadow: 1px 1px #ccf;
+    color: #006;
+    text-shadow: 1px 1px #ccf, -1px 1px #ccf, -1px -1px #ccf, 1px -1px #ccf;
   }
   .player-mat[color="purple"] & {
-    color: #709;
-    text-shadow: 1px 1px #dcf;
+    color: #406;
+    text-shadow: 1px 1px #d9f, -1px 1px #d9f, -1px -1px #d9f, 1px -1px #d9f;
+  }
+  .player-mat[color="cyan"] & {
+    color: #066;
+    text-shadow: 1px 1px #bdf, -1px 1px #bdf, -1px -1px #bdf, 1px -1px #bdf;
+  }
+  .player-mat[color="yellow"] & {
+    color: #880;
+    text-shadow: 1px 1px #ffb, -1px 1px #ffb, -1px -1px #ffb, 1px -1px #ffb;
   }
   &.active {
     opacity: 1;

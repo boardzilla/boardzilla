@@ -395,7 +395,7 @@ module.exports = ({
     const existingColors = (await db.SessionUser.findAll({ where: { sessionId: req.params.id } })).map(u => u.color);
     if (existingColors.length == 4) return unauthorized(req, res, 'permission denied');
 
-    const newColor = ['red', 'green', 'blue', 'purple'].find(c => !existingColors.includes(c));
+    const newColor = ['red', 'green', 'blue', 'purple', 'yellow', 'cyan'].find(c => !existingColors.includes(c));
     await db.sequelize.query(`INSERT into "SessionUsers" ("sessionId", "userId", "color", "position", "createdAt", "updatedAt")
     SELECT "sessionId", "userId", "color", "position", "createdAt", "updatedAt"
     FROM (
