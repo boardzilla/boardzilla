@@ -1,0 +1,47 @@
+.table {
+  width: 1200px;
+  height: 600px;
+  top: 50px;
+  left: 0;
+  position: absolute;
+  background-color: #804224;
+  border-width: 10px;
+  border-color: #a52 #642 #421 #953;;
+  border-style: solid;
+  box-sizing: border-box;
+}
+#scaled-play-area {
+  width: 1200px;
+  height: 700px;
+}
+
+#container {
+  #board {
+    position: absolute;
+    left: 0;
+    top: 200px;
+    height: 300px;
+    width: 100%;
+  }
+
+  .player-mat {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 200px;
+    width: 100%;
+    &.mine {
+      top: 500px;
+    }
+  }
+
+  .card {
+    width: 73.33px;
+    height: 100px;
+  }
+  
+  div.nametag {
+    text-align: center;
+    bottom: 0;
+  }
+}

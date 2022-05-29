@@ -2,16 +2,16 @@ const GameElement = require('./element');
 const { elementClasses } = require('./utils');
 
 class Piece extends GameElement {
-  move(to, position = 0) {
+  moveTo(to, position = 0) {
     return this.document.move([this], to || this.parent(), 1, position);
   }
 
-  moveToBottom(to) {
+  moveToBottomOf(to) {
     return this.document.moveToBottom([this], to || this.parent());
   }
 
   remove() {
-    return this.move(this.pile());
+    return this.moveTo(this.pile());
   }
 }
 

@@ -22,6 +22,8 @@ class GameInterface {
   // list of Player objects in turn order
   #players = [];
 
+  #numberOfPlayers;
+
   // phase state machine: setup (can addPlayer) -> ready (can receive player actions)
   #phase;
 
@@ -48,7 +50,7 @@ class GameInterface {
     this.hiddenKeys = [];
     this.hiddenElements = [];
     this.variables = {};
-    this.allowedMoveElements = ''; // piece selector that is always valid for moving
+    this.allowedMoveElements = '.piece'; // piece selector that is always valid for moving
     this.alwaysAllowedPlays = []; // actions that anyone can take at any time
     this.drags = {};
     this.currentActions = [];
@@ -91,19 +93,30 @@ class GameInterface {
   }
 
   initializeBoardWithPlayers() {
-    this.#players.forEach(({ position, color }) => {
-      const playerMat = this.doc.addSpace(`#player-mat-${position}`, { player: position, class: 'player-mat', color });
-      this.#setupPlayerMat.forEach(f => f(playerMat));
-    });
     this.#setupBoard.forEach(f => f(this.board));
+    Object.entries(this.#players).forEach(([turn, { position, color }]) => {
+      const playerMat = this.doc.addSpace(`#player-mat-${position}`, { player: position, class: 'player-mat', color });
+      this.#setupPlayerMat.forEach(f => f(playerMat, position, color, parseInt(turn, 10)));
+    });
     this.currentPlayerPosition = 1;
   }
 
   defineAction(name, action) {
     if (typeof name !== 'string' || typeof action !== 'object') throw Error('usage: defineAction(someAction, { ...action properties... })');
-    const unknownAttrs = Object.keys(action).filter(a => !['select', 'prompt', 'promptOnto', 'log', 'if', 'key', 'action', 'next', 'drag', 'onto', 'min', 'max', 'toPlayer'].includes(a));
+    this.validateAction(name, action);
+    this.#actions[name] = action;
+  }
+
+  defineActions(actions) {
+    if (typeof actions !== 'object') throw Error('usage: defineActions({ someAction: { ...action properties... },... })');
+    Object.entries(actions).forEach(action => this.defineAction(...action));
+  }
+
+  validateAction(name, action) {
+    const unknownAttrs = Object.keys(action).filter(a => !['select', 'prompt', 'promptOnto', 'confirm', 'log', 'if', 'key', 'action', 'next', 'drag', 'onto', 'min', 'max', 'toPlayer'].includes(a));
     if (unknownAttrs.length) throw Error(`${name} has unknown properties: '${unknownAttrs.join('\', \'')}'`);
     if (!action.prompt) throw Error(`${name} is missing 'prompt'`);
+    if (action.confirm && action.select) throw Error(`${name} has both 'confirm' and 'select'`);
     if (action.next && action.action) throw Error(`${name} may not have both 'next' and 'action'. Use 'next' for a follow-up action, and 'action' only at the end.`);
     if (action.drag) {
       if (!action.onto && !action.toPlayer) throw Error(`${name} has a 'drag' but no 'onto' or 'toPlayer'`);
@@ -111,16 +124,11 @@ class GameInterface {
         throw Error(`${name} has an 'onto' with no spaces.`);
       }
     }
-    if (action.toPlayer && action.toPlayer !== 'other' && action.toPlayer !== 'all') throw Error(`${name} 'toPlayer' must be 'other' or 'all'`);
+    if (action.toPlayer && !['other', 'all', 'me'].includes(action.toPlayer)) throw Error(`${name} 'toPlayer' must be 'me', 'other' or 'all'`);
     if (action.max === undefined ? action.min !== undefined : action.min === undefined) {
       throw Error(`${name} has 'min' or 'max' but needs both`);
     }
-    this.#actions[name] = action;
-  }
-
-  defineActions(actions) {
-    if (typeof actions !== 'object') throw Error('usage: defineActions({ someAction: { ...action properties... },... })');
-    Object.entries(actions).forEach(action => this.defineAction(...action));
+    if (action.next) this.validateAction(`${name}.next`, action.next);
   }
 
   getAllActions() {
@@ -132,13 +140,13 @@ class GameInterface {
     this.#setupBoard.push(fn);
   }
 
-  playerMat(player) {
-    if (!player) throw Error('playerMat called without a player or a current player');
-    return this.doc.find(`#player-mat[player="${player}"]`);
+  playerMat(player = this.currentPlayerPosition) {
+    if (!player) throw Error('playerMat called without a player');
+    return this.doc.find(`.player-mat[player="${player}"]`);
   }
 
   setupPlayerMat(fn) {
-    if (typeof fn !== 'function') throw Error('usage: setupPlayerMat(mat => { ... add things to `mat` ... });');
+    if (typeof fn !== 'function') throw Error('usage: setupPlayerMat((mat, player, color, turnOrder) => { ... add things to `mat` ... });');
     this.#setupPlayerMat.push(fn);
   }
 
@@ -169,6 +177,7 @@ class GameInterface {
     if (this.phase !== 'setup') throw Error('not able to add players while playing');
     if (players.length > this.#maxPlayers) throw Error('too many players');
     this.#players = Object.entries(players).map(([index, { id, name, color }]) => new Player({ userId: id, name, color, position: parseInt(index, 10) + 1 }));
+    this.#numberOfPlayers = this.#players.length;
   }
 
   get(key) {
@@ -192,7 +201,7 @@ class GameInterface {
   }
 
   hideBoard(selector, attrs) {
-    if (typeof selector !== 'string' || !(attrs instanceof Array)) throw Error('usage: hideBoard(selector, attributes) e.g. hideBoard(\'card.flipped\', [\'name\'])');
+    if (typeof selector !== 'string' || (attrs && !(attrs instanceof Array))) throw Error('usage: hideBoard(selector, attributes) e.g. hideBoard(\'card.flipped\', [\'name\'])');
     this.hiddenElements.push([selector, attrs]);
   }
 
@@ -265,7 +274,9 @@ class GameInterface {
       this.hiddenElements.forEach(([selector, attrs]) => {
         playerView.findNodes(selector).forEach(n => {
           n.removeAttribute('id');
-          attrs.forEach(attr => n.removeAttribute(attr));
+          (attrs || n.getAttributeNames())
+            .filter(attr => !['class', 'className', 'style', 'player', 'layout', 'component', 'x', 'y', 'top', 'left', 'right', 'bottom'].includes(attr))
+            .forEach(attr => n.removeAttribute(attr));
           if (isSpaceNode(n)) n.innerHTML = ''; // space contents are hidden
         });
       });
@@ -428,7 +439,9 @@ class GameInterface {
       }
     }
 
-    const prompt = action.prompt + (action.key ? ` (${action.key.toUpperCase()})` : '');
+    let { prompt } = action;
+    if (typeof prompt === 'function') prompt = prompt(...args);
+    if (action.key) prompt += ` (${action.key.toUpperCase()})`;
 
     if (!action) {
       throw Error(`No such action: ${actionName}`);
@@ -436,7 +449,7 @@ class GameInterface {
 
     if (action.if) {
       let result = true;
-      if (typeof action.if === 'function') result = action.if();
+      if (typeof action.if === 'function') result = action.if(...args);
       if (typeof action.if === 'string') result = this.doc.contains(action.if);
       if (!result) throw new InvalidActionError(`${actionName} not allowed due to "if" condition`);
     }
@@ -449,6 +462,7 @@ class GameInterface {
       nextAction = () => this.runAction(action.next, args, argIndex + 1);
     }
 
+    console.log('action', action);
     let namedArgs;
     if (!test) namedArgs = this.namedElements(args, []);
     let nextPrompt;
@@ -467,10 +481,13 @@ class GameInterface {
       } else {
         throw Error(`'select' for ${actionName} must be a list or a finder`);
       }
+    } else if (action.confirm) {
+      const confirmationOptions = action.confirm instanceof Array ? { true: action.confirm[0], false: action.confirm[1] } : { true: action.confirm, false: 'Cancel' };
+      nextPrompt = this.chooseAction(confirmationOptions, prompt, nextAction, argIndex)(args);
     } else if (action.max !== undefined || action.min !== undefined) { // simple numerical
       nextPrompt = this.chooseNumberAction(action.min, action.max, prompt, nextAction, argIndex)(args);
     } else if (nextAction) {
-      const result = nextAction(...args);
+      const result = nextAction(args);
       if (result && result.prompt) nextPrompt = prompt;
     }
     let log;
@@ -490,9 +507,9 @@ class GameInterface {
         promptOnto || prompt,
         ([piece, space, positioning]) => {
           if (positioning && positioning.pos !== undefined) {
-            piece.move(space, -1 - positioning.pos);
+            piece.moveTo(space, -1 - positioning.pos);
           } else {
-            piece.move(space);
+            piece.moveTo(space);
             if (positioning) piece.set(positioning);
           }
           if (action) {
@@ -549,11 +566,15 @@ class GameInterface {
   ontoSelector(action) {
     let { onto, toPlayer } = this.#actions[action]; // eslint-disable-line prefer-const
     if (toPlayer) {
+      onto = onto || '';
       if (toPlayer === 'other') {
         onto = `.player-mat:not(.mine) ${onto}`;
       }
       if (toPlayer === 'all') {
         onto = `.player-mat ${onto}`;
+      }
+      if (toPlayer === 'me') {
+        onto = `.player-mat.mine ${onto}`;
       }
     }
     return onto;
@@ -665,6 +686,10 @@ class GameInterface {
     return this.#players;
   }
 
+  get numberOfPlayers() {
+    return this.#numberOfPlayers;
+  }
+
   otherPlayers() {
     return this.players.filter(p => p.position !== this.currentPlayerPosition);
   }
@@ -672,7 +697,7 @@ class GameInterface {
   reorderPlayersBy(fn) {
     if (typeof fn !== 'function') throw Error('reorderPlayersBy must be called with a player ranking function, e.g. "reorderPlayersBy(playerNumber => getScore(playerNumber))"');
     const ranks = this.playersInPositionOrder().map(p => fn(p.position));
-    this.players.sort((p1, p2) => (ranks[p1.position] > ranks[p2.position] ? 1 : (ranks[p1.position] < ranks[p2.position] ? -1 : 0)));
+    this.players.sort((p1, p2) => (ranks[p1.position - 1] > ranks[p2.position - 1] ? 1 : (ranks[p1.position - 1] < ranks[p2.position - 1] ? -1 : 0)));
   }
 
   playersInPositionOrder() {
@@ -702,7 +727,7 @@ class GameInterface {
   moveElement(el, positioning) {
     if (el.matches(this.allowedMoveElements)) {
       if (positioning.pos !== undefined) {
-        el.move(null, -1 - positioning.pos);
+        el.moveTo(null, -1 - positioning.pos);
       } else {
         el.moveToTop();
         el.set(positioning);
@@ -713,4 +738,4 @@ class GameInterface {
   }
 }
 
-module.exports = GameInterface;
+module.exports = { GameInterface, InvalidChoiceError, IncompleteActionError, InvalidActionError };

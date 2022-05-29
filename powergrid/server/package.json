@@ -1,0 +1,14 @@
+{
+  "name": "boardzilla-game-server",
+  "type": "commonjs",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "NODE_ENV=production webpack"
+  },
+  "dependencies": {
+    "game-core-server": "link:../../game-core/server"
+  }
+}

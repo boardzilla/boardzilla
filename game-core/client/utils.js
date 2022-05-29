@@ -38,7 +38,6 @@ export const zoneInfoForPoint = (x, y) => {
 export const xmlToNode = xml => new DOMParser().parseFromString(xml, 'text/xml').firstChild;
 
 export const choiceForXmlNode = node => {
-  if (node.classList.contains('player-mat')) return `$p(${node.getAttribute('player')})`;
   if (node.getAttribute('uuid')) return `$uuid(${node.getAttribute('uuid')})`;
   const branch = [];
   while (node.parentNode && node.parentNode.parentNode) {
@@ -81,6 +80,7 @@ export const deserialize = value => {
   if (value && value.slice && (value.slice(0, 4) === '$el(' || value.slice(0, 6) === '$uuid(' || value.slice(0, 3) === '$p(')) {
     return value;
   }
+  if (typeof value === 'object') return value;
   return JSON.parse(value);
 };
 

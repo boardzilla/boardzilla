@@ -19,7 +19,7 @@ export default function Counter({value, min, max, moves, action, steps, display}
       {steps.filter(s => s < 0).map(step => (
         <button key={step} onClick={e => {set(step); e.stopPropagation()}}>-{step < -1 && ` ${-step}`}</button>
       ))}
-      {display(moves2 > moves ? override : value)}
+      <span className="value">{display(moves2 > moves ? override : value)}</span>
       {steps.filter(s => s > 0).map(step => (
         <button key={step} onClick={e => {set(step); e.stopPropagation()}}>+{step > 1 && ` ${step}`}</button>
       ))}

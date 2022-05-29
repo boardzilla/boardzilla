@@ -16,10 +16,8 @@ class GameElement {
 
   enhanceQuery(q) {
     return q.replace(/\.mine/g, `[player="${this.game.currentPlayerPosition}"]`)
-      .replace(/\$me/g, this.game.currentPlayerPosition)
-      .replace(/#(\d)/g, '#\\3$1 ')
-      .replace(/([#=])(\d)/g, '$1\\3$2 ')
-      .replace(/="([^"]+)/g, (_, p1) => `="${escape(p1)}`);
+      .replace(/=([^\]'"]+)/g, '="$1"')
+      .replace(/([#=])(\d)/g, '$1\\3$2 ');
   }
 
   /**
@@ -52,6 +50,10 @@ class GameElement {
 
   unset(...names) {
     names.forEach(name => this.node.removeAttribute(name));
+  }
+
+  increment(name, value) {
+    this.set(name, this.get(name) + value);
   }
 
   // human readable name of this element from the perspective of player
@@ -211,6 +213,7 @@ class GameElement {
     const space = this.document.find(to);
     if (!space) throw new Error(`No space found "${to}"`);
     let movables = this.pieces(pieces);
+    if (num === 0) return [];
     if (num !== undefined) movables = movables.slice(-num);
     if (!movables.length) return [];
     if (position < 0) {
@@ -254,6 +257,13 @@ class GameElement {
 
   moveToTop() {
     this.node.parentNode.appendChild(this.node);
+  }
+
+  findOpenCell() {
+    const cells = (this.get('columns') || 1) * (this.get('rows') || 1);
+    let cell = 0;
+    while (this.contains(`[cell="${cell}"]`)) cell += 1;
+    return cell >= cells ? 0 : cell;
   }
 
   // return string representation, e.g. "$el(2-1-3)"

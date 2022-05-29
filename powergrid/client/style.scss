@@ -1,0 +1,237 @@
+@import url('https://fonts.googleapis.com/css2?family=Teko:wght@500&family=Voltaire&display=swap');
+
+.table {
+  width: 1200px;
+  height: 600px;
+  top: 50px;
+  left: 0;
+  position: absolute;
+  background-color: #804224;
+  border-width: 10px;
+  border-color: #a52 #642 #421 #953;;
+  border-style: solid;
+  box-sizing: border-box;
+  [data-players="3"] &, [data-players="4"] &, [data-players="5"] &, [data-players="6"] & {
+    width: 1600px;
+  }
+  #map {
+    position: absolute;
+    left: 115px;
+    top: -95px;
+    width: 560px;
+    transform: rotate(270deg);
+  }
+  .cost {
+    padding-left: 2px;
+    color: #f0f0ff;
+    position: absolute;
+    text-shadow: 2px 2px 2px black;
+    font-weight: bold;
+    font-size: 19px;
+    &.high {
+      text-shadow: 2px 2px 3px black;
+      font-size: 23px;
+      color: #ffc;
+    }
+  }
+  .resource-cost {
+    position: absolute;
+    text-shadow: 0px 0px 4px black;
+    font-weight: bold;
+    font-size: 12px;
+    color: #ffc;
+    background: #b96;
+    width: 16px;
+    text-align: center;
+    height: 16px;
+    border-radius: 8px;
+  }
+  .city {
+    position: absolute;
+    border: 1px solid #333;
+    height: 32px;
+    width: 32px;
+    border-radius: 50%;
+  }
+}
+
+#scaled-play-area {
+  width: 1200px;
+  height: 700px;
+  [data-players="3"] &, [data-players="4"] &, [data-players="5"] &, [data-players="6"] & {
+    width: 1600px;
+  }
+}
+
+#container {
+  font-family: 'Voltaire', sans-serif;
+  #board {
+    left: 795px;
+    top: 200px;
+    height: 300px;
+    width: 400px;
+    #resources {
+      left: -75px;
+      top: -120px;
+      width: 60px;
+      height: 545px;
+      .space[resource] {
+        width: 10px;
+        height: 10px;
+      }
+    }
+
+    #map {
+      left: -775px;
+      top: -120px;
+      width: 700px;
+      height: 545px;
+    }
+
+    #score {
+      left: -765px;
+      top: -112px;
+      width: 52px;
+      height: 270px;
+    }
+
+    #turns {
+      left: -765px;
+      top: 250px;
+      width: 32px;
+      height: 168px
+    }
+
+    #deck {
+      left: 10px;
+      bottom: 20px;
+      width: 75px;
+      height: 75px;
+    }
+
+    #discard {
+      left: 100px;
+      bottom: 20px;
+      width: 75px;
+      height: 75px;
+    }
+
+    #powerplants {
+      left: 10px;
+      top: 20px;
+      width: 300px;
+      height: 150px;
+    }
+
+    #hammer {
+      width: 35px;
+      img {
+        filter: drop-shadow(0px 0px 4px #222);
+      }
+    }
+  }
+
+  .player-mat {
+    left: 795px;
+    top: 50px;
+    height: 150px;
+    width: 400px;
+    &.mine {
+      top: 500px;
+    }
+    &[player-after-me="2"] {
+      top: 50px;
+    }
+    [data-players="4"] &[player-after-me="3"], [data-players="5"] &[player-after-me="4"], [data-players="6"] &[player-after-me="5"] {
+      top: 500px;
+    }
+    [data-players="5"] &[player-after-me="3"], [data-players="6"] &[player-after-me="3"] {
+      top: 200px;
+    }
+    [data-players="6"] &[player-after-me="4"] {
+      top: 350px;
+    }
+    &[player-after-me="2"], &[player-after-me="3"], &[player-after-me="4"], &[player-after-me="5"] {
+      left: 1195px;
+    }
+    .counter[name=Elektro] {
+      button {
+        font-size: 10px;
+      }
+      .value {
+        width: 50px;
+        display: inline-block;
+        text-align: center;
+        background: url(images/coin.png);
+        background-size: 100%;
+        height: 50px;
+        margin: 0 5px;
+        line-height: 60px;
+        font-size: 22px;
+        color: #5e6600;
+        font-weight: bold;
+        font-family: fantasy;
+        text-shadow: 1px 1px 0 #4d5200, -1px -1px 0 #ced0ab;      }
+    }
+  }
+
+  .resource {
+    font-family: system-ui;
+    line-height: 10px;
+    &[type=coal] {
+      font-size: 20px;
+      color: #420;
+    }
+    &[type=oil] {
+      color: black;
+    }
+    &[type=garbage] {
+      color: yellow;
+    }
+    &[type=uranium] {
+      color: red;
+    }
+  }
+
+  #building {
+    width: 20px;
+    &[powered] {
+      filter: drop-shadow(0px 0px 6px #efe) drop-shadow(0px 0px 6px #efe) brightness(1.75);
+    }
+  }
+
+  #score #building {
+    width: 10px;
+  }
+
+  #turns #building {
+    width: 15px;
+  }
+
+  .card {
+    width: 75px;
+    height: 75px;
+    padding: 20px 10px;
+    box-sizing: border-box;
+    img {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+    &[powered] img {
+      filter: brightness(1.5);
+    }
+  }
+
+  div.nametag {
+    text-align: right;
+    top: 0;
+    font-size: 20px;
+    margin: 0 3%;
+    width: 94%;
+  }
+
+  .flipped div.nametag {
+    text-align: left;
+  }
+}

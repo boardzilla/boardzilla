@@ -39,13 +39,6 @@ class Space extends GameElement {
     return set.sort((a, b) => (comp(a) > comp(b) && 1) || (comp(a) < comp(b) && -1) || 0);
   }
 
-  findOpenCell() {
-    const cells = (this.get('columns') || 1) * (this.get('rows') || 1);
-    let cell = 0;
-    while (this.contains(`[cell="${cell}"]`)) cell += 1;
-    return cell >= cells ? 0 : cell;
-  }
-
   addSpace(name, attrs) {
     return this.addGameElement(elementClasses.Space, name, 'space', 'space', attrs);
   }

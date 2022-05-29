@@ -69,6 +69,9 @@ button {
       }
       &.reset {
         background: #900;
+        &:hover {
+          background: #f99;
+        }
       }
       &:hover {
         background: #999;
@@ -190,8 +193,21 @@ button {
   .table {
     z-index: -100;
   }
+
+  .piece .unstyled-piece {
+    background: white;
+    padding: 10px;
+    border: 1px solid #333;
+  }
+
+  .debug .space:not(.hilited) {
+    outline: 1px solid red;
+  }
+
   .space {
-    position: relative;
+    position: absolute;
+    width: 400px;
+    height: 100px;
     &.flipped {
       transform: scale(-1);
     }
@@ -200,19 +216,25 @@ button {
         margin: 2px 0 0 2px;
       }
     }
-    &[layout="splay"], &[layout="grid"] {
-      display: grid;
-      > .positioned-piece {
-        position: relative;
-        > .piece, > .space {
-          position: absolute;
-        }
-      }
-      &[direction="rtl"] {
-        direction: rtl;
+  }
+
+  [layout="splay"], [layout="grid"] {
+    display: grid;
+    > * {
+      position: absolute;
+    }
+    > .positioned-piece {
+      position: relative;
+      > .piece, > .space {
+        position: absolute;
       }
     }
+    &[direction="rtl"] {
+      direction: rtl;
+    }
   }
+
+
   .positioned-piece {
     position: absolute;
     transition: transform .2s;
@@ -239,28 +261,39 @@ div.nametag {
   pointer-events: none;
   opacity: .3;
   color: black;
+  position: absolute;
+  width: 100%;
+  text-align: center;
   .player-mat[color="red"] & {
-    color: #900;
-    text-shadow: 1px 1px #fcc;
+    color: #600;
+    text-shadow: 1px 1px #fcc, -1px 1px #fcc, -1px -1px #fcc, 1px -1px #fcc;
   }
   .player-mat[color="green"] & {
-    color: #090;
-    text-shadow: 1px 1px #cfc;
+    color: #060;
+    text-shadow: 1px 1px #cfc, -1px 1px #cfc, -1px -1px #cfc, 1px -1px #cfc;
   }
   .player-mat[color="blue"] & {
-    color: #009;
-    text-shadow: 1px 1px #ccf;
+    color: #006;
+    text-shadow: 1px 1px #ccf, -1px 1px #ccf, -1px -1px #ccf, 1px -1px #ccf;
   }
   .player-mat[color="purple"] & {
-    color: #709;
-    text-shadow: 1px 1px #dcf;
+    color: #406;
+    text-shadow: 1px 1px #d9f, -1px 1px #d9f, -1px -1px #d9f, 1px -1px #d9f;
+  }
+  .player-mat[color="cyan"] & {
+    color: #066;
+    text-shadow: 1px 1px #bdf, -1px 1px #bdf, -1px -1px #bdf, 1px -1px #bdf;
+  }
+  .player-mat[color="yellow"] & {
+    color: #880;
+    text-shadow: 1px 1px #ffb, -1px 1px #ffb, -1px -1px #ffb, 1px -1px #ffb;
   }
   &.active {
     opacity: 1;
   }
 }
 
-.space > label {
+.space > label, .interactive-piece > label {
   color: white;
   position: absolute;
   display: block;
@@ -275,8 +308,8 @@ div.nametag {
   position: absolute;
   display: inline-block;
   top: 0;
-  left: -80%;
-  right: -80%;
+  left: -200%;
+  right: -200%;
   margin: 50% 0;
   text-align: center;
   span {
@@ -298,7 +331,7 @@ div.nametag {
     #play-area {
       position: relative;
       grid-area: game;
-      overflow: auto;
+      overflow: hidden;
       #scaled-play-area {
         position: absolute;
         left: 50%;
@@ -374,7 +407,8 @@ div.nametag {
   position: relative;
   margin-bottom: 8px;
   .scaler {
-    transform-origin: top left;
+    margin: 0 auto;
+    transform-origin: top center;
   }
   .piece {
     transform: none !important;
@@ -386,15 +420,18 @@ div.nametag {
   transform: translateX(-9999px);
 }
 
+
 .react-draggable-dragging, .external-dragging {
   z-index: 100;
   position: relative;
-  .piece {
-    transform: scale(1.2);
-  }
-  img {
-    filter: drop-shadow(5px 5px 5px #222);
-    will-change: filter;
+  #play-area.dragging & {
+    .piece, .interactive-piece {
+      transform: scale(1.2);
+    }
+    img {
+      filter: drop-shadow(5px 5px 5px #222);
+      will-change: filter;
+    }
   }
 }
 

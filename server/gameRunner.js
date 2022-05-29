@@ -173,7 +173,7 @@ class GameRunner {
             name: su.User.name,
             color: su.color,
           })));
-          gameInstance.startProcessing().then(() => log.debug('game is finished!'));
+          gameInstance.startProcessing().then(() => log.debug('game is finished!')).catch(console.error);
 
           if (session.state === 'running') {
             const actions = await session.getActions({ order: ['sequence'] });

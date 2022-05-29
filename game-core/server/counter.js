@@ -1,4 +1,4 @@
-const InteractivePiece = require('./interactivepiece');
+const InteractivePiece = require('./interactive-piece');
 
 class Counter extends InteractivePiece {
   initialize() {
