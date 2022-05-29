@@ -28,10 +28,10 @@ powergrid
   X bid action
   X buy resource (multi-select??)
   X auto-refill
-  - >2 players?
+  X >2 players?
   X bottom deck
 
-  - results in log?
+  X results in log?
 
   - score spaces? manual->auto
   - hammer action

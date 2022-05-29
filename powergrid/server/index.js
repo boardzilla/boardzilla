@@ -160,12 +160,11 @@ game.defineActions({
     prompt: 'Collect income',
     if: () => '#building.mine[powered]',
     key: 'i',
-    log: '$0 collected income',
+    log: () => `$0 collected ${game.doc.find('.mine [name=Elektro]').get('income')} income`,
     action: () => {
-      game.doc.find('.mine [name=Elektro]').increment(
-        'value',
-        income[Math.min(income.length - 1, game.board.count('#building.mine[powered]'))]
-      );
+      const rev = income[Math.min(income.length - 1, game.board.count('#building.mine[powered]'))];
+      game.doc.find('.mine [name=Elektro]').increment('value', rev);
+      game.doc.find('.mine [name=Elektro]').set({ income: rev });
       game.board.findAll('#building.mine[powered]').forEach(b => b.unset('powered'));
       game.doc.findAll('.mine card[powered]').forEach(b => b.unset('powered'));
     },
