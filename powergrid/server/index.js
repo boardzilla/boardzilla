@@ -178,7 +178,7 @@ game.defineActions({
   },
   bottom: {
     prompt: 'Bottom of deck',
-    key: 'b',
+    key: 'd',
     log: '$0 bottomed $1',
     drag: '#powerplants card',
     onto: '#deck',
