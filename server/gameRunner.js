@@ -269,9 +269,6 @@ class GameRunner {
 
         if (stopConsuming) {
           await actionsChannel.cancel(actionConsumerTag);
-          for (const message of queue) {
-            await actionsChannel.reject(message);
-          }
           handle.emit('finished');
           return;
         }
