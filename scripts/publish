@@ -31,6 +31,7 @@ build() {
 
 	echo "Building ${game}..."
 	rm -rf "${game}/dist"
+	./scripts/build-assets $game
 	build_type $game "client" "cjs"
 	build_type $game "server" "js"
 
@@ -73,5 +74,4 @@ if [[ -z "$publish_mode" ]]; then
     exit 1
 fi
 
-./scripts/build-assets
 build $game $publish_mode
