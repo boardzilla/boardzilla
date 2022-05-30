@@ -364,7 +364,6 @@ export default class Page extends Component {
 
   reset() {
     this.send('reset');
-    window.location.reload();
   }
 
   get(variable) {
