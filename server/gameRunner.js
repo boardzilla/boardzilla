@@ -21,7 +21,7 @@ class GameRunner {
     let gameInstance;
     const handle = new EventEmitter();
     const responsePromises = {};
-    let stopConsuming = false;
+    let resetGame = false;
 
     const actionConsumerTag = nanoid();
     const eventConsumerTag = nanoid();
@@ -245,7 +245,7 @@ class GameRunner {
             await actionsChannel.purgeQueue(actionQueueName);
             await db.SessionAction.destroy({ where: { sessionId } });
             await session.update({ seed: String(Math.random()) });
-            stopConsuming = true;
+            resetGame = true;
             break;
           case 'undo':
             await actionsChannel.purgeQueue(actionQueueName);
@@ -255,7 +255,7 @@ class GameRunner {
                 await db.SessionAction.destroy({ where: { id: lastAction[0].id } });
               }
             }
-            stopConsuming = true;
+            resetGame = true;
             break;
           default:
             throw Error('unknown command', parsedMessage);
@@ -267,18 +267,14 @@ class GameRunner {
         }
         await actionsChannel.ack(message);
 
-        if (stopConsuming) {
-          await actionsChannel.cancel(actionConsumerTag);
-          handle.emit('finished');
-          return;
+        if (resetGame) {
+          gameInstance = null;
+          resetGame = false;
+          await handle.publishAction({ type: session.state === 'initial' ? 'updatePlayers' : 'refreshAll' });
         }
       } catch (e) {
         try {
           log.error('error in game runner loop', e);
-          if (stopConsuming) {
-            log.debug('erorr in game loop, but consuming was stopped, so, ignoring', e);
-            return;
-          }
           await actionsChannel.cancel(actionConsumerTag);
           if (process.env.NODE_ENV !== 'development') {
             Sentry.withScope(scope => {
