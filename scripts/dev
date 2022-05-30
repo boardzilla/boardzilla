@@ -8,6 +8,10 @@ fi
 export NODE_ENV=development
 export NODE_OPTIONS="--trace-warnings"
 
+set -e
+./scripts/build-assets $GAME
+set +e
+
 cd server
 
 # this can fail and thats okay

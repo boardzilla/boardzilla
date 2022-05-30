@@ -1,0 +1,57 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+
+function readAssets(root) {
+	return fs.readdirSync(root).flatMap(a => {
+		const stat = fs.statSync(path.join(root, a))
+		if (stat.isFile()) return a
+		return readAssets(path.join(root, a)).map(p=>path.join(a, p))
+	})
+}
+
+async function build(game) {
+	console.time(`Building ${game}`)
+	const digestPromises = {}
+
+	fs.rmSync(`${game}/dist/assets`, { recursive: true, force: true });
+
+	const assets = readAssets(`${game}/assets`);
+
+	const promises = assets.map(asset => new Promise((resolve, reject) => {
+		const src = path.join(`${game}/assets`, asset);
+		const fd = fs.createReadStream(src);
+		const hash = crypto.createHash('sha1');
+		hash.setEncoding('hex');
+		fd.on('end', function() {
+		    hash.end();
+		    const digest = hash.read();
+		    const digestName = `${path.dirname(asset)}/${digest}-${path.basename(asset)}`
+		    const dest = `${game}/dist/assets/${digestName}`;
+			fs.mkdirSync(path.dirname(dest), {recursive: true})
+		    fs.copyFileSync(src, dest);
+		    resolve({asset, path: `/a/${game}/${digestName}`});
+		});
+
+		// read all file and pipe it (write it) to the hash object
+		fd.pipe(hash);
+	}));
+
+	const results = await Promise.all(promises)
+	const manifest = {};
+	for (const result of results) {
+		manifest[result.asset] = path.normalize(result.path);
+	}
+
+	const manifestText = JSON.stringify(manifest, null, 4)
+	fs.writeFileSync(`${game}/client/assets.json`, manifestText)
+	console.timeEnd(`Building ${game}`)
+}
+
+const games = fs.readFileSync('GAMES').toString().split("\n").filter(g => g !== "");
+for (const game of games) {
+	if (process.argv.length === 3 && process.argv[2] !== game) continue;
+	build(game)
+}

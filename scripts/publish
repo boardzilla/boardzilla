@@ -73,4 +73,5 @@ if [[ -z "$publish_mode" ]]; then
     exit 1
 fi
 
+./scripts/build-assets
 build $game $publish_mode
