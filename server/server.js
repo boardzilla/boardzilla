@@ -405,6 +405,27 @@ module.exports = ({
     }
   });
 
+
+  app.get('/a/:game/*', async (req, res) => {
+    if (!req.user) return unauthorized(req, res, 'permission denied');
+    const s3Path = production ? path.join(req.params.game, 'assets', req.params[0]) : path.join(req.params.game, 'dist', 'assets', req.params[0]);
+    const s3Params = { Key: s3Path };
+    try {
+      const info = await s3Provider.headObject(s3Params).promise();
+      res.set('Content-Type', info.ContentType);
+      res.set('Content-Length', info.ContentLength);
+      if (process.env.NODE_ENV === 'production') res.set('Cache-Control', 'public, max-age=604800, immutable');
+      const stream = s3Provider.getObject(s3Params).createReadStream();
+      stream.on('error', (e) => {
+        log.error('error while streaming', e);
+      });
+      stream.pipe(res);
+    } catch (e) {
+      log.error('error getting', s3Path, e);
+      res.status(404).end('not found');
+    }
+  });
+
   app.post('/sessions', async (req, res) => {
     if (!req.user) return unauthorized(req, res, 'permission denied');
     if (!req.body.gameId) return res.status(400).end('no game specified');
