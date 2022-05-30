@@ -19,7 +19,7 @@ render({
   pieces: {
     card: props => (
       <>
-        <img src={props.id ? props.front : props.back} />
+        <img src={assets[`cards/${props.id ? props.front : props.back}`]} />
         {props.children}
       </>
     )
