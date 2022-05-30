@@ -1,5 +1,5 @@
 const path = require('path')
-const CopyPlugin = require('copy-webpack-plugin')
+const assets = require('./assets.json')
 
 const mode = process.env.NODE_ENV || "development"
 
@@ -30,7 +30,13 @@ module.exports = {
         use: [
           "style-loader",
           {loader: "css-loader", options: {url: false}},
-          'sass-loader'
+          {loader: 'resolve-url-loader',
+            options: {
+              sourceMap: true,
+              join: (options, loader) => (item) => assets[item.uri]
+            }
+          },
+          {loader: 'sass-loader', options: {sourceMap: true}}
         ],
       },
       {
@@ -39,11 +45,4 @@ module.exports = {
       }
     ],
   },
-  plugins: [
-    new CopyPlugin({
-      patterns: [
-        { from: path.resolve(path.dirname(__filename), 'images'), to: path.join(__dirname, 'build', 'images') },
-      ],
-    }),
-  ],
 } 

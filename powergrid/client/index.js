@@ -1,11 +1,12 @@
 import React from 'react';
 import { render } from 'game-core-client';
 import './style.scss';
+import assets from './assets.json';
 
 render({
   background: (
     <div className="table">
-      <img id="map" src="images/germany.jpg"/>
+      <img id="map" src={assets['germany.jpg']} />
       <span className="cost high" style={{left: 109, top: 140}}>19</span>
       <span className="cost high" style={{left: 143, top: 154}}>19</span>
       <span className="cost high" style={{left: 190, top: 173}}>18</span>
@@ -105,15 +106,16 @@ render({
   
   pieces: {
     card: ({ id, image, children }) => ( // doc must indicate that children should be included at top level if piece needs to be able to hold other pieces
+
       <>
-        <img src={`images/cards/${id ? image : 'plug.webp'}`} />
+        <img title={image} src={assets[`cards/${id ? image : 'plug.webp'}`]} />
         {children}
       </>
     ),
 
-    token: ({ player, color }) => <img src={`images/${color}-token.png`} player={player}/>,
+    token: ({ player, color }) => <img src={assets[`${color}-token.png`]} player={player}/>,
 
-    hammer: () => <img src="images/gavel.png"/>,
+    hammer: () => <img src={assets['gavel.png']}/>,
 
     resource: ({ type }) => {
       if (type === 'coal') return '▲';
