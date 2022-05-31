@@ -84,9 +84,21 @@ async function run() {
   const playerInfo = allPlayerInfo.slice(0, numberOfPlayers);
   if (!(await db.User.findOne())) {
     const players = await Promise.all(playerInfo.map(info => db.User.create(info)));
-    const game = await db.Game.create({
-      name: gameName,
-    });
+    let game
+    const games = fs.readFileSync('../GAMES').toString().split("\n").filter(g=>g!=="")
+    await Promise.all(games.map(async g => {
+      const info = require(path.join('..', g, 'info.json'));
+      if (g == gameName) {
+        const gameDb = await db.Game.create({
+          name: g,
+          friendlyName: info.name,
+          description: info.description,
+        });
+
+        game = gameDb;
+      }
+    }));
+
     const gameVersion = await db.GameVersion.create({
       gameId: game.id,
       version: 0,
@@ -106,8 +118,6 @@ async function run() {
 - Better translation of drag location when scaling the play area
       `,
     });
-    const session = await db.Session.create({ creatorId: players[0].id, gameVersionId: gameVersion.id, seed: 0 });
-    await Promise.all(players.map((player, i) => db.SessionUser.create({ sessionId: session.id, userId: player.id, color: colors[player.id], position: i })));
   }
   const buildHandle = await build();
   const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';

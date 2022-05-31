@@ -1,14 +1,16 @@
 const url = require('url');
+const fs = require('fs');
 const needle = require('needle');
+const path = require('path');
 const WebSocket = require('ws');
 const express = require('express');
 const http = require('http');
 const bodyParser = require('body-parser');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { Sequelize, Op } = require('sequelize');
 const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
-const path = require('path');
 const Sentry = require('@sentry/node');
 const Tracing = require('@sentry/tracing');
 const log = require('./log');
@@ -94,6 +96,13 @@ module.exports = ({
 
   app.use((req, res, next) => {
     res.locals.user = null;
+    if (!req.cookies.accessToken) {
+      req.accessToken = crypto.randomBytes(32).toString('hex');
+      res.cookie('accessToken', req.accessToken, {httpOnly: true, secure: true});
+    } else {
+      req.accessToken = req.cookies.accessToken;
+    }
+
     try {
       verifyToken(req, (error, user) => {
         if (error) {
@@ -101,8 +110,10 @@ module.exports = ({
         }
         if (user) {
           req.user = user;
+          req.accessToken = user.accessToken;
           res.locals.user = user;
         }
+        res.cookie('accessToken', req.accessToken, {httpOnly: true, secure: true});
         return next();
       });
     } catch (error) {
@@ -197,22 +208,30 @@ module.exports = ({
 
   app.get('/logout', async (req, res) => {
     res.clearCookie('jwt');
+    res.clearCookie('accessToken');
     res.redirect('/');
   });
 
   app.get('/', async (req, res) => {
+    const games = await db.Game.findAll();
     const versions = await db.GameVersion.findAll({ include: db.Game, limit: 5, order: [['createdAt', 'desc']], where: { notes: { [Op.not]: null } } });
     const messages = await db.ServerMessage.findAll({ limit: 5, order: [['createdAt', 'desc']] });
     const messagesAndVersions = versions.concat(messages)
     messagesAndVersions.sort((a,b) => b.createdAt.getTime() - a.createdAt.getTime())
-    res.render('home', { messagesAndVersions });
+    res.render('home', { games, messagesAndVersions });
   });
+
+  app.get('/game/:id/banner', async (req, res) => {
+    const game = await db.Game.findByPk(req.params.id);
+    res.setHeader("content-type", "image/webp");
+    fs.createReadStream(path.join("..", game.name, "banner.webp")).pipe(res);
+  })
 
   app.get('/sessions', async (req, res) => {
     if (!req.user) return unauthorized(req, res, 'permission denied');
     let where = {state: {[Op.ne]: "expired"}};
     if (req.query.show !== 'all') {
-      const mySessions = await db.SessionUser.findAll({ where: { userId: req.user.id } });
+      const mySessions = await db.SessionUser.findAll({ where: { accessToken: req.accessToken } });
       where = { id: mySessions.map((s) => s.sessionId) };
     }
     const sessions = await db.Session.findAll({
@@ -361,8 +380,18 @@ module.exports = ({
     res.json({ version: version.version });
   });
 
+  app.get('/make/:id', async (req, res) => {
+    const beta = req.params.beta === '1'
+    const game = await db.Game.findByPk(req.params.id);
+    const gameVersion = beta ? await game.latestVersion() : await game.latestStableVersion();
+    const session = await db.Session.create({ gameVersionId: gameVersion.id, creatorId: req.user ? req.user.id : null, seed: String(Math.random()) });
+
+    console.log("req.accessToken", req.accessToken)
+    await db.SessionUser.create({ accessToken: req.accessToken, userId: req.user ? req.user.id : null, sessionId: session.id, color: 'red', position: 0 });
+    return res.redirect(`/play/${session.id}/`);
+  })
+
   app.get('/play/:id/*', async (req, res) => {
-    if (!req.user) return unauthorized(req, res, 'permission denied');
     const session = await db.Session.findByPk(req.params.id, {
       include: [{
         model: db.SessionUser,
@@ -379,11 +408,11 @@ module.exports = ({
       return res.render('play-error');
     }
     if (!req.params[0]) {
-      const sessionUser = await db.SessionUser.findOne({ where: { userId: req.user.id, sessionId: session.id } });
+      const sessionUser = await db.SessionUser.findOne({ where: { accessToken: req.accessToken, sessionId: session.id } });
       if (!sessionUser) {
         return res.redirect(`/sessions/${session.id}`);
       }
-      return res.render('client', { userId: req.user.id, entry: 'index.js' });
+      return res.render('client', { userId: sessionUser.id, entry: 'index.js' });
     }
     const gameVersion = session.GameVersion;
     const game = gameVersion.Game;
@@ -407,7 +436,6 @@ module.exports = ({
 
 
   app.get('/a/:game/*', async (req, res) => {
-    if (!req.user) return unauthorized(req, res, 'permission denied');
     const s3Path = production ? path.join(req.params.game, 'assets', req.params[0]) : path.join(req.params.game, 'dist', 'assets', req.params[0]);
     const s3Params = { Key: s3Path };
     try {
@@ -427,12 +455,11 @@ module.exports = ({
   });
 
   app.post('/sessions', async (req, res) => {
-    if (!req.user) return unauthorized(req, res, 'permission denied');
     if (!req.body.gameId) return res.status(400).end('no game specified');
     const game = await db.Game.findByPk(req.body.gameId);
     const gameVersion = req.body.beta ? await game.latestVersion() : await game.latestStableVersion();
     const session = await db.Session.create({ gameVersionId: gameVersion.id, creatorId: req.user.id, seed: String(Math.random()) });
-    await db.SessionUser.create({ userId: req.user.id, sessionId: session.id, color: 'red', position: 0 });
+    await db.SessionUser.create({ accessToken: req.accessToken, sessionId: session.id, color: 'red', position: 0 });
     if (req.is('json')) {
       res.json({ id: session.id });
     } else {
@@ -441,7 +468,6 @@ module.exports = ({
   });
 
   app.get('/sessions/:id', async (req, res) => {
-    if (!req.user) return unauthorized(req, res, 'permission denied');
     const session = await db.Session.findByPk(req.params.id, {
       include: [{
         model: db.SessionUser,
@@ -451,13 +477,13 @@ module.exports = ({
         include: [db.Game],
       }],
     });
-    const sessionUser = await db.SessionUser.findOne({ where: { userId: req.user.id, sessionId: session.id } });
+    const sessionUser = await db.SessionUser.findOne({ where: { accessToken: req.accessToken, sessionId: session.id } });
     if (sessionUser) {
       return res.redirect(`/play/${session.id}/`);
     }
     res.render('session', {
       session,
-      me: req.user.id,
+      me: sessionUser.id,
       started: session.state !== 'initial',
       game: session.GameVersion.Game.name,
     });
@@ -469,17 +495,18 @@ module.exports = ({
     if (existingColors.length == 4) return unauthorized(req, res, 'permission denied');
 
     const newColor = ['red', 'green', 'blue', 'purple', 'yellow', 'cyan'].find(c => !existingColors.includes(c));
-    await db.sequelize.query(`INSERT into "SessionUsers" ("sessionId", "userId", "color", "position", "createdAt", "updatedAt")
-    SELECT "sessionId", "userId", "color", "position", "createdAt", "updatedAt"
+    await db.sequelize.query(`INSERT into "SessionUsers" ("sessionId", "userId", "accessToken", "color", "position", "createdAt", "updatedAt")
+    SELECT "sessionId", "userId", "accessToken", "color", "position", "createdAt", "updatedAt"
     FROM (
-      SELECT :sessionId, :userId, :color, max(su.position) + 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+      SELECT :sessionId, :userId, :accessToken, :color, max(su.position) + 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
       FROM "SessionUsers" su
       WHERE "sessionId" = :sessionId
       GROUP BY "sessionId"
       LIMIT 1
-    ) s ("sessionId", "userId", "color", "position", "createdAt", "updatedAt") `, { replacements: {
+    ) s ("sessionId", "userId", "accessToken", "color", "position", "createdAt", "updatedAt") `, { replacements: {
+      userId: req.user ? parseInt(req.user.id) : null,
       sessionId: parseInt(req.params.id),
-      userId: req.user.id,
+      accessToken: req.accessToken,
       color: newColor,
     } });
     res.redirect(`/sessions/${req.params.id}`);
@@ -498,19 +525,8 @@ module.exports = ({
 
   const verifyClient = (info, verified) => {
     cookieParser()(info.req, null, () => {});
-    try {
-      verifyToken(info.req, (error, user) => {
-        if (error || !user) {
-          log.error('verifyClient fail: ', error, user);
-          return verified(false, 401, 'Unauthorized');
-        }
-        info.req.user = user;
-        return verified(true);
-      });
-    } catch (error) {
-      log.error('verifyClient: ', error);
-      throw error;
-    }
+    info.req.accessToken = info.req.cookies.accessToken;
+    return verified(true)
   };
 
   const wss = new WebSocket.Server({ verifyClient, server });
@@ -526,7 +542,7 @@ module.exports = ({
   };
 
   const onWssConnection = async (ws, req) => {
-    const sessionUser = await db.SessionUser.findOne({ where: { userId: req.user.id, sessionId: req.sessionId } });
+    const sessionUser = await db.SessionUser.findOne({ where: { accessToken: req.accessToken, sessionId: req.sessionId } });
     if (!sessionUser) {
       return ws.close(4001);
     }
@@ -570,12 +586,12 @@ module.exports = ({
       });
     };
     const chat = async message => {
-      const user = await db.User.findByPk(req.user.id);
+      const user = sessionUser.userId ? await db.User.findByPk(sessionUser.userId) : null;
       const chatMessage = await db.SessionChat.create({
         sessionId: session.id,
-        userId: req.user.id,
+        userId: sessionUser.id,
         createdAt: new Date(),
-        message: `<span color="${sessionUser.color}">${user.name}: ${message}</span>`,
+        message: `<span color="${sessionUser.color}">${user ? user.name : `guest-${sessionUser.id}`}: ${message}</span>`,
       });
 
       await publishChat(chatMessage);
@@ -596,7 +612,7 @@ module.exports = ({
             updatedAt: { [Sequelize.Op.lt]: new Date() - 60000 },
           },
         });
-        locks.push(await db.ElementLock.create({ sessionId: session.id, userId: sessionUser.userId, element: key }));
+        locks.push(await db.ElementLock.create({ sessionId: session.id, userId: sessionUser.id, element: key }));
       } catch (e) {
         if (!(e instanceof db.Sequelize.UniqueConstraintError)) {
           throw e;
@@ -606,7 +622,7 @@ module.exports = ({
     };
 
     const releaseLock = async key => {
-      await db.ElementLock.destroy({ where: { sessionId: session.id, userId: sessionUser.userId, element: key } });
+      await db.ElementLock.destroy({ where: { sessionId: session.id, userId: sessionUser.id, element: key } });
       locks = locks.filter((lock) => lock.key !== key);
       await publish('locks');
     };
@@ -615,7 +631,7 @@ module.exports = ({
       key, x, y, start, end, endFlip,
     }) => {
       const lock = locks.find(l => l.element === key);
-      if (!lock || lock.userId !== sessionUser.userId) return;
+      if (!lock || lock.userId !== sessionUser.id) return;
       await publish('drag', {
         userId: lock.userId, key, x, y, start, end, endFlip,
       });
@@ -624,14 +640,14 @@ module.exports = ({
     const updateElement = ({
       userId, key, x, y, start, end, endFlip,
     }) => {
-      if (userId === sessionUser.userId) return;
+      if (userId === sessionUser.id) return;
       sendWS('updateElement', {
         key, x, y, start, end, endFlip,
       });
     };
 
     const sendLog = ({ timestamp, sequence, message }) => (
-      sendWS('log', { timestamp, sequence, message: typeof message === 'object' ? message[String(sessionUser.userId)] : message })
+      sendWS('log', { timestamp, sequence, message: typeof message === 'object' ? message[String(sessionUser.id)] : message })
     );
 
     const sendError = () => {
@@ -669,11 +685,11 @@ module.exports = ({
           case 'requestLock': return await requestLock(message.payload.key);
           case 'releaseLock': return await releaseLock(message.payload.key);
           case 'drag': return await drag(message.payload);
-          case 'ping': return publish('active', sessionUser.userId);
+          case 'ping': return publish('active', sessionUser.id);
           case 'chat': return chat(message.payload.message);
           default: {
-            log.debug(`S ${req.user.id}: ws message`, message.type, message.payload);
-            message.payload.userId = req.user.id;
+            log.debug(`S ${sessionUser.id}: ws message`, message.type, message.payload);
+            message.payload.userId = sessionUser.id;
             await queue(message.type, message.payload);
           }
         }
@@ -684,8 +700,8 @@ module.exports = ({
 
     sessionRunner.listen(message => {
       // TODO better as seperate channels for each user and all users?
-      if (message.userId && message.userId !== req.user.id) return null;
-      log.debug(`S ${req.user.id}: event`, message.type, message.userId);
+      if (message.userId && message.userId !== sessionUser.id) return null;
+      log.debug(`S ${sessionUser.id}: event`, message.type, message.userId);
       switch (message.type) {
         case 'locks': return sendPlayerLocks();
         case 'drag': return updateElement(message.payload);

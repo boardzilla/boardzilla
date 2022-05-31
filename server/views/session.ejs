@@ -4,7 +4,7 @@
 
 <ul>
   <% session.SessionUsers.forEach(sessionUser => { %>
-    <li><%= sessionUser.User.name %></li>
+    <li><%= sessionUser.User ? sessionUser.User.name : `guest-${sessionUser.id}` %></li>
   <% }) %>
 </ul>
 

@@ -168,9 +168,10 @@ class GameRunner {
           gameInstance.initialize(session.seed);
           await session.reload();
           const sessionUsers = await session.getSessionUsers({ include: 'User', order: ['position'] });
+
           gameInstance.addPlayers(sessionUsers.map(su => ({
-            id: su.User.id,
-            name: su.User.name,
+            id: su.id,
+            name: su.User ? su.User.name : `guest-${su.id}`,
             color: su.color,
           })));
           gameInstance.startProcessing().then(() => log.debug('game is finished!')).catch(console.error);
@@ -225,8 +226,8 @@ class GameRunner {
             {
               const sessionUsers = await session.getSessionUsers({ include: 'User', order: ['position'] });
               gameInstance.addPlayers(sessionUsers.map(su => ({
-                id: su.User.id,
-                name: su.User.name,
+                id: su.id,
+                name: su.User ? su.User.name : `guest-${su.id}`,
                 color: su.color,
               })));
             }

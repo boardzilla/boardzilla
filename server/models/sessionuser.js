@@ -4,6 +4,7 @@ module.exports = (sequelize, DataTypes) => {
     userId: DataTypes.INTEGER,
     color: DataTypes.STRING,
     position: DataTypes.INTEGER,
+    accessToken: DataTypes.STRING,
   }, {});
   SessionUser.associate = function (models) {
     models.SessionUser.belongsTo(models.Session, { foreignKey: 'sessionId' });
