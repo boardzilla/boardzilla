@@ -1,4 +1,5 @@
 /game-core
-/isaac-four-souls
+/isaac-four-souls/assets
+/powergrid/assets
 /.git
 node_modules
