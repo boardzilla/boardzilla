@@ -2,8 +2,6 @@
 
 set -e
 
-rm -rf isaac-four-souls
-
 sudo corepack enable
 
 yarn --cwd server install

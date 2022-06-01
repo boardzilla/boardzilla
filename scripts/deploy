@@ -17,6 +17,6 @@ done
 
 rm -f ./game-core/server/node_modules/.bin/nanoid
 
-eb deploy $1
+eb deploy $1 --verbose
 
 ./scripts/install
