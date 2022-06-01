@@ -1,0 +1,17 @@
+<%- include('partials/header') %>
+
+<h2>News</h2>
+<% messagesAndVersions.forEach(version => {%>
+  <% if (version.Game) { %>
+    <h3>New version of <%=version.Game.name %> <i>(<%=version.beta ? "beta" : "release"%>)</i></h3>
+    <h4><%=version.formattedCreatedAt() %></h4>
+    <p><%- version.notesHTML() -%></p>
+  <% } else { %>
+    <h3><%=version.title%></h3>
+    <h4><%=version.formattedCreatedAt() %></h4>
+    <p><%- version.notesHTML() -%></p>
+  <% } %>
+
+<% }) %>
+
+<%- include('partials/footer') %>

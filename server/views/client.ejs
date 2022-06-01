@@ -2,7 +2,10 @@
 
 <div id="container">
 </div>
-<script>window.userId=<%=userId%></script>
-<script src="<%=entry%>"></script>
+<script>
+	window.userId=<%=userId%>;
+	window.sessionId=<%=sessionId%>;
+</script>
+<script src="/sessions/<%=sessionId%>/<%=entry%>"></script>
 
 <%- include('partials/footer') %>

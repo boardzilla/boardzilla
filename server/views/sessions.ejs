@@ -1,0 +1,24 @@
+<%- include('partials/header') %>
+
+<h1>Games</h1>
+<p><a href="?show=mine">Mine</a> | <a href="?show=all">All</a>
+<% if (sessions.length === 0) { %>
+<p>You currently have no games running.</p>
+<% } %>
+
+<ul>
+ <% sessions.forEach(session => { %>
+   <li>
+     <a href="/sessions/<%= session.id %>"><%=session.GameVersion.Game.name %></a>
+     [
+     <%Object.entries(session.SessionUsers).forEach(([u, su]) => {%>
+       <%= u > 0 ? '|' : '' %>
+       <%= su.User ? su.User.name : `guest-${su.id}` %>
+     <%})%>
+     ]
+     <%=new Intl.DateTimeFormat().format(session.createdAt)%>
+   </li>
+ <% }) %>
+</ul>
+
+<%- include('partials/footer') %>

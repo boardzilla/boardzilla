@@ -14,7 +14,7 @@ export const render = ({pieces, components, background, debug}) => {
   ReactDOM.render(
     <Page
       userId={window.userId}
-      session={document.location.href.match(/play\/(\d+)\//)[1]}
+      session={window.sessionId}
       pieces={pieces}
       components={components}
       background={background}
