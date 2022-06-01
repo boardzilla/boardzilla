@@ -214,11 +214,15 @@ module.exports = ({
 
   app.get('/', async (req, res) => {
     const games = await db.Game.findAll();
+    res.render('index', { games });
+  });
+
+  app.get('/news', async (req, res) => {
     const versions = await db.GameVersion.findAll({ include: db.Game, limit: 5, order: [['createdAt', 'desc']], where: { notes: { [Op.not]: null } } });
     const messages = await db.ServerMessage.findAll({ limit: 5, order: [['createdAt', 'desc']] });
     const messagesAndVersions = versions.concat(messages)
     messagesAndVersions.sort((a,b) => b.createdAt.getTime() - a.createdAt.getTime())
-    res.render('home', { games, messagesAndVersions });
+    res.render('news', { messagesAndVersions });
   });
 
   app.get('/game/:id/banner', async (req, res) => {
@@ -228,7 +232,6 @@ module.exports = ({
   })
 
   app.get('/sessions', async (req, res) => {
-    if (!req.user) return unauthorized(req, res, 'permission denied');
     let where = {state: {[Op.ne]: "expired"}};
     if (req.query.show !== 'all') {
       const mySessions = await db.SessionUser.findAll({ where: { accessToken: req.accessToken } });
@@ -253,7 +256,7 @@ module.exports = ({
         },
       ],
     });
-    res.render('index', { sessions });
+    res.render('sessions', { sessions });
   });
 
   app.get('/sessions/new', async (req, res) => {
@@ -380,18 +383,17 @@ module.exports = ({
     res.json({ version: version.version });
   });
 
-  app.get('/make/:id', async (req, res) => {
+  app.post('/play/:id', async (req, res) => {
     const beta = req.params.beta === '1'
     const game = await db.Game.findByPk(req.params.id);
     const gameVersion = beta ? await game.latestVersion() : await game.latestStableVersion();
     const session = await db.Session.create({ gameVersionId: gameVersion.id, creatorId: req.user ? req.user.id : null, seed: String(Math.random()) });
-
-    console.log("req.accessToken", req.accessToken)
     await db.SessionUser.create({ accessToken: req.accessToken, userId: req.user ? req.user.id : null, sessionId: session.id, color: 'red', position: 0 });
-    return res.redirect(`/play/${session.id}/`);
-  })
+    return res.redirect(`/sessions/${session.id}`);
+  });
 
-  app.get('/play/:id/*', async (req, res) => {
+  app.get('/sessions/:id/*', async (req, res) => {
+    console.log("getting something more")
     const session = await db.Session.findByPk(req.params.id, {
       include: [{
         model: db.SessionUser,
@@ -407,12 +409,10 @@ module.exports = ({
     if (session.state === 'error') {
       return res.render('play-error');
     }
-    if (!req.params[0]) {
-      const sessionUser = await db.SessionUser.findOne({ where: { accessToken: req.accessToken, sessionId: session.id } });
-      if (!sessionUser) {
-        return res.redirect(`/sessions/${session.id}`);
-      }
-      return res.render('client', { userId: sessionUser.id, entry: 'index.js' });
+
+    const sessionUser = await db.SessionUser.findOne({ where: { accessToken: req.accessToken, sessionId: session.id } });
+    if (!sessionUser) {
+      return unauthorized(req, res, 'permission denied');
     }
     const gameVersion = session.GameVersion;
     const game = gameVersion.Game;
@@ -434,6 +434,36 @@ module.exports = ({
     }
   });
 
+  app.get('/sessions/:id', async (req, res) => {
+    console.log("getting /")
+    let sessionUser = await db.SessionUser.findOne({ where: { accessToken: req.accessToken, sessionId: req.params.id } });
+    if (!sessionUser) {
+      const existingColors = (await db.SessionUser.findAll({ where: { sessionId: req.params.id } })).map(u => u.color);
+      if (existingColors.length == 4) {
+        return res.render('session-full');
+      }
+
+      const newColor = ['red', 'green', 'blue', 'purple', 'yellow', 'cyan'].find(c => !existingColors.includes(c));
+      await db.sequelize.query(`INSERT into "SessionUsers" ("sessionId", "userId", "accessToken", "color", "position", "createdAt", "updatedAt")
+      SELECT "sessionId", "userId"::integer, "accessToken", "color", "position", "createdAt", "updatedAt"
+      FROM (
+        SELECT :sessionId, :userId, :accessToken, :color, max(su.position) + 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+        FROM "SessionUsers" su
+        WHERE "sessionId" = :sessionId
+        GROUP BY "sessionId"
+        LIMIT 1
+      ) s ("sessionId", "userId", "accessToken", "color", "position", "createdAt", "updatedAt") `, { replacements: {
+        userId: req.user ? parseInt(req.user.id) : null,
+        sessionId: parseInt(req.params.id),
+        accessToken: req.accessToken,
+        color: newColor,
+      } });
+    }
+    // this should be via RETURNING
+    sessionUser = await db.SessionUser.findOne({ where: { accessToken: req.accessToken, sessionId: req.params.id } });
+
+    return res.render('client', { sessionId: req.params.id, userId: sessionUser.id, entry: 'index.js' });
+  })
 
   app.get('/a/:game/*', async (req, res) => {
     const s3Path = production ? path.join(req.params.game, 'assets', req.params[0]) : path.join(req.params.game, 'dist', 'assets', req.params[0]);
@@ -452,64 +482,6 @@ module.exports = ({
       log.error('error getting', s3Path, e);
       res.status(404).end('not found');
     }
-  });
-
-  app.post('/sessions', async (req, res) => {
-    if (!req.body.gameId) return res.status(400).end('no game specified');
-    const game = await db.Game.findByPk(req.body.gameId);
-    const gameVersion = req.body.beta ? await game.latestVersion() : await game.latestStableVersion();
-    const session = await db.Session.create({ gameVersionId: gameVersion.id, creatorId: req.user.id, seed: String(Math.random()) });
-    await db.SessionUser.create({ accessToken: req.accessToken, sessionId: session.id, color: 'red', position: 0 });
-    if (req.is('json')) {
-      res.json({ id: session.id });
-    } else {
-      res.redirect(`/sessions/${session.id}`);
-    }
-  });
-
-  app.get('/sessions/:id', async (req, res) => {
-    const session = await db.Session.findByPk(req.params.id, {
-      include: [{
-        model: db.SessionUser,
-        include: db.User,
-      }, {
-        model: db.GameVersion,
-        include: [db.Game],
-      }],
-    });
-    const sessionUser = await db.SessionUser.findOne({ where: { accessToken: req.accessToken, sessionId: session.id } });
-    if (sessionUser) {
-      return res.redirect(`/play/${session.id}/`);
-    }
-    res.render('session', {
-      session,
-      me: sessionUser.id,
-      started: session.state !== 'initial',
-      game: session.GameVersion.Game.name,
-    });
-  });
-
-  app.post('/user-sessions/:id', async (req, res) => {
-    if (!req.user) return unauthorized(req, res, 'permission denied');
-    const existingColors = (await db.SessionUser.findAll({ where: { sessionId: req.params.id } })).map(u => u.color);
-    if (existingColors.length == 4) return unauthorized(req, res, 'permission denied');
-
-    const newColor = ['red', 'green', 'blue', 'purple', 'yellow', 'cyan'].find(c => !existingColors.includes(c));
-    await db.sequelize.query(`INSERT into "SessionUsers" ("sessionId", "userId", "accessToken", "color", "position", "createdAt", "updatedAt")
-    SELECT "sessionId", "userId", "accessToken", "color", "position", "createdAt", "updatedAt"
-    FROM (
-      SELECT :sessionId, :userId, :accessToken, :color, max(su.position) + 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
-      FROM "SessionUsers" su
-      WHERE "sessionId" = :sessionId
-      GROUP BY "sessionId"
-      LIMIT 1
-    ) s ("sessionId", "userId", "accessToken", "color", "position", "createdAt", "updatedAt") `, { replacements: {
-      userId: req.user ? parseInt(req.user.id) : null,
-      sessionId: parseInt(req.params.id),
-      accessToken: req.accessToken,
-      color: newColor,
-    } });
-    res.redirect(`/sessions/${req.params.id}`);
   });
 
   if (devMode) {

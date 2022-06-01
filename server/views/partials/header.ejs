@@ -37,9 +37,8 @@
   <body>
     <div class="navbar">
       <a href="/">boardzilla</a>
-      <% if (user) { %>
-        | <a href="/sessions">games</a>
-      <% } %>
+      | <a href="/sessions">sessions</a>
+      | <a href="/news">news</a>
       <div class="login">
         <% if (user) { %>
           Welcome <%= user.name %>! <a href="/logout">Logout</a>

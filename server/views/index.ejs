@@ -1,30 +1,21 @@
 <%- include('partials/header') %>
 
-<h1>Games</h1>
-<p><a href="?show=mine">Mine</a> | <a href="?show=all">All</a>
-<% if (sessions.length === 0) { %>
-<p>You currently have no games running.</p>
-<% } %>
+<h1>Boardzilla</h1>
 
-<ul>
- <% sessions.forEach(session => { %>
-   <li>
-     <a href="/sessions/<%= session.id %>"><%=session.GameVersion.Game.name %></a>
-     [
-     <%Object.entries(session.SessionUsers).forEach(([u, su]) => {%>
-       <%= u > 0 ? '|' : '' %>
-       <%if (su.User.name == session.creator.name) {%>
-         <b><%=su.User.name%></b>
-       <%} else {%>
-         <%=su.User.name%>
-       <%}%>
-     <%})%>
-     ]
-     <%=new Intl.DateTimeFormat().format(session.createdAt)%>
-   </li>
- <% }) %>
-</ul>
+<p>Boardzilla is a framework for making and playing board games.</p>
 
-<p><button onclick="window.location.href='/sessions/new';">Create new game</button></p>
+<h2>Games</h2>
+<% games.forEach(game => { %>
+  <div>
+  <img src="/game/<%=game.id%>/banner" style="float: right; width: 300px">
+  <h3><%=game.friendlyName%></h3>
+  <form action="/play/<%=game.id%>" method="POST">
+    <input type="submit" value="Play now!" >
+  </form>
+  <p><%-game.descriptionHTML()%></p>
+  </div>
+  <br clear="all">
+  <hr>
+<% }) %>
 
 <%- include('partials/footer') %>

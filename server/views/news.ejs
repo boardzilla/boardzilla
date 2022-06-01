@@ -1,21 +1,5 @@
 <%- include('partials/header') %>
 
-<h1>Boardzilla</h1>
-
-<p>Boardzilla is a framework for making and playing board games.</p>
-
-<h2>Games</h2>
-<% games.forEach(game => { %>
-  <div>
-  <img src="/game/<%=game.id%>/banner" style="float: right; width: 300px">
-  <h3><%=game.friendlyName%></h3>
-  <input type="button" onclick="location.href='/make/<%=game.id%>';" value="Play now!" />
-  <p><%-game.descriptionHTML()%></p>
-  </div>
-  <br clear="all">
-  <hr>
-<% }) %>
-
 <h2>News</h2>
 <% messagesAndVersions.forEach(version => {%>
   <% if (version.Game) { %>
