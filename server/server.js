@@ -67,6 +67,7 @@ module.exports = ({
   });
   app.use(Sentry.Handlers.requestHandler());
   app.use(Sentry.Handlers.tracingHandler());
+  app.use(express.static('public'));
   app.use(bodyParser.json({ limit: '50mb' }));
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(cookieParser());
