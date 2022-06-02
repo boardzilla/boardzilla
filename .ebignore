@@ -3,3 +3,4 @@
 /powergrid/assets
 /.git
 node_modules
+.DS_Store

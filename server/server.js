@@ -112,8 +112,8 @@ module.exports = ({
           req.user = user;
           req.accessToken = user.accessToken;
           res.locals.user = user;
+          res.cookie('accessToken', req.accessToken, {httpOnly: true, secure: true});
         }
-        res.cookie('accessToken', req.accessToken, {httpOnly: true, secure: true});
         return next();
       });
     } catch (error) {
