@@ -16,8 +16,7 @@ class GameElement {
 
   enhanceQuery(q) {
     return q.replace(/\.mine/g, `[player="${this.game.currentPlayerPosition}"]`)
-      .replace(/=([^\]'"]+)/g, '="$1"')
-      .replace(/([#=])(\d)/g, '$1\\3$2 ');
+      .replace(/=(['"]?)([^\]'"]+)\1/g, (_m, _, a) => `="${escape(a)}"`);
   }
 
   /**
