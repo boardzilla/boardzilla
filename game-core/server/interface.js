@@ -113,11 +113,12 @@ class GameInterface {
   }
 
   validateAction(name, action) {
-    const unknownAttrs = Object.keys(action).filter(a => !['select', 'prompt', 'promptOnto', 'confirm', 'log', 'if', 'key', 'action', 'next', 'drag', 'onto', 'min', 'max', 'toPlayer'].includes(a));
+    const unknownAttrs = Object.keys(action).filter(a => !['select', 'prompt', 'promptOnto', 'confirm', 'log', 'if', 'unless', 'key', 'action', 'next', 'drag', 'onto', 'min', 'max', 'toPlayer'].includes(a));
     if (unknownAttrs.length) throw Error(`${name} has unknown properties: '${unknownAttrs.join('\', \'')}'`);
     if (!action.prompt) throw Error(`${name} is missing 'prompt'`);
-    if (action.confirm && action.select) throw Error(`${name} has both 'confirm' and 'select'`);
+    if (action.confirm && action.select) throw Error(`${name} may not have both 'confirm' and 'select'`);
     if (action.next && action.action) throw Error(`${name} may not have both 'next' and 'action'. Use 'next' for a follow-up action, and 'action' only at the end.`);
+    if (action.if && action.unless) throw Error(`${name} may not have both 'if' and 'unless'`);
     if (action.drag) {
       if (!action.onto && !action.toPlayer) throw Error(`${name} has a 'drag' but no 'onto' or 'toPlayer'`);
       if (action.onto instanceof Array && action.onto.length === 0) {
@@ -447,10 +448,12 @@ class GameInterface {
       throw Error(`No such action: ${actionName}`);
     }
 
-    if (action.if) {
+    if (action.if || action.unless) {
+      const condition = action.if || action.unless;
       let result = true;
-      if (typeof action.if === 'function') result = action.if(...args);
-      if (typeof action.if === 'string') result = this.doc.contains(action.if);
+      if (typeof condition === 'function') result = condition(...args);
+      if (typeof condition === 'string') result = this.doc.contains(condition);
+      result = action.unless ? !result : result;
       if (!result) throw new InvalidActionError(`${actionName} not allowed due to "if" condition`);
     }
 

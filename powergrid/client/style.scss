@@ -212,11 +212,19 @@
       width: 300px;
       height: 150px;
       [auction]::after {
-        content: '';
+        content: "";
         display: block;
-        background-image: url(images/gavel.png);
-        z-index: 10;
+        background-image: url(gavel.png);
+        z-index: 1000;
         width: 40px;
+        position: absolute;
+        height: 50px;
+        left: 0;
+        background-size: 100%;
+        background-repeat: no-repeat;
+        left: 15px;
+        top: 15px;
+        filter: drop-shadow(0 0 4px black) drop-shadow(0 0 2px black);
       }
     }
 

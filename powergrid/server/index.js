@@ -51,6 +51,7 @@ const refill = {
 const income = [10, 22, 33, 44, 54, 64, 73, 82, 90, 98, 105, 112, 118, 124, 129, 134, 138, 142, 145, 148, 150];
 
 game.afterMove('#powerplants card', sortPowerplants);
+game.afterMove('card', card => card.unset('auction'));
 
 game.setupPlayerMat((mat, player, color) => {
   mat.addPieces(22, '#building', 'token', { player, color, zoom: 2, left: 15, bottom: 15 });
@@ -255,6 +256,7 @@ game.defineActions({
   auction: {
     select: '#powerplants card',
     prompt: 'Put up for auction',
+    unless: 'card[auction]',
     log: '$0 puts $1 up for auction',
     key: 'a',
     action: card => card.set('auction'),
