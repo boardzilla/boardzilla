@@ -6,107 +6,11 @@ import assets from './assets.json';
 render({
   background: (
     <div className="table">
-      <img id="map" src={assets['germany.jpg']} />
-      <span className="cost high" style={{left: 109, top: 140}}>19</span>
-      <span className="cost high" style={{left: 143, top: 154}}>19</span>
-      <span className="cost high" style={{left: 190, top: 173}}>18</span>
-      <span className="cost" style={{left: 190, top: 102}}>15</span>
-      <span className="cost" style={{left: 119, top: 211}}>6</span>
-      <span className="cost" style={{left: 129, top: 249}}>6</span>
-      <span className="cost" style={{left: 119, top: 211}}>6</span>
-      <span className="cost" style={{left: 92, top: 286}}>4</span>
-      <span className="cost" style={{left: 54, top: 322}}>4</span>
-      <span className="cost" style={{left: 151, top: 270}}>8</span>
-      <span className="cost" style={{left: 110, top: 310}}>8</span>
-      <span className="cost" style={{left: 127, top: 287}}>6</span>
-      <span className="cost" style={{left: 131, top: 346}}>11</span>
-      <span className="cost" style={{left: 167, top: 339}}>11</span>
-      <span className="cost" style={{left: 152, top: 371}}>8</span>
-      <span className="cost high" style={{left: 201, top: 218}}>16</span>
-      <span className="cost high" style={{left: 196, top: 263}}>19</span>
-      <span className="cost high" style={{left: 193, top: 311}}>17</span>
-      <span className="cost" style={{left: 253, top: 95}}>6</span>
-      <span className="cost" style={{left: 252, top: 166}}>10</span>
-      <span className="cost high" style={{left: 289, top: 154}}>17</span>
-      <span className="cost high" style={{left: 301, top: 110}}>21</span>
-      <span className="cost high" style={{left: 321, top: 70}}>16</span>
-      <span className="cost" style={{left: 166, top: 392}}>11</span>
-      <span className="cost" style={{left: 217, top: 387}}>11</span>
-      <span className="cost" style={{left: 221, top: 341}}>10</span>
-      <span className="cost" style={{left: 191, top: 414}}>14</span>
-      <span className="cost" style={{left: 364, top: 215}}>6</span>
-      <span className="cost" style={{left: 298, top: 201}}>11</span>
-      <span className="cost" style={{left: 372, top: 126.5}}>13</span>
-      <span className="cost" style={{left: 262, top: 260}}>15</span>
-      <span className="cost high" style={{left: 250, top: 356}}>16</span>
-      <span className="cost high" style={{left: 297, top: 375}}>20</span>
-      <span className="cost" style={{left: 305, top: 324}}>15</span>
-      <span className="cost high" style={{left: 317, top: 275}}>19</span>
-      <span className="cost" style={{left: 274, top: 424}}>7</span>
-      <span className="cost high" style={{left: 386, top: 154}}>19</span>
-      <span className="cost high" style={{left: 453, top: 236}}>21</span>
-      <span className="cost" style={{left: 407, top: 276}}>13</span>
-      <span className="cost" style={{left: 371, top: 292}}>15</span>
-      <span className="cost" style={{left: 313, top: 462}}>6</span>
-      <span className="cost" style={{left: 322, top: 438}}>2</span>
-      <span className="cost" style={{left: 338, top: 460}}>4</span>
-      <span className="cost" style={{left: 348, top: 496}}>2</span>
-      <span className="cost" style={{left: 369, top: 453}}>10</span>
-      <span className="cost" style={{left: 406, top: 357}}>13</span>
-      <span className="cost" style={{left: 481, top: 340}}>13</span>
-      <span className="cost" style={{left: 396, top: 326}}>8</span>
-      <span className="cost" style={{left: 447, top: 342}}>8</span>
-      <span className="cost" style={{left: 465, top: 309}}>11</span>
-      <span className="cost high" style={{left: 351, top: 387}}>18</span>
-      <span className="cost high" style={{left: 396, top: 406}}>20</span>
-      <span className="cost high" style={{left: 437, top: 440}}>21</span>
-      <span className="cost high" style={{left: 488, top: 453}}>18</span>
-      <span className="cost" style={{left: 387, top: 493}}>4</span>
-      <span className="cost" style={{left: 395, top: 517}}>9</span>
-      <span className="cost" style={{left: 415, top: 499}}>7</span>
-      <span className="cost high" style={{left: 456, top: 513}}>19</span>
-      <span className="cost high" style={{left: 447, top: 483}}>20</span>
-      <span className="cost" style={{left: 509, top: 395}}>11</span>
-      <span className="cost" style={{left: 553, top: 416}}>11</span>
-      <span className="cost" style={{left: 533, top: 481}}>11</span>
-      <span className="cost" style={{left: 523, top: 340}}>10</span>
-      <span className="cost" style={{left: 516, top: 433}}>10</span>
-      <span className="cost" style={{left: 555, top: 334}}>12</span>
-      <span className="cost" style={{left: 520, top: 274}}>8</span>
-      <span className="cost" style={{left: 553, top: 216}}>12</span>
-      <span className="cost" style={{left: 601, top: 229}}>13</span>
-      <span className="cost high" style={{left: 576, top: 246}}>18</span>
-      <span className="cost high" style={{left: 559, top: 281}}>19</span>
-      <span className="cost" style={{left: 575, top: 373}}>6</span>
-      <span className="cost" style={{left: 616, top: 318}}>15</span>
-      <span className="cost high" style={{left: 644, top: 361}}>16</span>
-      <span className="cost high" style={{left: 627, top: 395}}>16</span>
-      <span className="cost high" style={{left: 579, top: 410}}>17</span>
-      <span className="cost high" style={{left: 658, top: 310}}>17</span>
-      <span className="cost" style={{left: 675, top: 397}}>14</span>
-      <span className="cost" style={{left: 646, top: 240}}>6</span>
-      <span className="cost" style={{left: 619, top: 202}}>10</span>
-      <span className="cost" style={{left: 596, top: 151}}>12</span>
-      <span className="cost" style={{left: 639, top: 158}}>14</span>
-
-      <span className="resource-cost" style={{left: 716, top: 498}}>1</span>
-      <span className="resource-cost" style={{left: 716, top: 438}}>2</span>
-      <span className="resource-cost" style={{left: 716, top: 378}}>3</span>
-      <span className="resource-cost" style={{left: 716, top: 317}}>4</span>
-      <span className="resource-cost" style={{left: 716, top: 255}}>5</span>
-      <span className="resource-cost" style={{left: 716, top: 193}}>6</span>
-      <span className="resource-cost" style={{left: 716, top: 133}}>7</span>
-      <span className="resource-cost" style={{left: 716, top: 73}}>8</span>
-      <span className="resource-cost" style={{left: 716, top: 48}}>10</span>
-      <span className="resource-cost" style={{left: 716, top: 22}}>12</span>
-      <span className="resource-cost" style={{left: 744, top: 48}}>14</span>
-      <span className="resource-cost" style={{left: 744, top: 22}}>16</span>
     </div>
   ),
   
   pieces: {
     card: ({ id, image, children }) => ( // doc must indicate that children should be included at top level if piece needs to be able to hold other pieces
-
       <>
         <img title={image} src={assets[`cards/${id ? image : 'plug.webp'}`]} />
         {children}
@@ -121,8 +25,109 @@ render({
       if (type === 'coal') return '▲';
       if (type === 'oil') return '■';
       if (type === 'garbage') return '■';
-      if (type === 'uranium') return '●';
+      return '●';
     },
+  },
+  spaces: {
+    '#map': ({ children }) => (
+      <>
+        <img id="map" src={assets['germany.jpg']} />
+        <span className="cost high" style={{left: 104, top: 126}}>19</span>
+        <span className="cost high" style={{left: 140, top: 141}}>19</span>
+        <span className="cost high" style={{left: 188, top: 161}}>18</span>
+        <span className="cost" style={{left: 190, top: 87}}>15</span>
+        <span className="cost" style={{left: 114, top: 200}}>6</span>
+        <span className="cost" style={{left: 124, top: 238}}>6</span>
+        <span className="cost" style={{left: 84, top: 277}}>4</span>
+        <span className="cost" style={{left: 45, top: 314}}>4</span>
+        <span className="cost" style={{left: 147, top: 261}}>8</span>
+        <span className="cost" style={{left: 102, top: 302}}>8</span>
+        <span className="cost" style={{left: 120, top: 279}}>6</span>
+        <span className="cost" style={{left: 126, top: 339}}>11</span>
+        <span className="cost" style={{left: 164, top: 332}}>11</span>
+        <span className="cost" style={{left: 146, top: 365}}>8</span>
+        <span className="cost high" style={{left: 201, top: 208}}>16</span>
+        <span className="cost high" style={{left: 194, top: 255}}>19</span>
+        <span className="cost high" style={{left: 192, top: 303}}>17</span>
+        <span className="cost" style={{left: 252, top: 80}}>6</span>
+        <span className="cost" style={{left: 253, top: 153}}>10</span>
+        <span className="cost high" style={{left: 291, top: 141}}>17</span>
+        <span className="cost high" style={{left: 304, top: 96}}>21</span>
+        <span className="cost high" style={{left: 324, top: 55}}>16</span>
+        <span className="cost" style={{left: 162, top: 387}}>11</span>
+        <span className="cost" style={{left: 216, top: 382}}>11</span>
+        <span className="cost" style={{left: 220, top: 334}}>10</span>
+        <span className="cost" style={{left: 189, top: 410}}>14</span>
+        <span className="cost" style={{left: 366, top: 204}}>6</span>
+        <span className="cost" style={{left: 301, top: 189}}>11</span>
+        <span className="cost" style={{left: 377, top: 113.5}}>13</span>
+        <span className="cost" style={{left: 264, top: 250}}>15</span>
+        <span className="cost high" style={{left: 251, top: 351}}>16</span>
+        <span className="cost high" style={{left: 299, top: 369}}>20</span>
+        <span className="cost" style={{left: 308, top: 316}}>15</span>
+        <span className="cost high" style={{left: 320, top: 265}}>19</span>
+        <span className="cost" style={{left: 274, top: 419}}>7</span>
+        <span className="cost high" style={{left: 392, top: 142}}>19</span>
+        <span className="cost high" style={{left: 461, top: 226}}>21</span>
+        <span className="cost" style={{left: 413, top: 267}}>13</span>
+        <span className="cost" style={{left: 375, top: 283}}>15</span>
+        <span className="cost" style={{left: 313, top: 459}}>6</span>
+        <span className="cost" style={{left: 323, top: 435}}>2</span>
+        <span className="cost" style={{left: 339, top: 457}}>4</span>
+        <span className="cost" style={{left: 350, top: 494}}>2</span>
+        <span className="cost" style={{left: 373, top: 449}}>10</span>
+        <span className="cost" style={{left: 411, top: 350}}>13</span>
+        <span className="cost" style={{left: 488, top: 333}}>13</span>
+        <span className="cost" style={{left: 400, top: 318}}>8</span>
+        <span className="cost" style={{left: 452, top: 334}}>8</span>
+        <span className="cost" style={{left: 472, top: 301}}>11</span>
+        <span className="cost high" style={{left: 355, top: 382}}>18</span>
+        <span className="cost high" style={{left: 400, top: 400}}>20</span>
+        <span className="cost high" style={{left: 444, top: 435}}>21</span>
+        <span className="cost high" style={{left: 495, top: 449}}>18</span>
+        <span className="cost" style={{left: 390, top: 489}}>4</span>
+        <span className="cost" style={{left: 398, top: 515}}>9</span>
+        <span className="cost" style={{left: 419, top: 497}}>7</span>
+        <span className="cost high" style={{left: 463, top: 512}}>19</span>
+        <span className="cost high" style={{left: 452, top: 481}}>20</span>
+        <span className="cost" style={{left: 518, top: 389}}>11</span>
+        <span className="cost" style={{left: 563, top: 411}}>11</span>
+        <span className="cost" style={{left: 542, top: 478}}>11</span>
+        <span className="cost" style={{left: 532, top: 332}}>10</span>
+        <span className="cost" style={{left: 524, top: 429}}>10</span>
+        <span className="cost" style={{left: 564, top: 326}}>12</span>
+        <span className="cost" style={{left: 527, top: 266}}>8</span>
+        <span className="cost" style={{left: 563, top: 205}}>12</span>
+        <span className="cost" style={{left: 612, top: 219}}>13</span>
+        <span className="cost high" style={{left: 586, top: 236}}>18</span>
+        <span className="cost high" style={{left: 569, top: 272}}>19</span>
+        <span className="cost" style={{left: 584, top: 366}}>6</span>
+        <span className="cost" style={{left: 627, top: 309}}>15</span>
+        <span className="cost high" style={{left: 656, top: 354}}>16</span>
+        <span className="cost high" style={{left: 639, top: 389}}>16</span>
+        <span className="cost high" style={{left: 589, top: 405}}>17</span>
+        <span className="cost high" style={{left: 670, top: 301}}>17</span>
+        <span className="cost" style={{left: 688, top: 390}}>14</span>
+        <span className="cost" style={{left: 656, top: 231}}>6</span>
+        <span className="cost" style={{left: 630, top: 191}}>10</span>
+        <span className="cost" style={{left: 608, top: 139}}>12</span>
+        <span className="cost" style={{left: 651, top: 146}}>14</span>
+
+        <span className="resource-cost" style={{left: 731, top: 496}}>1</span>
+        <span className="resource-cost" style={{left: 731, top: 436}}>2</span>
+        <span className="resource-cost" style={{left: 731, top: 374}}>3</span>
+        <span className="resource-cost" style={{left: 731, top: 311}}>4</span>
+        <span className="resource-cost" style={{left: 731, top: 249}}>5</span>
+        <span className="resource-cost" style={{left: 731, top: 186}}>6</span>
+        <span className="resource-cost" style={{left: 731, top: 124}}>7</span>
+        <span className="resource-cost" style={{left: 731, top: 62}}>8</span>
+        <span className="resource-cost" style={{left: 731, top: 36}}>10</span>
+        <span className="resource-cost" style={{left: 731, top: 9}}>12</span>
+        <span className="resource-cost" style={{left: 759, top: 36}}>14</span>
+        <span className="resource-cost" style={{left: 759, top: 9}}>16</span>
+        {children}
+      </>
+    ),
   },
   components: {
   },

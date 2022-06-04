@@ -77,6 +77,7 @@ export const currentGridPosition = (el, parent, x, y, scale, interColumn=false, 
 
 export const deserialize = value => {
   if (value instanceof Array) return value.map(deserialize);
+  if (typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, deserialize(v)]));
   if (value && value.slice && (value.slice(0, 4) === '$el(' || value.slice(0, 6) === '$uuid(' || value.slice(0, 3) === '$p(')) {
     return value;
   }

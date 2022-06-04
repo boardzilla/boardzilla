@@ -217,9 +217,8 @@ class GameInterface {
     try {
       if (value instanceof Array) return value.map(v => this.serialize(v));
       if (value instanceof Player) return `$p(${this.playerByUserId(value.userId)})`;
-      if (value && value.serialize) {
-        return value.serialize();
-      }
+      if (value && value.serialize) return value.serialize();
+      if (typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, this.serialize(v)]));
       return JSON.stringify(value);
     } catch (e) {
       console.error('unable to serialize', value);
@@ -231,7 +230,8 @@ class GameInterface {
     if (value === undefined) return undefined;
     try {
       if (value instanceof Array) return value.map(v => this.deserialize(v));
-      if (value && value.slice) {
+      if (typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, this.deserialize(v)]));
+      if (typeof value === 'string') {
         if (value.slice(0, 4) === '$el(') {
           return this.doc.pieceAt(value.slice(4, -1));
         }
@@ -472,7 +472,7 @@ class GameInterface {
         args[1] = this.player(args[1].player());
       }
     } else if (action.select) {
-      if (action.select instanceof Array) {
+      if (typeof action.select === 'object') {
         nextPrompt = this.chooseAction(action.select, prompt, nextAction, argIndex)(args);
       } else if (typeof action.select === 'string') {
         nextPrompt = this.chooseAction(this.doc.findAll(action.select), prompt, nextAction, argIndex)(args);
@@ -548,15 +548,17 @@ class GameInterface {
     return args => {
       const choice = args[argIndex];
       if (choice === undefined) {
-        if (validChoices.length === 1 && action && argIndex > 0) {
+        if (Object.values(choices).length === 1 && action && argIndex > 0) {
           // auto-select simgle choice if not the first arg
-          args.push(validChoices[0]);
+          args.push((validChoices instanceof Array ? validChoices : Object.keys(validChoices))[0]);
           action(args);
         } else {
           throw new IncompleteActionError({ choices, prompt });
         }
       } else {
-        if (!choices.includes(this.serialize(choice))) throw new InvalidChoiceError(`${this.serialize(choice)} not found in ${choices}`);
+        if (!(choices instanceof Array ? choices : Object.keys(choices)).includes(this.serialize(choice))) {
+          throw new InvalidChoiceError(`${this.serialize(choice)} not found in ${choices}`);
+        }
         if (action) action(args);
       }
       return prompt;

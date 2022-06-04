@@ -10,13 +10,14 @@ Sentry.init({
   tracesSampleRate: 1.0,
 });
 
-export const render = ({pieces, components, background, debug}) => {
+export const render = ({pieces, spaces, components, background, debug}) => {
   ReactDOM.render(
     <Page
       userId={window.userId}
       session={window.sessionId}
-      pieces={pieces}
-      components={components}
+      pieces={pieces || {}}
+      spaces={spaces || {}}
+      components={components || {}}
       background={background}
       debug={debug}
     />,

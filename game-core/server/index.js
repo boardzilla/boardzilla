@@ -5,8 +5,12 @@ const InteractivePiece = require('./interactive-piece');
 const Counter = require('./counter');
 const Die = require('./die');
 
+const game = new GameInterface();
+
 module.exports = {
-  game: new GameInterface(),
+  game,
+  $: q => game.doc.find(q),
+  $$: q => game.doc.findAll(q),
   InvalidChoiceError,
   IncompleteActionError,
   InvalidActionError,

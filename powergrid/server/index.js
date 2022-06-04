@@ -1,4 +1,4 @@
-const { game, Counter, InvalidChoiceError, IncompleteActionError } = require('game-core-server');
+const { game, $, $$, Counter, InvalidChoiceError, IncompleteActionError } = require('game-core-server');
 const { times, range, sumBy } = require('game-core-server/utils.js');
 const cards = require('./cards');
 
@@ -7,14 +7,15 @@ game.setPlayers({
   max: 6,
 });
 
-const sortPowerplants = () => game.board.find('#powerplants').sort(card => card.get('cost'));
+const sortPowerplants = () => $('#powerplants').sort(card => card.get('cost'));
 
-const costOf = (resource, amount) => sumBy(game.board.findAll(`#resources #${resource}`).slice(-amount), r => r.parent().get('cost'));
+const costOf = (resource, amount) => sumBy($$(`#resources #${resource}`).slice(-amount), r => r.parent().get('cost'));
 
 const resourceTypes = ['coal', 'oil', 'garbage', 'uranium'];
 
 const refill = {
   coal: {
+    1: [3, 4, 3],
     2: [3, 4, 3],
     3: [4, 5, 3],
     4: [5, 6, 4],
@@ -22,6 +23,7 @@ const refill = {
     6: [7, 9, 6],
   },
   oil: {
+    1: [2, 2, 4],
     2: [2, 2, 4],
     3: [2, 3, 4],
     4: [3, 4, 5],
@@ -29,6 +31,7 @@ const refill = {
     6: [5, 6, 7],
   },
   garbage: {
+    1: [1, 2, 3],
     2: [1, 2, 3],
     3: [1, 2, 3],
     4: [2, 3, 4],
@@ -36,6 +39,7 @@ const refill = {
     6: [3, 5, 6],
   },
   uranium: {
+    1: [1, 1, 1],
     2: [1, 1, 1],
     3: [1, 1, 1],
     4: [1, 2, 2],
@@ -54,33 +58,31 @@ game.setupPlayerMat((mat, player, color) => {
 });
 
 game.setupBoard(board => {
+  board.addSpace('#map');
   const resources = board.addSpace('#resources');
   resources.addSpace('#uranium-16', { cost: 16, resource: 'uranium', top: 14, left: 42 });
   resources.addSpace('#uranium-14', { cost: 14, resource: 'uranium', top: 40, left: 42 });
   resources.addSpace('#uranium-12', { cost: 12, resource: 'uranium', top: 14, left: 15 });
   resources.addSpace('#uranium-10', { cost: 10, resource: 'uranium', top: 40, left: 15 });
   range(8, 1, -1).forEach(cost => {
-    resources.addSpace(`#coal-${cost}`, { cost, resource: 'coal', top: 549 - cost * 60.6, left: 10 });
-    resources.addSpace(`#coal-${cost}`, { cost, resource: 'coal', top: 567.5 - cost * 60.6, left: 10 });
-    resources.addSpace(`#coal-${cost}`, { cost, resource: 'coal', top: 586 - cost * 60.6, left: 10 });
-    resources.addSpace(`#uranium-${cost}`, { cost, resource: 'uranium', top: 547 - cost * 60.6, left: 26 });
-    resources.addSpace(`#oil-${cost}`, { cost, resource: 'oil', top: 560 - cost * 60.6, left: 26 });
-    resources.addSpace(`#oil-${cost}`, { cost, resource: 'oil', top: 573.5 - cost * 60.6, left: 26 });
-    resources.addSpace(`#oil-${cost}`, { cost, resource: 'oil', top: 586 - cost * 60.6, left: 26 });
-    resources.addSpace(`#garbage-${cost}`, { cost, resource: 'garbage', top: 549 - cost * 60.6, left: 42 });
-    resources.addSpace(`#garbage-${cost}`, { cost, resource: 'garbage', top: 567.5 - cost * 60.6, left: 42 });
-    resources.addSpace(`#garbage-${cost}`, { cost, resource: 'garbage', top: 586 - cost * 60.6, left: 42 });
+    resources.addSpace(`#coal-${cost}`, { cost, resource: 'coal', top: 562 - cost * 62.1, left: 10 });
+    resources.addSpace(`#coal-${cost}`, { cost, resource: 'coal', top: 580.5 - cost * 62.1, left: 10 });
+    resources.addSpace(`#coal-${cost}`, { cost, resource: 'coal', top: 599 - cost * 62.1, left: 10 });
+    resources.addSpace(`#uranium-${cost}`, { cost, resource: 'uranium', top: 562 - cost * 62.1, left: 26 });
+    resources.addSpace(`#oil-${cost}`, { cost, resource: 'oil', top: 572 - cost * 62.1, left: 26 });
+    resources.addSpace(`#oil-${cost}`, { cost, resource: 'oil', top: 585.5 - cost * 62.1, left: 26 });
+    resources.addSpace(`#oil-${cost}`, { cost, resource: 'oil', top: 600 - cost * 62.1, left: 26 });
+    resources.addSpace(`#garbage-${cost}`, { cost, resource: 'garbage', top: 562 - cost * 62.1, left: 42 });
+    resources.addSpace(`#garbage-${cost}`, { cost, resource: 'garbage', top: 580.5 - cost * 62.1, left: 42 });
+    resources.addSpace(`#garbage-${cost}`, { cost, resource: 'garbage', top: 599 - cost * 62.1, left: 42 });
   });
 
-  board.addSpace('#map');
   board.addSpace('#score');
   board.addSpace('#turns');
   const powerplants = board.addSpace('#powerplants', { layout: 'splay', columns: 4, rows: 2 });
   const deck = board.addSpace('#deck', { layout: 'stack' });
   board.addSpace('#discard', { layout: 'stack' });
   cards.forEach(({ id, ...attrs }) => (attrs.cost <= 10 ? powerplants : deck).addPiece(id, 'card', { layout: 'splay', rows: 2, columns: 3, ...attrs }));
-
-  board.addPiece('#hammer', 'hammer', { top: 50, right: 20 });
 
   game.pile.addPieces(24, '#coal', 'resource', { type: 'coal', zoom: 1 });
   game.pile.addPieces(24, '#oil', 'resource', { type: 'oil', zoom: 1 });
@@ -111,6 +113,7 @@ game.defineActions({
     log: '$0 built a house',
     drag: '.mine token',
     onto: '#map',
+    action: () => $('#score token.mine').set({ score: game.board.count('#map #building.mine') }),
   },
   bid: {
     prompt: 'Bid',
@@ -152,7 +155,7 @@ game.defineActions({
         if (card.count(`#${resourceType}`) < resources) throw new InvalidChoiceError(`Not enough ${resourceType} to power this plant`);
         if (resourceType) card.clear(`#${resourceType}`, resources);
       }
-      times(card.get('power'), () => game.board.find('#map #building.mine:not([powered])').set({ powered: true }));
+      times(card.get('power'), () => $('#map #building.mine:not([powered])').set({ powered: true }));
       card.set({ powered: true });
     },
   },
@@ -160,13 +163,13 @@ game.defineActions({
     prompt: 'Collect income',
     if: () => '#building.mine[powered]',
     key: 'i',
-    log: () => `$0 collected ${game.doc.find('.mine [name=Elektro]').get('income')} income`,
+    log: () => `$0 collected ${$('.mine [name=Elektro]').get('income')} income`,
     action: () => {
       const rev = income[Math.min(income.length - 1, game.board.count('#building.mine[powered]'))];
-      game.doc.find('.mine [name=Elektro]').increment('value', rev);
-      game.doc.find('.mine [name=Elektro]').set({ income: rev });
-      game.board.findAll('#building.mine[powered]').forEach(b => b.unset('powered'));
-      game.doc.findAll('.mine card[powered]').forEach(b => b.unset('powered'));
+      $('.mine [name=Elektro]').increment('value', rev);
+      $('.mine [name=Elektro]').set({ income: rev });
+      $$('#building.mine[powered]').forEach(b => b.unset('powered'));
+      $$('.mine card[powered]').forEach(b => b.unset('powered'));
     },
   },
   remove: {
@@ -198,17 +201,17 @@ game.defineActions({
         confirm: ['Buy', 'Cancel'],
         action: (resource, amount) => {
           const cost = costOf(resource, amount);
-          const elektro = game.doc.find('.mine [name=Elektro]');
+          const elektro = $('.mine [name=Elektro]');
           if (elektro.get('value') < cost) throw new InvalidChoiceError('Not enough Elektro');
           let freeSpaces = 0;
-          game.doc.findAll('.mine card[resources]').forEach(card => {
+          $$('.mine card[resources]').forEach(card => {
             if (card.get('resourceType') === resource || (card.get('resourceType') === 'hybrid' && ['oil', 'coal'].includes(resource))) {
               freeSpaces += card.get('resources') * 2 - card.count('resource');
             }
           });
           if (freeSpaces < amount) throw new InvalidChoiceError(`Not enough storage space for ${amount} ${resource}`);
           times(amount, () => {
-            const freeSpace = game.doc.findAll('.mine card').find(card => (
+            const freeSpace = $$('.mine card').find(card => (
               card.get('resources') && card.get('resources') * 2 > card.count('resource')
               && (card.get('resourceType') === resource || (card.get('resourceType') === 'hybrid' && ['oil', 'coal'].includes(resource)))
             ));
@@ -226,13 +229,14 @@ game.defineActions({
     onto: '.mine card',
   },
   refill: {
-    select: ['Step 1', 'Step 2', 'Step 3'],
+    select: { 1: 'Step 1', 2: 'Step 2', 3: 'Step 3' },
     prompt: 'Refill resources',
     log: '$0 refilled resources',
     action: step => {
-      resourceTypes.forEach(resource => game.board.find('#resources')
+      console.log('step', step);
+      resourceTypes.forEach(resource => $('#resources')
         .findAll(`[resource=${resource}]:empty`)
-        .slice(0, refill[resource][game.numberOfPlayers][step.slice(-1) - 1])
+        .slice(0, refill[resource][game.numberOfPlayers][step - 1])
         .forEach(r => r.add(`#${resource}`, 1)));
     },
   },
@@ -240,7 +244,7 @@ game.defineActions({
     prompt: 'Elektro +/-',
     key: 'e',
     select: '.mine [name=Elektro]',
-    log: '$0 adjusted Elektro by $2',
+    log: (elektro, amount) => `$0 ${amount >= 0 ? 'gained' : 'spent'} ${Math.abs(amount)} Elektro`,
     next: {
       prompt: 'Add or subtract how much Elektro?',
       min: -150,
@@ -248,14 +252,21 @@ game.defineActions({
       action: (elektro, amount) => elektro.increment('value', amount),
     },
   },
+  auction: {
+    select: '#powerplants card',
+    prompt: 'Put up for auction',
+    log: '$0 puts $1 up for auction',
+    key: 'a',
+    action: card => card.set('auction'),
+  },
 });
 
-game.playersMayAlwaysMove('token.mine, .mine *, #board *');
+game.playersMayAlwaysMove('.mine *, #map token.mine');
 game.playersMayAlwaysPlay(['interactWithPiece']);
 
 game.play(async () => {
-  const deck = game.board.find('#deck');
-  const resources = game.board.find('#resources');
+  const deck = $('#deck');
+  const resources = $('#resources');
 
   sortPowerplants();
   deck.shuffle();
@@ -264,8 +275,8 @@ game.play(async () => {
   if (game.numberOfPlayers === 4) removals = 4;
   if (game.numberOfPlayers < 4) removals = 8;
   if (removals) deck.clear('card', removals);
-  game.board.find('[cost=13]').moveTo(deck);
-  game.board.find('#step-3').moveToBottomOf(deck);
+  $('[cost=13]').moveTo(deck);
+  $('#step-3').moveToBottomOf(deck);
 
   resources.findAll('[resource=coal]').forEach(r => r.add('#coal', 1));
   resources.findAll('[resource=oil]').filter(r => r.get('cost') > 2).forEach(r => r.add('#oil', 1));
@@ -275,10 +286,9 @@ game.play(async () => {
   game.reorderPlayersBy(game.random);
   let turn = 0;
   game.players.forEach(player => {
-    const [scoreToken] = game.playerMat(player.position).move('token', '#score', 1);
+    game.playerMat(player.position).move('token', '#score', 1);
     const [turnToken] = game.playerMat(player.position).move('token', '#turns', 1);
-    scoreToken.set({ left: 3, bottom: player.position * 3 - 8 });
-    turnToken.set({ left: 8, bottom: 25 + turn * 20 });
+    turnToken.set({ left: -9, bottom: 17 + turn * 21 });
     turn++;
   });
 

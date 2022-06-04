@@ -3,7 +3,7 @@
 .table {
   width: 1200px;
   height: 600px;
-  top: 50px;
+  top: 0;
   left: 0;
   position: absolute;
   background-color: #804224;
@@ -14,49 +14,11 @@
   [data-players="3"] &, [data-players="4"] &, [data-players="5"] &, [data-players="6"] & {
     width: 1600px;
   }
-  #map {
-    position: absolute;
-    left: 10px;
-    top: 18px;
-    width: 760px;
-  }
-  .cost {
-    padding-left: 2px;
-    color: #f0f0ff;
-    position: absolute;
-    text-shadow: 2px 2px 2px black;
-    font-weight: bold;
-    font-size: 19px;
-    &.high {
-      text-shadow: 2px 2px 3px black;
-      font-size: 23px;
-      color: #ffc;
-    }
-  }
-  .resource-cost {
-    position: absolute;
-    text-shadow: 0px 0px 4px black;
-    font-weight: bold;
-    font-size: 12px;
-    color: #ffc;
-    background: #b96;
-    width: 16px;
-    text-align: center;
-    height: 16px;
-    border-radius: 8px;
-  }
-  .city {
-    position: absolute;
-    border: 1px solid #333;
-    height: 32px;
-    width: 32px;
-    border-radius: 50%;
-  }
 }
 
 #scaled-play-area {
   width: 1200px;
-  height: 700px;
+  height: 600px;
   [data-players="3"] &, [data-players="4"] &, [data-players="5"] &, [data-players="6"] & {
     width: 1600px;
   }
@@ -65,13 +27,13 @@
 #container {
   font-family: 'Voltaire', sans-serif;
   #board {
-    left: 795px;
-    top: 200px;
+    left: 805px;
+    top: 150px;
     height: 300px;
-    width: 400px;
+    width: 390px;
     #resources {
-      left: -75px;
-      top: -120px;
+      left: -63px;
+      top: -128px;
       width: 60px;
       height: 545px;
       .space[resource] {
@@ -81,17 +43,146 @@
     }
 
     #map {
-      left: -775px;
-      top: -120px;
-      width: 700px;
-      height: 545px;
+      left: -790px;
+      top: -135px;
+      width: 789px;
+      height: 570px;
+      .cost {
+        padding-left: 2px;
+        color: #f0f0ff;
+        position: absolute;
+        text-shadow: 2px 2px 2px black;
+        font-weight: bold;
+        font-size: 19px;
+        &.high {
+          text-shadow: 2px 2px 3px black;
+          font-size: 23px;
+          color: #ffc;
+        }
+      }
+      .resource-cost {
+        position: absolute;
+        text-shadow: 0px 0px 4px black, 0px 0px 4px black, 0px 0px 4px black;
+        font-weight: bold;
+        font-size: 12px;
+        color: #ffc;
+        background: #ec7;
+        width: 16px;
+        text-align: center;
+        height: 16px;
+        border-radius: 8px;
+      }
+      .city {
+        position: absolute;
+        border: 1px solid #333;
+        height: 32px;
+        width: 32px;
+        border-radius: 50%;
+      }
     }
 
     #score {
-      left: -765px;
-      top: -112px;
+      left: -780px;
+      top: -125px;
       width: 52px;
-      height: 270px;
+      height: 280px;
+      .token {
+        position: absolute;
+        top: 261px;
+        left: 9px;
+        &[player="2"] {
+          margin-top: -2px;
+        }
+        &[player="3"] {
+          margin-top: -4px;
+        }
+        &[player="4"] {
+          margin-top: -6px;
+        }
+        &[player="5"] {
+          margin-top: -8px;
+        }
+        &[player="6"] {
+          margin-top: -10px;
+        }
+        &[score="1"] {
+          top: 235px;
+        }
+        &[score="2"] {
+          top: 195px;
+        }
+        &[score="3"] {
+          top: 155px;
+        }
+        &[score="4"] {
+          top: 115px;
+        }
+        &[score="5"] {
+          top: 75px;
+        }
+        &[score="6"] {
+          top: 35px;
+        }
+        &[score="7"] {
+          top: 0px;
+        }
+        &[score="8"] {
+          top: 260px;
+          left: 35px;
+        }
+        &[score="9"] {
+          top: 240px;
+          left: 35px;
+        }
+        &[score="10"] {
+          top: 220px;
+          left: 35px;
+        }
+        &[score="11"] {
+          top: 200px;
+          left: 35px;
+        }
+        &[score="12"] {
+          top: 180px;
+          left: 35px;
+        }
+        &[score="13"] {
+          top: 160px;
+          left: 35px;
+        }
+        &[score="14"] {
+          top: 140px;
+          left: 35px;
+        }
+        &[score="15"] {
+          top: 120px;
+          left: 35px;
+        }
+        &[score="16"] {
+          top: 100px;
+          left: 35px;
+        }
+        &[score="17"] {
+          top: 80px;
+          left: 35px;
+        }
+        &[score="18"] {
+          top: 60px;
+          left: 35px;
+        }
+        &[score="19"] {
+          top: 40px;
+          left: 35px;
+        }
+        &[score="20"] {
+          top: 20px;
+          left: 35px;
+        }
+        &[score="21"] {
+          top: 0px;
+          left: 35px;
+        }
+      }
     }
 
     #turns {
@@ -120,6 +211,13 @@
       top: 20px;
       width: 300px;
       height: 150px;
+      [auction]::after {
+        content: '';
+        display: block;
+        background-image: url(images/gavel.png);
+        z-index: 10;
+        width: 40px;
+      }
     }
 
     #hammer {
@@ -131,24 +229,24 @@
   }
 
   .player-mat {
-    left: 795px;
+    left: 805px;
     top: 50px;
     height: 150px;
-    width: 400px;
+    width: 390px;
     &.mine {
-      top: 500px;
+      top: 450px;
     }
     &[player-after-me="2"] {
-      top: 50px;
+      top: 0;
     }
     [data-players="4"] &[player-after-me="3"], [data-players="5"] &[player-after-me="4"], [data-players="6"] &[player-after-me="5"] {
-      top: 500px;
+      top: 450px;
     }
     [data-players="5"] &[player-after-me="3"], [data-players="6"] &[player-after-me="3"] {
-      top: 200px;
+      top: 150px;
     }
     [data-players="6"] &[player-after-me="4"] {
-      top: 350px;
+      top: 300px;
     }
     &[player-after-me="2"], &[player-after-me="3"], &[player-after-me="4"], &[player-after-me="5"] {
       left: 1195px;
@@ -167,10 +265,11 @@
         margin: 0 5px;
         line-height: 60px;
         font-size: 22px;
-        color: #5e6600;
+        color: #4d5000;
         font-weight: bold;
         font-family: fantasy;
-        text-shadow: 1px 1px 0 #4d5200, -1px -1px 0 #ced0ab;      }
+        text-shadow: 1px 1px 0 #262900, -1px -1px 0 #dfe4b0;
+      }
     }
   }
 

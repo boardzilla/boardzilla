@@ -522,7 +522,7 @@ export default class Page extends Component {
     return Object.entries(this.state.data.allowedActions).reduce((actions, [action, {choices, prompt, key}]) => {
       let upChoice = choice;
       while (upChoice) {
-        if (choices && choices.includes(upChoice)) {
+        if (choices && Object.values(choices).includes(upChoice)) {
           actions[action] = {choice: upChoice, prompt, key};
         }
         upChoice = parentChoice(upChoice);
@@ -535,7 +535,7 @@ export default class Page extends Component {
   nonBoardActions() {
     if (!this.state.data.allowedActions) return [];
     return Object.entries(this.state.data.allowedActions).reduce((actions, [action, {choices, prompt, key}]) => {
-      if (!choices || choices.find(choice => !isEl(choice))) {
+      if (!choices || Object.values(choices).find(choice => !isEl(choice))) {
         actions[action] = {prompt, key};
       }
       return actions;
@@ -741,6 +741,8 @@ export default class Page extends Component {
       );
     } else if (this.props.pieces[type]) {
       contents = React.createElement(this.props.pieces[type], {...props}, frozen || contents);
+    } else if (this.props.spaces[`#${props.id}`]) {
+      contents = React.createElement(this.props.spaces[`#${props.id}`], {...props}, frozen || contents);
     } else if (type !== 'space') {
       contents = <div className="unstyled-piece">{props.id}{contents}</div>;
     }

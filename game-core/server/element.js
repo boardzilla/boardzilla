@@ -7,7 +7,7 @@ class GameElement {
     this.game = game;
     this.id = node.id; // TODO reserved id's? game, board...
     this.type = node.nodeName.toLowerCase();
-    this.set(attrs);
+    if (attrs) this.set(attrs);
   }
 
   assignUUID() {
@@ -39,7 +39,7 @@ class GameElement {
       if (typeof name === 'object') {
         Object.entries(name).forEach(([n, v]) => this.set(n, v));
       } else {
-        this.unset(name);
+        this.set(name, true);
       }
     } else {
       value = typeof value === 'object' ? JSON.stringify(value) : value;
@@ -49,6 +49,10 @@ class GameElement {
 
   unset(...names) {
     names.forEach(name => this.node.removeAttribute(name));
+  }
+
+  toggle(name) {
+    this.set(name, !this.get(name));
   }
 
   increment(name, value) {

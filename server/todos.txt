@@ -33,7 +33,7 @@ powergrid
 
   X results in log?
 
-  - score spaces? manual->auto
+  X score spaces? manual->auto
   - hammer action
   - sort players (start turn)
   - auto-remove less than players score
