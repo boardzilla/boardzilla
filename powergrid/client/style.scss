@@ -186,10 +186,30 @@
     }
 
     #turns {
-      left: -765px;
-      top: 250px;
-      width: 32px;
-      height: 168px
+      left: -780px;
+      top: 253px;
+      width: 28px;
+      height: 172px;
+      .token {
+        position: absolute;
+        top: 126px;
+        left: 6px;
+        &[turn="1"] {
+          top: 105px;
+        }
+        &[turn="2"] {
+          top: 84px;
+        }
+        &[turn="3"] {
+          top: 63px;
+        }
+        &[turn="4"] {
+          top: 42px;
+        }
+        &[turn="5"] {
+          top: 21px;
+        }
+      }
     }
 
     #deck {

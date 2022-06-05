@@ -11,6 +11,14 @@ const sortPowerplants = () => $('#powerplants').sort(card => card.get('cost'));
 
 const costOf = (resource, amount) => sumBy($$(`#resources #${resource}`).slice(-amount), r => r.parent().get('cost'));
 
+// order players by some function and set the turn tracker
+const orderPlayers = fn => {
+  game.reorderPlayersBy(fn);
+  $$('#turns token').forEach(token => token.set({ turn: game.turnOrderOf(token.player()) }));
+};
+
+const highScore = () => game.doc.highest('#score token', 'score').get('score');
+
 const resourceTypes = ['coal', 'oil', 'garbage', 'uranium'];
 
 const refill = {
@@ -114,7 +122,7 @@ game.defineActions({
     log: '$0 built a house',
     drag: '.mine token',
     onto: '#map',
-    action: () => $('#score token.mine').set({ score: game.board.count('#map #building.mine') }),
+    action: () => $('#score token.mine').set({ score: game.board.count('#map #building.mine') }) || console.log('highScore', highScore()),
   },
   bid: {
     prompt: 'Bid',
@@ -270,6 +278,7 @@ game.play(async () => {
   const deck = $('#deck');
   const resources = $('#resources');
 
+  // setup board
   sortPowerplants();
   deck.shuffle();
   deck.move('[cost=13], #step-3', '#discard');
@@ -280,19 +289,19 @@ game.play(async () => {
   $('[cost=13]').moveTo(deck);
   $('#step-3').moveToBottomOf(deck);
 
+  // initial resources
   resources.findAll('[resource=coal]').forEach(r => r.add('#coal', 1));
   resources.findAll('[resource=oil]').filter(r => r.get('cost') > 2).forEach(r => r.add('#oil', 1));
   resources.findAll('[resource=garbage]').filter(r => r.get('cost') > 6).forEach(r => r.add('#garbage', 1));
   resources.findAll('[resource=uranium][cost=14], [resource=uranium][cost=16]').forEach(r => r.add('#uranium', 1));
 
-  game.reorderPlayersBy(game.random);
-  let turn = 0;
   game.players.forEach(player => {
     game.playerMat(player.position).move('token', '#score', 1);
-    const [turnToken] = game.playerMat(player.position).move('token', '#turns', 1);
-    turnToken.set({ left: -9, bottom: 17 + turn * 21 });
-    turn++;
+    game.playerMat(player.position).move('token', '#turns', 1);
   });
+
+  // randomly order player start
+  orderPlayers(game.random);
 
   while (true) { // eslint-disable-line no-constant-condition
     await game.anyPlayerPlay(game.getAllActions());

@@ -372,6 +372,10 @@ class GameInterface {
     });
   }
 
+  turnOrderOf(playerPosition) {
+    return this.players.findIndex(p => p.position === playerPosition);
+  }
+
   // allow movement of pieces within their space if match the given selector
   playersMayAlwaysMove(selector) {
     this.allowedMoveElements = selector;
@@ -465,7 +469,6 @@ class GameInterface {
       nextAction = () => this.runAction(action.next, args, argIndex + 1);
     }
 
-    console.log('action', action);
     let namedArgs;
     if (!test) namedArgs = this.namedElements(args, []);
     let nextPrompt;
@@ -726,7 +729,7 @@ class GameInterface {
   }
 
   endTurn() {
-    this.currentPlayerPosition = (this.players.findIndex(p => p.position === this.currentPlayerPosition) % this.#players.length) + 1;
+    this.currentPlayerPosition = (this.turnOrderOf(this.currentPlayerPosition) % this.#players.length) + 1;
   }
 
   moveElement(el, positioning) {

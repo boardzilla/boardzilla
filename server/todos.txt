@@ -34,8 +34,8 @@ powergrid
   X results in log?
 
   X score spaces? manual->auto
-  - hammer action
-  - sort players (start turn)
+  X hammer action
+  X sort players (start turn)
   - auto-remove less than players score
   - pay last bid
 
