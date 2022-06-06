@@ -436,7 +436,13 @@ module.exports = ({
   });
 
   app.get('/sessions/:id', async (req, res) => {
-    console.log("getting /")
+    const session = await db.Session.findByPk(req.params.id);
+    if (!session) {
+      return res.status(404).end('No such game');
+    }
+    if (session.state !== 'initial') {
+      return res.status(400).end('Cannot join game, already started');
+    }
     let sessionUser = await db.SessionUser.findOne({ where: { accessToken: req.accessToken, sessionId: req.params.id } });
     if (!sessionUser) {
       const existingColors = (await db.SessionUser.findAll({ where: { sessionId: req.params.id } })).map(u => u.color);
