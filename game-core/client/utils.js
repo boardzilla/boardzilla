@@ -85,4 +85,11 @@ export const deserialize = value => {
   return JSON.parse(value);
 };
 
+export const serialize = value => {
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  if (/\$\w+\(.*\)/.test(value)) return value;
+  return JSON.stringify(value);
+};
+
 export const times = (n, fn) => Array.from(Array(n)).map((_, i) => fn(i + 1));

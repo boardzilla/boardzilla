@@ -601,21 +601,21 @@ module.exports = ({
     };
 
     const drag = async ({
-      key, x, y, start, end, endFlip,
+      key, x, y, zone,
     }) => {
       const lock = locks.find(l => l.element === key);
       if (!lock || lock.userId !== sessionUser.id) return;
       await publish('drag', {
-        userId: lock.userId, key, x, y, start, end, endFlip,
+        userId: lock.userId, key, x, y, zone,
       });
     };
 
     const updateElement = ({
-      userId, key, x, y, start, end, endFlip,
+      userId, key, x, y, zone,
     }) => {
       if (userId === sessionUser.id) return;
       sendWS('updateElement', {
-        key, x, y, start, end, endFlip,
+        key, x, y, zone,
       });
     };
 

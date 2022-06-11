@@ -36,8 +36,9 @@ powergrid
   X score spaces? manual->auto
   X hammer action
   X sort players (start turn)
-  - auto-remove less than players score
-  - pay last bid
+  X auto-remove less than players score
+  X pay last bid
+
 
 X token zoom?
 - $p player-mat selector dumb idea?

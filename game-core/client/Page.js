@@ -6,7 +6,6 @@ import {
   throttle,
   gameDom,
   elByChoice,
-  parentEl,
   parentChoice,
   zoneChoice,
   isEl,
@@ -18,6 +17,7 @@ import {
   xmlNodeByChoice,
   choiceForXmlNode,
   currentGridPosition,
+  serialize,
   deserialize,
 } from './utils';
 import ErrorPane from './ErrorPane';
@@ -54,6 +54,7 @@ export default class Page extends Component {
       chatId: 0,
       locks: {}, // locks from server
       positions: {}, // xy positions from server (i.e. other players)
+      originalPositions: {}, // xy positions before changes
       actions: null, // currently possible actions in menu {action: {choice, prompt},...}
       dragging: null, // data on the current drag {key, x/y start point, zone starting zone}
       dragOver: null, // key being dragged over
@@ -62,7 +63,7 @@ export default class Page extends Component {
       playerStatus: {[props.userId]: new Date()}, // timestamps of last ping from each player
       logs: {},
       replies: {}, // action callbacks { id: { time, callback }, ... }
-      error: null,
+      error: null, // current error message
     };
     this.componentCleanup = this.componentCleanup.bind(this);
     this.components = {...(props.components || {}), Counter, Die };
@@ -130,36 +131,23 @@ export default class Page extends Component {
           break;
         case "updateElement":
           if (payload) {
-            let {key, x, y, start, end, endFlip} = payload;
-            if (start) {
-              const startZone = elByChoice(start);
-              const endZone = elByChoice(end);
+            let {key, x, y, zone} = payload;
+            if (zone) {
+              const endZone = elByChoice(zone);
               const el = elByChoice(key);
-              if (startZone && endZone && el) {
-                const startRect = startZone.getBoundingClientRect();
+              if (endZone && el) {
                 const endRect = endZone.getBoundingClientRect();
-                const parentRect = elByChoice(parentEl(el)).getBoundingClientRect();
-                const keyRect = el.getBoundingClientRect();
-                const startFlip = isFlipped(startZone);
-                if (startFlip) {
-                  x -= endRect.right - startRect.right;
-                  y -= endRect.bottom - startRect.bottom;
+                const elRect = this.state.originalPositions[key] || el.getBoundingClientRect();
+                if (isFlipped(endZone)) {
+                  x = -x + (endRect.right - elRect.right) / this.state.playAreaScale;
+                  y = -y + (endRect.bottom - elRect.bottom) / this.state.playAreaScale;
                 } else {
-                  x += endRect.left - startRect.left;
-                  y += endRect.top - startRect.top;
-                }
-
-                if (endFlip ^ (startFlip ^ isFlipped(endZone))) { // endzones were flipped respective to each other
-                  if (startFlip) {
-                    x = parentRect.right * 2 - keyRect.width - endRect.right - x - endRect.left;
-                    y = parentRect.bottom * 2 - keyRect.height - endRect.bottom - y - endRect.top;
-                  } else {
-                    x = - parentRect.left * 2 - keyRect.width + endRect.right - x + endRect.left;
-                    y = - parentRect.top * 2 - keyRect.height + endRect.bottom - y + endRect.top;
-                  }
+                  x += (endRect.x - elRect.x) / this.state.playAreaScale;
+                  y += (endRect.y - elRect.y) / this.state.playAreaScale;
                 }
               }
             }
+            console.log(key, x, y);
             this.updatePosition(key, x, y);
           }
           break;
@@ -167,7 +155,7 @@ export default class Page extends Component {
           this.setState(state => ({playerStatus: Object.assign({}, state.playerStatus, {[payload]: new Date()})}));
           break;
         case 'showError':
-          this.setState(state => ({error:payload}));
+          this.setState({ error: payload });
           break;
         case 'error':
         case 'reload':
@@ -231,17 +219,26 @@ export default class Page extends Component {
       if (this.state.choices) {
         if (e.key === 'Enter') {
           if (Object.keys(this.state.choices).length === 2 && this.state.choices[false] !== undefined) {
-            this.gameAction(this.state.action, ...this.state.args, true);
+            this.gameAction({
+              action: this.state.action,
+              args: [...this.state.args, true],
+            });
           } else {
             const choices = Object.values(this.state.choices).filter(choice => !isEl(choice) && String(choice).toLowerCase().includes(this.state.filter.toLowerCase()));
             if (choices.length === 1) {
-              this.gameAction(this.state.action, ...this.state.args, this.choiceKeyFor(choices[0]));
+              this.gameAction({
+                action: this.state.action,
+                args: [...this.state.args, this.choiceKeyFor(choices[0])]
+              });
             }
           }
         }
       } else if (this.state.min !== null || this.state.max !== null) {
         if (e.key === 'Enter') {
-          this.gameAction(this.state.action, ...this.state.args, this.state.input);
+          this.gameAction({
+            action: this.state.action,
+            args: [...this.state.args, this.state.input]
+          });
         }
       } else {
         let choices = this.state.actions || this.nonBoardActions() || this.actionsFor(this.state.zoomPiece || (mouse.x != undefined && choiceAtPoint(mouse.x, mouse.y)));
@@ -250,7 +247,7 @@ export default class Page extends Component {
           if (action) {
             const { args } = this.state;
             if (action[1].choice) args.push(action[1].choice);
-            this.gameAction(action[0], ...args);
+            this.gameAction({ action: action[0], args });
           }
         }
       }
@@ -325,31 +322,44 @@ export default class Page extends Component {
     this.webSocket.send(JSON.stringify({type: action, payload}));
   }
 
-  gameAction(action, ...args) {
+  gameAction({ action, args, resolve, reject }) {
     const start = Date.now();
-    console.log('gameAction', action, ...args);
+    console.log('gameAction', action, ...args, !!resolve, !!reject);
     this.send(
       'action', {
         id: actionId,
         sequence: this.state.data.sequence,
-        action: [action, ...args.map(a => /\$\w+\(.*\)/.test(a) ? a : JSON.stringify(a))]
+        action: [action, ...args.map(serialize)]
       },
     );
     let zoomPiece = this.state.zoomPiece;
+    const { actionResolve, actionReject } = this.state;
+    this.setState({
+      actionResolve: reply => {
+        resolve && resolve(reply);
+        actionResolve && actionResolve(reply);
+      },
+      actionReject: reply => {
+        reject && reject(reply);
+        actionReject && actionReject(reply);
+      },
+    });
     this.waitForReply(actionId, action, reply => {
       if (reply.type === 'ok') {
         const end = Date.now();
         console.log('gameAction', action, args, reply.start - start, reply.end - start, reply.reply - start, end - start);
         if (zoomPiece === this.state.zoomPiece) this.setState({ zoomPiece: null });
-        this.setState({action: null, args: [], choices: null, min: null, max: null, prompt: null, actions: null, filter: '' });
+        this.state.actionResolve && this.state.actionResolve(reply);
+        this.setState({action: null, args: [], choices: null, min: null, max: null, prompt: null, actions: null, actionReject: null, actionResolve: null, filter: '' });
       } else if (reply.type === 'incomplete') {
         if (reply.choices) reply.choices = deserialize(reply.choices);
         const input = (reply.min !== undefined || reply.max !== undefined) ? Math.min(reply.max || 0, Math.max(reply.min || 0, 0)) : '';
         this.setState({ choices: null, min: null, max: null, ...reply, action, args, zoomPiece: null, filter: '', input });
       } else if (reply.type === 'error') {
-        this.setState({action: null, args: [], choices: null, min: null, max: null, prompt: null, actions: null, filter: '' });
         console.error(reply);
-        window.alert(reply.message);
+        this.state.actionReject && this.state.actionReject(reply);
+        if (reply.message) window.alert(reply.message);
+        this.setState({action: null, args: [], choices: null, min: null, max: null, prompt: null, actions: null, exceptionCallback: null, filter: '' });
       }
     });
     actionId++;
@@ -388,7 +398,16 @@ export default class Page extends Component {
   }
 
   updatePosition(key, x, y) {
-    this.setState(state => ({positions: Object.assign({}, state.positions, {[key]: x !== undefined ? {x, y} : undefined })}));
+    this.setState(state => {
+      const positions = {
+        positions: { ...state.positions, [key]: x !== undefined ? {x, y} : undefined }
+      };
+      if (!this.state.originalPositions[key]) {
+        const el = elByChoice(key);
+        if (el) positions.originalPositions = { ...state.originalPositions, [key]: el.getBoundingClientRect() };
+      }
+      return positions;
+    });
   }
 
   dragging(key, x, y, event, moveAnchor) {
@@ -404,28 +423,37 @@ export default class Page extends Component {
     const dragData = {key, x, y};
     // crossing zones so add the zone translation
     if (zone && zone.el != this.state.dragging.zone) {
-      const startZone = this.state.dragging.zone;
+      /* for dragging within zones, keep x/y as relative to current position (the way draggable works)
+       * for crossing zones, change meaning of x/y to relative to the new zone for ease of translation
+       */
       const endZone = zone.el;
-      dragData.start = choiceByEl(startZone);
-      dragData.end = choiceByEl(endZone);
-      dragData.endFlip = isFlipped(startZone) ^ isFlipped(endZone);
-      if (isFlipped(startZone)) {
-        dragData.x -= (startZone.getBoundingClientRect().right - endZone.getBoundingClientRect().right) / this.state.playAreaScale;
-        dragData.y -= (startZone.getBoundingClientRect().bottom - endZone.getBoundingClientRect().bottom) / this.state.playAreaScale;
-      } else {
-        dragData.x += (startZone.getBoundingClientRect().x - endZone.getBoundingClientRect().x) / this.state.playAreaScale;
-        dragData.y += (startZone.getBoundingClientRect().y - endZone.getBoundingClientRect().y) / this.state.playAreaScale;
+      const el = elByChoice(key);
+      if (endZone && el) {
+        dragData.zone = choiceByEl(endZone);
+        const elRect = el.getBoundingClientRect();
+        const endRect = endZone.getBoundingClientRect();
+        if (isFlipped(endZone)) {
+          dragData.x = (endRect.right - elRect.right) / this.state.playAreaScale;
+          dragData.y = (endRect.bottom - elRect.bottom) / this.state.playAreaScale;
+        } else {
+          dragData.x = (elRect.x - endRect.x) / this.state.playAreaScale;
+          dragData.y = (elRect.y - endRect.y) / this.state.playAreaScale;
+        }
       }
     }
     throttle(() => this.send('drag', dragData));
   }
 
   stopDrag(choice, x, y, event) {
-    this.send('releaseLock', {key: choice});
-    const {dragging, dragOver} = this.state;
+    const { dragging, dragOver } = this.state;
     this.setState({dragging: null, dragOver: null});
-    if (dragging && dragging.key === choice && Math.abs(dragging.x - x) + Math.abs(dragging.y - y) > DRAG_TOLERANCE) {
-      const dragAction = this.allowedDragSpaces(choice)[dragOver];
+    const resolve = () => this.send('releaseLock', {key: choice});
+    const reject = () => {
+      this.setPieceAt(choice, {x: dragging.x, y: dragging.y});
+      this.send('drag', {key: choice});
+    };
+      if (dragging && dragging.key === choice && Math.abs(dragging.x - x) + Math.abs(dragging.y - y) > DRAG_TOLERANCE) {
+        const dragAction = this.allowedDragSpaces(choice)[dragOver];
       const parent = elByChoice(dragOver);
       const el = elByChoice(choice);
       const ontoXY = dragOver && parent.getBoundingClientRect();
@@ -433,8 +461,15 @@ export default class Page extends Component {
       if (dragAction && dragOver !== parentChoice(choice)) {
         if (['splay', 'grid'].includes(parent.getAttribute('layout'))) {
           const splay = parent.getAttribute('layout') === 'splay';
-          this.gameAction(dragAction, choice, dragOver, {
-            [splay ? 'pos' : 'cell']: currentGridPosition(el, parent, elXY.x, elXY.y, this.state.playAreaScale, splay, isFlipped(parent))
+          this.gameAction({
+            action: dragAction,
+            args: [
+              choice,
+              dragOver,
+              { [splay ? 'pos' : 'cell']: currentGridPosition(el, parent, elXY.x, elXY.y, this.state.playAreaScale, splay, isFlipped(parent)) },
+            ],
+            resolve,
+            reject,
           });
         } else {
           const translation = isFlipped(parent) ?
@@ -442,7 +477,12 @@ export default class Page extends Component {
                               {x: elXY.x - ontoXY.x, y: elXY.y - ontoXY.y};
           translation.x /= this.state.playAreaScale;
           translation.y /= this.state.playAreaScale;
-          this.gameAction(dragAction, choice, dragOver, translation);
+          this.gameAction({
+            action: dragAction,
+            args: [choice, dragOver, translation],
+            resolve,
+            reject,
+          });
         }
         // optimistically update the location to avoid flicker
         this.setPieceAt(choice, {x, y, moved: true});
@@ -450,19 +490,29 @@ export default class Page extends Component {
       } else if (dragOver === parentChoice(choice) && this.isAllowedMove(xmlNodeByChoice(boardXml, choice))) {
         if (['splay', 'grid'].includes(parent.getAttribute('layout'))) {
           const splay = parent.getAttribute('layout') === 'splay';
-          this.gameAction('moveElement', choice, {
-            [splay ? 'pos' : 'cell']: currentGridPosition(el, parent, elXY.x, elXY.y, this.state.playAreaScale, splay, isFlipped(parent))
+          this.gameAction({
+            action: 'moveElement',
+            args: [
+              choice,
+              { [splay ? 'pos' : 'cell']: currentGridPosition(el, parent, elXY.x, elXY.y, this.state.playAreaScale, splay, isFlipped(parent)) }
+            ],
+            resolve,
+            reject,
           });
         } else {
-          this.gameAction('moveElement', choice, {x, y});
+          this.gameAction({
+            action: 'moveElement',
+            args: [choice, {x, y}],
+            resolve,
+            reject,
+          });
         }
         // optimistically update the location to avoid flicker
         this.setPieceAt(choice, {x, y, moved: true});
         this.setState({ zoomPiece: null });
       } else {
         // invalid drag - put it back
-        this.setPieceAt(choice, {x: dragging.x, y: dragging.y});
-        this.send('drag', {key: choice});
+        reject();
       }
       event.stopPropagation();
     } else {
@@ -474,7 +524,10 @@ export default class Page extends Component {
 
   handleClick(choice, event) {
     if (this.state.choices && Object.values(this.state.choices).includes(choice)) {
-      this.gameAction(this.state.action, ...this.state.args, this.choiceKeyFor(choice));
+      this.gameAction({
+        action: this.state.action,
+        args: [...this.state.args, this.choiceKeyFor(choice)]
+      });
       event.stopPropagation();
     } else {
       if (this.state.prompt || this.state.choices) {
@@ -736,7 +789,7 @@ export default class Page extends Component {
       if (!this.components[attributes.component]) throw Error(`No component found named '${attributes.component}'. Components must be added to the 'components' prop in render`);
       contents = React.createElement(
         this.components[attributes.component],
-        {...props, action: (...args) => this.gameAction('interactWithPiece', key, ...args)},
+        {...props, action: (...args) => this.gameAction({ action: 'interactWithPiece', args: [key, ...args] })},
         contents
       );
     } else if (this.props.pieces[type]) {
@@ -871,7 +924,11 @@ export default class Page extends Component {
                {textChoices && (
                  <div>
                    {Array.from(new Set(textChoices.filter(choice => String(choice).toLowerCase().includes(this.state.filter.toLowerCase())))).map(choice => (
-                     <button key={choice} onClick={() => this.gameAction(this.state.action, ...this.state.args, this.choiceKeyFor(choice))} className={classNames({ reset: this.choiceKeyFor(choice) === 'false' })}>
+                     <button
+                       key={choice}
+                       onClick={() => this.gameAction({ action: this.state.action, args: [...this.state.args, this.choiceKeyFor(choice)] })}
+                       className={classNames({ reset: this.choiceKeyFor(choice) === 'false' })}
+                     >
                        {this.choiceText(choice)}
                      </button>
                    ))}
@@ -910,7 +967,9 @@ export default class Page extends Component {
                {!this.state.bigZoom &&
                 <div id="actions" style={IS_MOBILE_PORTRAIT ? {width: SIDEBAR_WIDTH - 30} : {}}>
                   {actions && Object.entries(actions).map(([a, {choice, prompt}]) => (
-                    <button key={a} onClick={e => {this.gameAction(a, ...this.state.args, choice); e.stopPropagation()}}>{showKeybind(prompt)}</button>
+                    <button key={a} onClick={e => {this.gameAction({ action: a, args: [...this.state.args, choice] }); e.stopPropagation()}}>
+                      {showKeybind(prompt)}
+                    </button>
                   ))}
                 </div>
                }
@@ -932,7 +991,7 @@ export default class Page extends Component {
                <button className="undo" onClick={() => this.send('undo')}>Undo</button>
                <button className="reset" onClick={() => confirm("Reset and lose all game history? This cannot be undone") && this.reset()}>Reset</button>
                {nonBoardActions && Object.entries(nonBoardActions).map(([action, {prompt}]) => (
-                 <button key={action} onClick={() => this.gameAction(action)}>{showKeybind(prompt)}</button>
+                 <button key={action} onClick={() => this.gameAction({ action })}>{showKeybind(prompt)}</button>
                ))}
                <button className="fab help" onClick={() => this.setState({help: true})}>?</button>
              </div>

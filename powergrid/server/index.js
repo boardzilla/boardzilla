@@ -7,17 +7,32 @@ game.setPlayers({
   max: 6,
 });
 
-const sortPowerplants = () => $('#powerplants').sort(card => card.get('cost'));
+const highScore = () => {
+  const highest = game.doc.highest('#score token', 'score');
+  return (highest && highest.get('score')) || 0;
+};
+
+const applyMinimumRule = () => $$('#powerplants card').forEach(card => {
+  if (card.get('cost') <= highScore()) {
+    card.remove();
+    $('#deck').move('card', '#powerplants', 1);
+  }
+});
+
+const sortPowerplants = () => {
+  $('#powerplants').sort(card => card.get('cost'));
+  applyMinimumRule();
+};
 
 const costOf = (resource, amount) => sumBy($$(`#resources #${resource}`).slice(-amount), r => r.parent().get('cost'));
+
+const priceOf = card => Math.max(card.get('cost'), game.get('lastBid') || 0);
 
 // order players by some function and set the turn tracker
 const orderPlayers = fn => {
   game.reorderPlayersBy(fn);
   $$('#turns token').forEach(token => token.set({ turn: game.turnOrderOf(token.player()) }));
 };
-
-const highScore = () => game.doc.highest('#score token', 'score').get('score');
 
 const resourceTypes = ['coal', 'oil', 'garbage', 'uranium'];
 
@@ -114,7 +129,15 @@ game.defineActions({
     key: 'b',
     log: '$0 bought $1',
     drag: '#powerplants card',
-    toPlayer: 'me',
+    toPlayer: 'all',
+    next: {
+      prompt: card => `Buy ${card} for ${priceOf(card)}?`,
+      confirm: ['Buy', 'Cancel'],
+      action: card => {
+        $('.mine [name=Elektro]').increment('value', -priceOf(card));
+        game.unset('lastBid');
+      },
+    },
   },
   build: {
     prompt: 'Build',
@@ -122,7 +145,10 @@ game.defineActions({
     log: '$0 built a house',
     drag: '.mine token',
     onto: '#map',
-    action: () => $('#score token.mine').set({ score: game.board.count('#map #building.mine') }) || console.log('highScore', highScore()),
+    action: () => {
+      $('#score token.mine').set({ score: game.board.count('#map #building.mine') });
+      applyMinimumRule();
+    },
   },
   bid: {
     prompt: 'Bid',
@@ -130,6 +156,7 @@ game.defineActions({
     log: '$0 bid $1',
     min: 1,
     max: 999,
+    action: bid => game.set({ lastBid: bid }),
   },
   pass: {
     prompt: 'Pass',
@@ -271,7 +298,7 @@ game.defineActions({
   },
 });
 
-game.playersMayAlwaysMove('.mine *, #map token.mine');
+game.playersMayAlwaysMove('.mine *, #powerplants card, #map token.mine');
 game.playersMayAlwaysPlay(['interactWithPiece']);
 
 game.play(async () => {

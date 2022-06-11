@@ -185,11 +185,24 @@ class GameInterface {
     return this.variables[key];
   }
 
+  /**
+   * set game properties
+   * set({ attr1: newValue, attr2: newValue,... })
+   * set(attr1, newValue)
+   */
   set(key, value) {
-    this.variables[key] = value;
+    if (value === undefined) {
+      if (typeof key === 'object') {
+        Object.entries(key).forEach(([n, v]) => this.set(n, v));
+      } else {
+        this.set(key, true);
+      }
+    } else {
+      this.variables[key] = value;
+    }
   }
 
-  delete(key) {
+  unset(key) {
     delete this.variables[key];
   }
 
@@ -466,7 +479,7 @@ class GameInterface {
     if (test) {
       nextAction = () => {};
     } else if (action.next) {
-      nextAction = () => this.runAction(action.next, args, argIndex + 1);
+      nextAction = () => this.runAction(action.next, args, argIndex + (action.drag ? 3 : 1)); // drag uses 3 args instead of 1
     }
 
     let namedArgs;
@@ -489,6 +502,7 @@ class GameInterface {
       }
     } else if (action.confirm) {
       const confirmationOptions = action.confirm instanceof Array ? { true: action.confirm[0], false: action.confirm[1] } : { true: action.confirm, false: 'Cancel' };
+      if (args[argIndex] === false) throw new InvalidActionError(); // just cancel the action
       nextPrompt = this.chooseAction(confirmationOptions, prompt, nextAction, argIndex)(args);
     } else if (action.max !== undefined || action.min !== undefined) { // simple numerical
       nextPrompt = this.chooseNumberAction(action.min, action.max, prompt, nextAction, argIndex)(args);
@@ -512,14 +526,14 @@ class GameInterface {
         this.doc.findAll(spaceSelector),
         promptOnto || prompt,
         ([piece, space, positioning]) => {
+          if (action) {
+            action([piece, space]);
+          }
           if (positioning && positioning.pos !== undefined) {
             piece.moveTo(space, -1 - positioning.pos);
           } else {
             piece.moveTo(space);
             if (positioning) piece.set(positioning);
-          }
-          if (action) {
-            action([piece, space]);
           }
         },
         1,
@@ -563,7 +577,7 @@ class GameInterface {
         }
       } else {
         if (!(choices instanceof Array ? choices : Object.keys(choices)).includes(this.serialize(choice))) {
-          throw new InvalidChoiceError(`${this.serialize(choice)} not found in ${choices}`);
+          throw new InvalidChoiceError(`${this.serialize(choice)} not found in ${choices instanceof Array ? choices : Object.keys(choices)}`);
         }
         if (action) action(args);
       }
