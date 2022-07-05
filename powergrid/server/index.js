@@ -26,8 +26,6 @@ const sortPowerplants = () => {
 
 const costOf = (resource, amount) => sumBy($$(`#resources #${resource}`).slice(-amount), r => r.parent().get('cost'));
 
-const priceOf = card => Math.max(card.get('cost'), game.get('lastBid') || 0);
-
 // order players by some function and set the turn tracker
 const orderPlayers = fn => {
   game.reorderPlayersBy(fn);
@@ -124,21 +122,21 @@ game.defineActions({
     drag: '#deck card',
     onto: '#powerplants',
   },
-  buy: {
-    prompt: 'Buy',
-    key: 'b',
-    log: '$0 bought $1',
-    drag: '#powerplants card',
-    toPlayer: 'all',
-    next: {
-      prompt: card => `Buy ${card} for ${priceOf(card)}?`,
-      confirm: ['Buy', 'Cancel'],
-      action: card => {
-        $('.mine [name=Elektro]').increment('value', -priceOf(card));
-        game.unset('lastBid');
-      },
-    },
-  },
+  /* buy: {
+   *   prompt: 'Buy',
+   *   key: 'b',
+   *   log: '$0 bought $1',
+   *   drag: '#powerplants card',
+   *   toPlayer: 'all',
+   *   next: {
+   *     prompt: card => `Buy ${card} for ${priceOf(card)}?`,
+   *     confirm: ['Buy', 'Cancel'],
+   *     action: card => {
+   *       $('.mine [name=Elektro]').increment('value', -priceOf(card));
+   *       game.unset('lastBid');
+   *     },
+   *   },
+   * }, */
   build: {
     prompt: 'Build',
     key: 'b',
@@ -153,8 +151,9 @@ game.defineActions({
   bid: {
     prompt: 'Bid',
     key: 'c',
+    if: 'card[auction]',
     log: '$0 bid $1',
-    min: 1,
+    min: () => (game.get('lastBid') ? game.get('lastBid') + 1 : $('card[auction]').get('cost')),
     max: 999,
     action: bid => game.set({ lastBid: bid }),
   },
@@ -197,7 +196,7 @@ game.defineActions({
   },
   income: {
     prompt: 'Collect income',
-    if: () => '#building.mine[powered]',
+    if: '#building.mine[powered]',
     key: 'i',
     log: () => `$0 collected ${$('.mine [name=Elektro]').get('income')} income`,
     action: () => {
@@ -329,6 +328,41 @@ game.play(async () => {
 
   // randomly order player start
   orderPlayers(game.random);
+
+  /* await game.playersInTurn(async player => {
+   *   console.log('wait for player', player, game.currentPlayer(), game.currentPlayerPosition);
+   *   const auctionOrPass = await game.currentPlayerPlay(['auction', 'pass']); // TODO only first 4 unless step 3, no pass in first turn
+   *   console.log('auctionOrPass', auctionOrPass);
+   * });
+   */
+  const havePassedAuctionPhase = Array(game.players.length);
+  await game.playersInTurn(async player => {
+    if (havePassedAuctionPhase[player]) return;
+    const auctionOrPass = await game.currentPlayerPlay(['auction', 'pass']); // TODO only first 4 unless step 3, no pass in first turn
+    if (auctionOrPass === 'pass') {
+      havePassedAuctionPhase[player] = true;
+      return;
+    }
+
+    // start bidding
+    const passedThisAuction = [...havePassedAuctionPhase];
+    let playerWithHighestBid = game.currentPlayerPosition;
+    while (passedThisAuction.filter(p => !p).length > 1) {
+      console.log('passedThisAuction', passedThisAuction.filter(p => !p).length, passedThisAuction.filter(p => !p));
+      if (!passedThisAuction[player]) {
+        const bidOrPass = await game.currentPlayerPlay(['bid', 'pass']); // TODO opener may not pass own auction
+        if (bidOrPass.action === 'pass') {
+          passedThisAuction[player] = true;
+        } else {
+          playerWithHighestBid = game.currentPlayerPosition;
+        }
+      }
+      game.endTurn();
+    }
+    $('.mine [name=Elektro]').increment('value', -(game.get('lastBid') || $('card[auction]').get('cost')));
+    game.unset('lastBid');
+    $('card[auction]').moveTo(game.playerMat(playerWithHighestBid));
+  });
 
   while (true) { // eslint-disable-line no-constant-condition
     await game.anyPlayerPlay(game.getAllActions());

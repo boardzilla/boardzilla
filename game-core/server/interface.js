@@ -42,7 +42,7 @@ class GameInterface {
   // main game loop function
   #play;
 
-  // position of current player, or undefined if any player can play
+  // table position of current player (starts from 1) or undefined if any player can play
   #currentPlayerPosition;
 
   constructor() {
@@ -379,9 +379,13 @@ class GameInterface {
   // runs provided async block for each player, starting with the current
   async playersInTurn(fn) {
     if (!this.currentPlayerPosition) this.currentPlayerPosition = this.players[0].position;
-    await asyncTimes(this.#players.length, async turn => {
-      await fn(turn);
+    await asyncTimes(this.#players.length, async () => {
+      const startedThisTurn = this.currentPlayerPosition;
+      console.log('starting playersInTurn', this.currentPlayerPosition);
+      await fn(this.currentPlayerPosition);
+      this.currentPlayerPosition = startedThisTurn;
       this.endTurn();
+      console.log('ending playersInTurn', this.currentPlayerPosition);
     });
   }
 
@@ -505,7 +509,9 @@ class GameInterface {
       if (args[argIndex] === false) throw new InvalidActionError(); // just cancel the action
       nextPrompt = this.chooseAction(confirmationOptions, prompt, nextAction, argIndex)(args);
     } else if (action.max !== undefined || action.min !== undefined) { // simple numerical
-      nextPrompt = this.chooseNumberAction(action.min, action.max, prompt, nextAction, argIndex)(args);
+      const min = (typeof action.min === 'function') ? action.min(args) : action.min;
+      const max = (typeof action.max === 'function') ? action.max(args) : action.max;
+      nextPrompt = this.chooseNumberAction(min, max, prompt, nextAction, argIndex)(args);
     } else if (nextAction) {
       const result = nextAction(args);
       if (result && result.prompt) nextPrompt = prompt;
@@ -743,7 +749,7 @@ class GameInterface {
   }
 
   endTurn() {
-    this.currentPlayerPosition = (this.turnOrderOf(this.currentPlayerPosition) % this.#players.length) + 1;
+    this.currentPlayerPosition = this.players[(this.turnOrderOf(this.currentPlayerPosition) + 1) % this.#players.length].position;
   }
 
   moveElement(el, positioning) {

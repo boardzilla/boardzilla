@@ -322,7 +322,7 @@ export default class Page extends Component {
     this.webSocket.send(JSON.stringify({type: action, payload}));
   }
 
-  gameAction({ action, args, resolve, reject }) {
+  gameAction({ action, args=[], resolve, reject }) {
     const start = Date.now();
     console.log('gameAction', action, ...args, !!resolve, !!reject);
     this.send(

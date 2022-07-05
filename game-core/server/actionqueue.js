@@ -28,7 +28,7 @@ class ActionQueue {
   }
 
   async waitForNext() {
-    if (this.#queueResolution) throw Error('single consumer at a time');
+    if (this.#queueResolution) throw Error('Error during play queue with simulataneous players taking turns. Please ensure that you have \'await\' in your game loop around player actions');
     const promise = new Promise((resolve, reject) => {
       this.#queueResolution = { resolve, reject };
       this.#pump();
