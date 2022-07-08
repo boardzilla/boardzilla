@@ -5,12 +5,13 @@ import GameElement from './element';
 import ActionQueue from './actionqueue';
 import { asyncTimes, isSpaceNode } from './utils';
 import type Space from './space';
-import type {Argument, Action} from './types.d';
+import type {Argument, Action, ActionReturn} from './types.d';
 export class InvalidChoiceError extends Error {}
 export class InvalidActionError extends Error {}
 export class IncompleteActionError extends Error {
-  constructor(public args: {prompt: string, min?: number, max?: number, choices?: Argument[]}) {
+  constructor(args: {prompt: string, min?: number, max?: number, choices?: Argument[] | {[index: string]: Argument}}) {
     super(args.prompt);
+    Object.assign(this, args);
   }
 }
 
@@ -127,7 +128,7 @@ export default class GameInterface {
     return Object.keys(this.actions);
   }
 
-  private setupBoard(fn: (e: GameElement) => void) {
+  setupBoard(fn: (e: Space) => void) {
     this.setupBoards.push(fn);
   }
 
@@ -180,7 +181,7 @@ export default class GameInterface {
    * set({ attr1: newValue, attr2: newValue,... })
    * set(attr1, newValue)
    */
-  set(key, value) {
+  set(key, value?: any) { /* eslint-disable-line @typescript-eslint/no-explicit-any */ // : (string | {[index: string]: any})
     if (value === undefined) {
       if (typeof key === 'object') {
         Object.entries(key).forEach(([n, v]) => this.set(n, v));
@@ -412,7 +413,7 @@ export default class GameInterface {
         choices[action] = { prompt, key };
       } catch (e) {
         if (e instanceof IncompleteActionError) {
-          choices[action] = { ...e.args, key };
+          choices[action] = { ...e, key };
         } else if (e instanceof InvalidActionError) {
           console.log('skip action', action);
           return choices; // skip
@@ -465,10 +466,10 @@ export default class GameInterface {
       if (!result) throw new InvalidActionError(`${actionName} not allowed due to "if" condition`);
     }
 
-    let nextAction;
+    let nextAction: (a: Argument[]) => void | ActionReturn;
     if (action.action) nextAction = a => action.action.apply(null, a);
     if (test) {
-      nextAction = () => {};
+      nextAction = () => null;
     } else if (action.next) {
       nextAction = () => this.runAction(action.next, args, argIndex + (action.drag ? 3 : 1)); // drag uses 3 args instead of 1
     }
@@ -632,7 +633,7 @@ export default class GameInterface {
     } catch (e) {
       console.log('got processAction error', e);
       if (e instanceof IncompleteActionError) {
-        return { type: 'incomplete', ...e.args };
+        return { type: 'incomplete', ...e };
       }
       return { type: 'error', message: e.message };
     }

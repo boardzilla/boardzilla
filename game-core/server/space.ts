@@ -35,7 +35,7 @@ export default class Space extends GameElement {
       .forEach(i => this.node.insertBefore(i, null));
   }
 
-  static sort(set, fn = n => n.id) {
+  static sort(set, fn: ((GameElement) => (string | number) | string) = n => n.id) {
     const val = typeof fn === 'function' ? fn : el => el.get(fn);
     const comp = (a, b) => {
       a = val(a);

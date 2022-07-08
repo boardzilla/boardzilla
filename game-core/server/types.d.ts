@@ -20,6 +20,8 @@ export interface Action {
   min?: number;
 }
 
+type ActionReturn = {prompt: string, log: string};
+
 interface ElementLookup extends Element {
   gameElement: GameElement;
 }

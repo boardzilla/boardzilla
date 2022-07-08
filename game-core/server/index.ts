@@ -6,7 +6,6 @@ export {default as InteractivePiece} from './interactive-piece';
 export {default as Counter} from './counter';
 export {default as Die} from './die';
 
-const game = new GameInterface();
-export default game;
-export const $ = q => game.doc.find(q);
-export const $$ = q => game.doc.findAll(q);
+export const game = new GameInterface();
+export const $ = (q: string) => game.doc.find(q);
+export const $$ = (q: string) => game.doc.findAll(q);

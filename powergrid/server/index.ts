@@ -1,4 +1,4 @@
-import game, { $, $$, Counter, InvalidChoiceError, IncompleteActionError } from 'game-core-server';
+import { game, $, $$, Counter, InvalidChoiceError, IncompleteActionError } from 'game-core-server';
 import { times, range, sumBy } from 'game-core-server/utils';
 import cards from './cards';
 
@@ -98,8 +98,6 @@ game.setupBoard(board => {
     resources.addSpace(`#garbage-${cost}`, { cost, resource: 'garbage', top: 580.5 - cost * 62.1, left: 42 });
     resources.addSpace(`#garbage-${cost}`, { cost, resource: 'garbage', top: 599 - cost * 62.1, left: 42 });
   });
-
-  const myResource:string = space.get('resource');
 
   board.addSpace('#score');
   board.addSpace('#turns');

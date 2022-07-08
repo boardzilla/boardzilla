@@ -56,16 +56,16 @@ export default class GameElement {
    * set({ attr1: newValue, attr2: newValue,... })
    * set(attr1, newValue)
    */
-  set(name, value?: any) { /* eslint-disable-line @typescript-eslint/no-explicit-any */
-    if (value === false || value === '' || value === undefined) {
-      if (typeof name === 'object') {
-        Object.entries(name).forEach(([n, v]) => this.set(n, v));
-      } else {
-        this.set(name, true);
-      }
+  set(name: (string | {[index: string]: any}), value?: any) { /* eslint-disable-line @typescript-eslint/no-explicit-any */
+    if (typeof name === 'object') {
+      Object.entries(name).forEach(([n, v]) => this.set(n, v));
     } else {
-      value = typeof value === 'object' ? JSON.stringify(value) : value;
-      this.node.setAttribute(name, escape(value)); // TODO reserved attributes? class, className, id, style  & special attributes: player, layout, component, x,y,top,left,right,bottom...?
+      if (value === undefined) {
+        this.set(name, true);
+      } else {
+        value = typeof value === 'object' ? JSON.stringify(value) : value;
+        this.node.setAttribute(name, escape(value)); // TODO reserved attributes? class, className, id, style  & special attributes: player, layout, component, x,y,top,left,right,bottom...?
+      }
     }
   }
 

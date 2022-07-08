@@ -1,6 +1,4 @@
-import type {Argument} from './types.d';
-
-type ActionReturn = {prompt: string, log: string};
+import type {Argument, ActionReturn} from './types.d';
 
 export default class ActionQueue {
   #queue = [];

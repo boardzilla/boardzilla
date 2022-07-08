@@ -4,8 +4,7 @@
     "allowJs": true,
     "target": "es6",
     "types": ["node", "jest"],
-    "module": "Node16",
-    "moduleResolution": "node",
+    "module": "node16",
     "sourceMap": true
   },
   "include": ["*/server/**/*"],

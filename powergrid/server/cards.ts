@@ -1,4 +1,13 @@
-export default [
+type Card = {
+  id: string;
+  image: string;
+  cost?: number;
+  resourceType?: string;
+  resources?: number;
+  power?: number;
+};
+
+const cards: Card[] = [
   {
     id: '#oil-03',
     cost: 3,
@@ -328,3 +337,5 @@ export default [
     image: 'wind-44.webp',
   },
 ];
+
+export default cards;
