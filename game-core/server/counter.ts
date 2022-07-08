@@ -1,9 +1,9 @@
-const InteractivePiece = require('./interactive-piece');
+import InteractivePiece from './interactive-piece';
 
-class Counter extends InteractivePiece {
+export default class Counter extends InteractivePiece {
   initialize() {
     this.set({
-      value: this.get('initialValue'),
+      value: this.getNumber('initialValue'),
       moves: 0,
     });
   }
@@ -15,11 +15,11 @@ class Counter extends InteractivePiece {
       log: () => `$0 set ${this.get('name') || 'counter'} to $1`,
       action: value => {
         let newValue = value;
-        newValue = Math.max(newValue, 0, this.get('min'));
-        if (this.get('max')) newValue = Math.min(newValue, this.get('max'));
+        newValue = Math.max(newValue, 0, this.getNumber('min'));
+        if (this.getNumber('max')) newValue = Math.min(newValue, this.getNumber('max'));
         this.set({
           value: newValue,
-          moves: this.get('moves') + 1,
+          moves: this.getNumber('moves') + 1,
         });
       },
     },
@@ -33,5 +33,3 @@ Counter.defaults = {
 };
 
 Counter.component = 'Counter';
-
-module.exports = Counter;

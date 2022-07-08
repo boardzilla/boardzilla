@@ -1,7 +1,19 @@
-const { times, isPieceNode, nanoid, elementClasses } = require('./utils');
+import uuid from 'uuid-random';
+import type GameDocument from './document';
+import type GameInterface from './interface';
+import type Space from './space';
+import type {ElementLookup} from './types.d';
 
-class GameElement {
-  constructor({ node, game, document }, attrs) {
+import { times, isPieceNode, elementClasses } from './utils';
+
+export default class GameElement {
+  node: ElementLookup;
+  document: GameDocument;
+  game: GameInterface;
+  id: string;
+  type: string;
+
+  constructor({ node, game=null, document=null }, attrs?) {
     this.node = node;
     this.document = document;
     this.game = game;
@@ -11,7 +23,7 @@ class GameElement {
   }
 
   assignUUID() {
-    this.set({ uuid: nanoid() });
+    this.set({ uuid: uuid() });
   }
 
   enhanceQuery(q) {
@@ -20,13 +32,23 @@ class GameElement {
   }
 
   /**
-   * get attribute on this element
+   * get string attribute on this element
    */
-  get(name) {
+  get(name: string):string {
     const attr = this.node.attributes[name];
     if (!attr || !attr.value) return undefined;
-    const value = !attr.value || Number.isNaN(Number(attr.value)) ? unescape(attr.value) : Number(attr.value);
-    return ['[', '{'].includes(value[0]) ? JSON.parse(value) : value;
+    return unescape(attr.value);
+  }
+
+  /**
+   * get numerical attribute on this element
+   */
+  getNumber(name: string):number {
+    return Number(this.get(name));
+  }
+
+  getObject(name: string):object {
+    return JSON.parse(this.get(name));
   }
 
   /**
@@ -34,7 +56,7 @@ class GameElement {
    * set({ attr1: newValue, attr2: newValue,... })
    * set(attr1, newValue)
    */
-  set(name, value) {
+  set(name, value?: any) { /* eslint-disable-line @typescript-eslint/no-explicit-any */
     if (value === false || value === '' || value === undefined) {
       if (typeof name === 'object') {
         Object.entries(name).forEach(([n, v]) => this.set(n, v));
@@ -117,11 +139,11 @@ class GameElement {
   }
 
   player() {
-    return this.get('player') || (this.node.parentNode && this.parent().player());
+    return this.getNumber('player') || (this.node.parentNode && this.parent().player());
   }
 
   parent() {
-    return this.node?.parentNode?.gameElement;
+    return (this.node?.parentNode as ElementLookup)?.gameElement;
   }
 
   matches(q) {
@@ -131,7 +153,7 @@ class GameElement {
   hasParent(el) {
     let { node } = this;
     while (node.parentNode) {
-      node = node.parentNode;
+      node = node.parentNode as ElementLookup;
       if (node === el.node) return true;
     }
     return false;
@@ -143,25 +165,25 @@ class GameElement {
     let { node } = this;
     while (node.parentNode && node.parentNode.parentNode) {
       branches.unshift(Array.prototype.indexOf.call(node.parentNode.childNodes, node) + 1);
-      node = node.parentNode;
+      node = node.parentNode as ElementLookup;
     }
     return `$el(${branches.join('-')})`;
   }
 
   boardNode() {
-    return this.document.node.children[0];
+    return this.document.node.children[0] as ElementLookup;
   }
 
   board() {
-    return this.boardNode()?.gameElement;
+    return this.boardNode()?.gameElement as Space;
   }
 
   pileNode() {
-    return this.document.node.children[1];
+    return this.document.node.children[1] as ElementLookup;
   }
 
   pile() {
-    return this.pileNode()?.gameElement;
+    return this.pileNode()?.gameElement as Space;
   }
 
   place(pieces, to) {
@@ -185,7 +207,7 @@ class GameElement {
   }
 
   addPiece(name, type, attrs) {
-    return this.addGameElement(elementClasses.Piece, name, type, 'piece', attrs);
+    return this.addGameElement(elementClasses.get('Piece'), name, type, 'piece', attrs);
   }
 
   addPieces(num, name, type, attrs) {
@@ -198,7 +220,7 @@ class GameElement {
     return this.addGameElement(pieceClass, `#${this.game.registerId(name)}`, name, 'interactive-piece', attrs);
   }
 
-  addGameElement(elementClass, id, type, className, attrs = {}) {
+  addGameElement(elementClass, id, type, className, attrs:Record<string, any> = {}) { /* eslint-disable-line @typescript-eslint/no-explicit-any */
     const el = this.document.xmlDoc.createElement(type);
     if (id[0] !== '#') throw Error(`id ${id} must start with #`);
     el.id = id.slice(1);
@@ -212,7 +234,7 @@ class GameElement {
   }
 
   // move pieces to a space, at end of list (on top). use num to limit the number moved. use position to control child placement (same as slice)
-  move(pieces, to, num, position = 0) {
+  move(pieces, to, num?, position = 0) {
     const space = this.document.find(to);
     if (!space) throw new Error(`No space found "${to}"`);
     let movables = this.pieces(pieces);
@@ -225,7 +247,7 @@ class GameElement {
       position = space.node.childElementCount - position;
     }
     position = Math.min(Math.max(position, 0), space.node.childElementCount);
-    let outOfSplay = false;
+    let outOfSplay:GameElement = null;
     movables.forEach(piece => {
       piece.unset('x', 'y', 'left', 'top', 'right', 'bottom');
       outOfSplay = outOfSplay || (piece.parent().get('layout') === 'splay' && piece.parent());
@@ -239,22 +261,22 @@ class GameElement {
     });
     this.game.processAfterMoves(movables);
     if (space.get('layout') === 'splay') {
-      Array.from(space.node.children).forEach(c => {
-        const nextId = c.gameElement.serialize();
+      for (const child of space.node.children) {
+        const nextId = (<ElementLookup>child).gameElement.serialize();
         if (!this.game.changeset.find(cs => cs[1] === nextId)) this.game.changeset.push([nextId, nextId]);
-      });
+      }
     }
     if (outOfSplay && outOfSplay.node !== space.node) {
-      Array.from(outOfSplay.node.children).forEach(c => {
-        const nextId = c.gameElement.serialize();
+      for (const child of outOfSplay.node.children) {
+        const nextId = (<ElementLookup>child).gameElement.serialize();
         if (!this.game.changeset.find(cs => cs[1] === nextId)) this.game.changeset.push([nextId, nextId]);
-      });
+      }
     }
     return movables;
   }
 
   // move pieces to a space, at start of list (on bottom). use num to limit the number moved
-  moveToBottom(pieces, to, num) {
+  moveToBottom(pieces, to, num?) {
     this.move(pieces, to, num, -1);
   }
 
@@ -263,7 +285,7 @@ class GameElement {
   }
 
   findOpenCell() {
-    const cells = (this.get('columns') || 1) * (this.get('rows') || 1);
+    const cells = (this.getNumber('columns') || 1) * (this.getNumber('rows') || 1);
     let cell = 0;
     while (this.contains(`[cell="${cell}"]`)) cell += 1;
     return cell >= cells ? 0 : cell;
@@ -279,5 +301,3 @@ class GameElement {
     return `${this.type}#${this.id}`;
   }
 }
-
-module.exports = GameElement;

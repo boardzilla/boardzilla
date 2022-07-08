@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "outDir": "./built",
+    "allowJs": true,
+    "target": "es6",
+    "types": ["node", "jest"],
+    "module": "Node16",
+    "moduleResolution": "node",
+    "sourceMap": true
+  },
+  "include": ["*/server/**/*"],
+  "exclude": ["**/node_modules", "**/.*/"]
+}

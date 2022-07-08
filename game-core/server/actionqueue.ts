@@ -1,9 +1,16 @@
-class ActionQueue {
+import type {Argument} from './types.d';
+
+type ActionReturn = {prompt: string, log: string};
+
+export default class ActionQueue {
   #queue = [];
 
   #queueResolution;
 
-  async waitForMatchingAction(matchFn, processFn) {
+  async waitForMatchingAction(
+    matchFn,
+    processFn?: ({player, action, args}: {player: number; action: string; args: Argument[]}) => ActionReturn
+  ) {
     let item;
     let succeeded = false;
     while (!succeeded) {
@@ -47,12 +54,10 @@ class ActionQueue {
   }
 
   // runner calls await processAction(playerAction...)
-  async processAction(action) {
+  async processAction(action): Promise<ActionReturn> {
     return new Promise((resolve, reject) => {
       this.#queue.push({ action, resolve, reject });
       this.#pump();
     });
   }
 }
-
-module.exports = ActionQueue;

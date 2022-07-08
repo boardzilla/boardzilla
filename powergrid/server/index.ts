@@ -1,6 +1,6 @@
-const { game, $, $$, Counter, InvalidChoiceError, IncompleteActionError } = require('game-core-server');
-const { times, range, sumBy } = require('game-core-server/utils.js');
-const cards = require('./cards');
+import game, { $, $$, Counter, InvalidChoiceError, IncompleteActionError } from 'game-core-server';
+import { times, range, sumBy } from 'game-core-server/utils';
+import cards from './cards';
 
 game.setPlayers({
   min: 1,
@@ -98,6 +98,8 @@ game.setupBoard(board => {
     resources.addSpace(`#garbage-${cost}`, { cost, resource: 'garbage', top: 580.5 - cost * 62.1, left: 42 });
     resources.addSpace(`#garbage-${cost}`, { cost, resource: 'garbage', top: 599 - cost * 62.1, left: 42 });
   });
+
+  const myResource:string = space.get('resource');
 
   board.addSpace('#score');
   board.addSpace('#turns');
@@ -369,4 +371,4 @@ game.play(async () => {
   }
 });
 
-module.exports = game;
+export default game;

@@ -1,8 +1,10 @@
-const { DOMParser } = require('linkedom/cached');
-const Space = require('./space');
+import { DOMParser } from 'linkedom/cached';
+import Space from './space';
 
-class GameDocument extends Space {
-  constructor(game, xmlDoc) {
+export default class GameDocument extends Space {
+  xmlDoc: XMLDocument;
+
+  constructor(game, xmlDoc?) {
     const newDoc = !xmlDoc;
     // initial call to build the base DOM
     xmlDoc = xmlDoc || (new DOMParser()).parseFromString('<game/>', 'text/xmlDoc');
@@ -29,5 +31,3 @@ class GameDocument extends Space {
     );
   }
 }
-
-module.exports = GameDocument;

@@ -1,17 +1,16 @@
 module.exports = {
+  parser: '@typescript-eslint/parser',
+  plugins: ['@typescript-eslint'],
   env: {
     browser: true,
-    commonjs: true,
-    es2021: true,
   },
   extends: [
-    'airbnb-base',
+    'plugin:@typescript-eslint/eslint-recommended',
+    'plugin:@typescript-eslint/recommended',
+    'eslint:recommended',
   ],
-  parserOptions: {
-    ecmaVersion: 'latest',
-  },
   rules: {
-    'no-unused-vars': [
+    '@typescript-eslint/no-unused-vars': [
       'error',
       {
         argsIgnorePattern: '^_',
@@ -33,11 +32,5 @@ module.exports = {
     'no-param-reassign': 0,
     'prefer-destructuring': ['error', { object: true, array: false }],
     'no-console': 0,
-    'import/no-extraneous-dependencies': [
-      'error',
-      {
-        devDependencies: ['**/*_test.js', 'server/dev.js'],
-      },
-    ],
   },
 };

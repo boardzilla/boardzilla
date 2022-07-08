@@ -1,27 +1,27 @@
 /* global describe, it, beforeEach */
 /* eslint-disable no-unused-expressions */
 
-const assert = require('assert');
-const chai = require('chai');
-const spies = require('chai-spies');
-const { DOMParser } = require('linkedom/cached');
-const Interface = require('../interface');
+import assert from 'assert';
+import chai from 'chai';
+import spies from 'chai-spies';
+import Interface from '../interface';
 
 chai.use(spies);
 const { expect } = chai;
+let spendSpy;
+let game: Interface;
 
 describe('GameInterface', () => {
   beforeEach(() => {
-    this.spendSpy = chai.spy();
-    this.interface = new Interface(1);
-    const game = this.interface;
-    game.setPlayers({ min: 4 });
-    game.initialize();
+    spendSpy = chai.spy();
+    game = new Interface();
+    game.setPlayers({ min: 4, max: 4 });
+    game.initialize('rseed');
     game.addPlayers([
-      { id: 101, name: 'Joe' },
-      { id: 102, name: 'Jane' },
-      { id: 103, name: 'Jack' },
-      { id: 104, name: 'Jen' },
+      { id: 101, name: 'Joe', color: 'red' },
+      { id: 102, name: 'Jane', color: 'green' },
+      { id: 103, name: 'Jack', color: 'yellow' },
+      { id: 104, name: 'Jen', color: 'purple' },
     ]);
 
     game.play(async () => {
@@ -57,7 +57,7 @@ describe('GameInterface', () => {
         next: {
           select: [1, 2, 3],
           prompt: 'How much?',
-          action: this.spendSpy,
+          action: spendSpy,
         },
       },
     });
@@ -65,21 +65,21 @@ describe('GameInterface', () => {
 
   describe('start', () => {
     it('waits for playerStart', done => {
-      this.interface.startProcessing().then(() => assert(false, 'start completed without player start'));
+      game.startProcessing().then(() => assert(false, 'start completed without player start'));
       setTimeout(done, 100);
     });
 
     it('proceeds with playerStart', async () => {
-      this.interface.startProcessing();
-      const result = await this.interface.processPlayerStart();
+      game.startProcessing();
+      const result = await game.processPlayerStart();
       console.log(result);
     });
   });
 
   describe('replay', () => {
     it('plays', async () => {
-      this.interface.startProcessing();
-      await this.interface.processHistory([
+      game.startProcessing();
+      await game.processHistory([
         [2, 0, 'addSome', 2],
         [3, 1, 'addSome', 2],
         [3, 2, 'addSome', 200], // will be ignored
@@ -93,17 +93,17 @@ describe('GameInterface', () => {
         [3, 8, 'takeOne'],
         [4, 9, 'takeOne'],
       ]);
-      expect(this.interface.sequence).equals(10);
+      expect(game.sequence).equals(10);
     });
   });
 
   describe('processAction', () => {
     it('can run composite actions', async () => {
-      this.interface.startProcessing();
-      await this.interface.processPlayerStart();
-      console.log('current', this.interface.currentPlayerPosition);
-      await this.interface.processAction(1, 0, 'spend', '"gold"', 2);
-      expect(this.spendSpy).to.have.been.called.with('gold', 2);
+      game.startProcessing();
+      await game.processPlayerStart();
+      console.log('current', game.currentPlayerPosition);
+      await game.processAction(1, 0, 'spend', '"gold"', 2);
+      expect(spendSpy).to.have.been.called.with('gold', 2);
     });
   });
 });

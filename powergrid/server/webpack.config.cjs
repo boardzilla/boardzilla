@@ -1,12 +1,12 @@
 const path = require('path');
-const TerserPlugin = require('terser-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin');
 
 const mode = process.env.NODE_ENV || 'development';
 
 module.exports = {
   mode,
-  entry: path.resolve(__dirname, 'index.js'),
-  devtool: mode === 'development' && 'eval-source-map',
+  entry: path.resolve(__dirname, 'index.ts'),
+  devtool: mode === 'development' && 'source-map',
   output: {
     filename: 'index.js',
     path: path.resolve(__dirname, 'build'),
@@ -20,9 +20,14 @@ module.exports = {
       canvas: path.resolve(__dirname, '../../game-core/server/ext/canvas.js'),
       perf_hooks: path.resolve(__dirname, '../../game-core/server/ext/perf_hooks.js'),
     },
+    extensions: ['.ts', '.js', '.json', '.cjs'],
   },
   module: {
     rules: [
+      {
+        test: /\.ts$/,
+        loader: 'ts-loader',
+      },
       {
         test: /\.jsx?$/,
         type: 'javascript/auto',

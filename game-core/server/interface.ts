@@ -1,49 +1,48 @@
-const random = require('random-seed');
-const Player = require('./player');
-const GameDocument = require('./document');
-const GameElement = require('./element');
-const ActionQueue = require('./actionqueue');
-const { asyncTimes, isSpaceNode } = require('./utils');
-
-class InvalidChoiceError extends Error {}
-class InvalidActionError extends Error {}
-class IncompleteActionError extends Error {
-  constructor(args) {
+import random from 'random-seed';
+import Player from './player';
+import GameDocument from './document';
+import GameElement from './element';
+import ActionQueue from './actionqueue';
+import { asyncTimes, isSpaceNode } from './utils';
+import type Space from './space';
+import type {Argument, Action} from './types.d';
+export class InvalidChoiceError extends Error {}
+export class InvalidActionError extends Error {}
+export class IncompleteActionError extends Error {
+  constructor(public args: {prompt: string, min?: number, max?: number, choices?: Argument[]}) {
     super(args.prompt);
-    this.args = args;
   }
 }
 
-class GameInterface {
-  #minPlayers = 1;
-
-  #maxPlayers;
-
-  // list of Player objects in turn order
-  #players = [];
-
-  #numberOfPlayers;
-
-  // phase state machine: setup (can addPlayer) -> ready (can receive player actions)
-  #phase;
-
-  // list of functions for player-mat setup
-  #setupPlayerMat = [];
-
-  // list of functions for board setup
-  #setupBoard = [];
-
-  // list of afterMove callbacks
-  #afterMoves = [];
-
-  // list of available actions
-  #actions = {};
-
-  // main game loop function
-  #play;
-
-  // table position of current player (starts from 1) or undefined if any player can play
-  #currentPlayerPosition;
+export default class GameInterface {
+  #players: Player[]; // list of Player objects in turn order
+  #numberOfPlayers: number;
+  #phase: 'setup' | 'ready' | 'finished'; // phase state machine: setup (can addPlayer) -> ready (can receive player actions)
+  #currentPlayerPosition: number; // table position of current player (starts from 1) or undefined if any player can play
+  private minPlayers = 1;
+  private maxPlayers: number;
+  private setupPlayerMats = []; // list of functions for player-mat setup
+  private setupBoards = []; // list of functions for board setup
+  private afterMoves = []; // list of afterMove callbacks
+  private actions: {[index: string]: Action} = {}; // list of available actions
+  private playLoop: () => Promise<void>; // main game loop function
+  actionQueue: ActionQueue;
+  hiddenKeys;
+  hiddenElements;
+  variables: object;
+  allowedMoveElements: string;
+  alwaysAllowedPlays: string[];
+  currentActions: string[];
+  promptMessage: string;
+  changeset: [string, string][];
+  random;
+  doc: GameDocument;
+  board: Space; 
+  pile: Space; 
+  initialVariables: object;
+  idSequence: number;
+  sequence: number;
+  lastReplaySequence: number;
 
   constructor() {
     this.actionQueue = new ActionQueue();
@@ -52,7 +51,6 @@ class GameInterface {
     this.variables = {};
     this.allowedMoveElements = '.piece'; // piece selector that is always valid for moving
     this.alwaysAllowedPlays = []; // actions that anyone can take at any time
-    this.drags = {};
     this.currentActions = [];
     this.promptMessage = null;
     this.changeset = []; // list of changes this action [[old-id, new-id],...]
@@ -93,18 +91,18 @@ class GameInterface {
   }
 
   initializeBoardWithPlayers() {
-    this.#setupBoard.forEach(f => f(this.board));
-    Object.entries(this.#players).forEach(([turn, { position, color }]) => {
+    this.setupBoards.forEach(f => f(this.board));
+    Object.entries(this.players).forEach(([turn, { position, color }]) => {
       const playerMat = this.doc.addSpace(`#player-mat-${position}`, { player: position, class: 'player-mat', color });
-      this.#setupPlayerMat.forEach(f => f(playerMat, position, color, parseInt(turn, 10)));
+      this.setupPlayerMats.forEach(f => f(playerMat, position, color, parseInt(turn, 10)));
     });
-    this.currentPlayerPosition = 1;
+    this.#currentPlayerPosition = 1;
   }
 
   defineAction(name, action) {
     if (typeof name !== 'string' || typeof action !== 'object') throw Error('usage: defineAction(someAction, { ...action properties... })');
     this.validateAction(name, action);
-    this.#actions[name] = action;
+    this.actions[name] = action;
   }
 
   defineActions(actions) {
@@ -113,19 +111,12 @@ class GameInterface {
   }
 
   validateAction(name, action) {
-    const unknownAttrs = Object.keys(action).filter(a => !['select', 'prompt', 'promptOnto', 'confirm', 'log', 'if', 'unless', 'key', 'action', 'next', 'drag', 'onto', 'min', 'max', 'toPlayer'].includes(a));
-    if (unknownAttrs.length) throw Error(`${name} has unknown properties: '${unknownAttrs.join('\', \'')}'`);
-    if (!action.prompt) throw Error(`${name} is missing 'prompt'`);
     if (action.confirm && action.select) throw Error(`${name} may not have both 'confirm' and 'select'`);
     if (action.next && action.action) throw Error(`${name} may not have both 'next' and 'action'. Use 'next' for a follow-up action, and 'action' only at the end.`);
     if (action.if && action.unless) throw Error(`${name} may not have both 'if' and 'unless'`);
     if (action.drag) {
       if (!action.onto && !action.toPlayer) throw Error(`${name} has a 'drag' but no 'onto' or 'toPlayer'`);
-      if (action.onto instanceof Array && action.onto.length === 0) {
-        throw Error(`${name} has an 'onto' with no spaces.`);
-      }
     }
-    if (action.toPlayer && !['other', 'all', 'me'].includes(action.toPlayer)) throw Error(`${name} 'toPlayer' must be 'me', 'other' or 'all'`);
     if (action.max === undefined ? action.min !== undefined : action.min === undefined) {
       throw Error(`${name} has 'min' or 'max' but needs both`);
     }
@@ -133,12 +124,11 @@ class GameInterface {
   }
 
   getAllActions() {
-    return Object.keys(this.#actions);
+    return Object.keys(this.actions);
   }
 
-  setupBoard(fn) {
-    if (typeof fn !== 'function') throw Error('usage: setupBoard(board => { ... add things to `board` ... });');
-    this.#setupBoard.push(fn);
+  private setupBoard(fn: (e: GameElement) => void) {
+    this.setupBoards.push(fn);
   }
 
   playerMat(player = this.currentPlayerPosition) {
@@ -146,14 +136,14 @@ class GameInterface {
     return this.doc.find(`.player-mat[player="${player}"]`);
   }
 
-  setupPlayerMat(fn) {
+  setupPlayerMat(fn: (mat: GameElement, player: number, color: string, turnOrder: number) => void) {
     if (typeof fn !== 'function') throw Error('usage: setupPlayerMat((mat, player, color, turnOrder) => { ... add things to `mat` ... });');
-    this.#setupPlayerMat.push(fn);
+    this.setupPlayerMats.push(fn);
   }
 
   setPlayers({ min, max }) {
-    this.#minPlayers = min;
-    this.#maxPlayers = max;
+    this.minPlayers = min;
+    this.maxPlayers = max;
   }
 
   async processPlayerStart() {
@@ -162,23 +152,23 @@ class GameInterface {
 
   play(fn) {
     if (typeof fn !== 'function') throw Error('usage: play(async () => { ... play actions ... });');
-    if (this.#play) throw Error('play() must not be called more than once');
-    this.#play = fn;
+    if (this.playLoop) throw Error('play() must not be called more than once');
+    this.playLoop = fn;
   }
 
   async runPlayLoop() {
     console.log('I: ready');
     this.#phase = 'ready';
-    if (!this.#play) throw Error('play() must be called');
-    return this.#play();
+    if (!this.playLoop) throw Error('play() must be called');
+    return this.playLoop();
   }
 
   // add player to game
-  addPlayers(players) {
+  addPlayers(players: {id: number, name: string, color: string}[]) {
     if (this.phase !== 'setup') throw Error('not able to add players while playing');
-    if (players.length > this.#maxPlayers) throw Error('too many players');
-    this.#players = Object.entries(players).map(([index, { id, name, color }]) => new Player({ userId: id, name, color, position: parseInt(index, 10) + 1 }));
-    this.#numberOfPlayers = this.#players.length;
+    if (players.length > this.maxPlayers) throw Error('too many players');
+    this.#players = Object.entries(players).map(([index, { id, name, color }]) => new Player(name, color, id, parseInt(index, 10) + 1));
+    this.#numberOfPlayers = this.players.length;
   }
 
   get(key) {
@@ -214,8 +204,7 @@ class GameInterface {
     this.hiddenKeys.push(key);
   }
 
-  hideBoard(selector, attrs) {
-    if (typeof selector !== 'string' || (attrs && !(attrs instanceof Array))) throw Error('usage: hideBoard(selector, attributes) e.g. hideBoard(\'card.flipped\', [\'name\'])');
+  hideBoard(selector: string, attrs?: string[]) {
     this.hiddenElements.push([selector, attrs]);
   }
 
@@ -272,7 +261,7 @@ class GameInterface {
   }
 
   getPlayerViews() {
-    return this.#players.reduce((views, { position, userId }) => {
+    return this.players.reduce((views, { position, userId }) => {
       views[userId] = this.getPlayerView(position);
       return views;
     }, {});
@@ -303,9 +292,9 @@ class GameInterface {
       ));
 
       const view = this.currentActions.reduce((drags, action) => {
-        if (this.#actions[action].drag) {
+        if (this.actions[action].drag) {
           drags[action] = {
-            pieces: this.serialize(this.doc.findAll(this.#actions[action].drag)),
+            pieces: this.serialize(this.doc.findAll(this.actions[action].drag)),
             spaces: this.serialize(this.doc.findAll(this.ontoSelector(action))),
           };
         }
@@ -335,9 +324,8 @@ class GameInterface {
   }
 
   // provide a fn that should be run after any board moves
-  afterMove(pieceSelector, fn) {
-    if (typeof pieceSelector !== 'string' || typeof fn !== 'function') throw Error('usage: afterMove(selector, piece => { ... do things to `piece` ... });');
-    this.#afterMoves.push([pieceSelector, fn]);
+  afterMove(pieceSelector: string, fn: (e: GameElement) => void) {
+    this.afterMoves.push([pieceSelector, fn]);
   }
 
   // wait for an action from list of actions from current player
@@ -350,10 +338,10 @@ class GameInterface {
     return this.playerPlay(actions);
   }
 
-  async playerPlay(allowedActions, allowedPlayer) {
+  async playerPlay(allowedActions, allowedPlayer?) {
     if (!(allowedActions instanceof Array)) throw Error('called a play action without a list of actions');
     this.currentActions = allowedActions;
-    this.currentPlayerPosition = allowedPlayer;
+    this.#currentPlayerPosition = allowedPlayer;
 
     const allAllowedActions = [...allowedActions, ...this.alwaysAllowedPlays, 'moveElement'];
 
@@ -364,11 +352,10 @@ class GameInterface {
       if (allowedPlayer && allowedPlayer !== player) {
         return `Waiting for player ${allowedPlayer} and rejected action from player ${player}.`;
       }
-      return true;
     }, ({ player, action, args }) => {
       console.log('I runAction', action, args);
       if (action === 'moveElement') {
-        return this.inScopeAsPlayer(player, () => this.moveElement(...this.deserialize(args)));
+        return this.inScopeAsPlayer(player, () => this.moveElement(...this.deserialize(args) as [Argument, Argument]));
       }
       return this.inScopeAsPlayer(player, () => this.runAction(action, this.deserialize(args)));
     });
@@ -378,12 +365,12 @@ class GameInterface {
 
   // runs provided async block for each player, starting with the current
   async playersInTurn(fn) {
-    if (!this.currentPlayerPosition) this.currentPlayerPosition = this.players[0].position;
-    await asyncTimes(this.#players.length, async () => {
+    if (!this.currentPlayerPosition) this.#currentPlayerPosition = this.players[0].position;
+    await asyncTimes(this.players.length, async () => {
       const startedThisTurn = this.currentPlayerPosition;
       console.log('starting playersInTurn', this.currentPlayerPosition);
       await fn(this.currentPlayerPosition);
-      this.currentPlayerPosition = startedThisTurn;
+      this.#currentPlayerPosition = startedThisTurn;
       this.endTurn();
       console.log('ending playersInTurn', this.currentPlayerPosition);
     });
@@ -403,7 +390,7 @@ class GameInterface {
   }
 
   processAfterMoves(elements) {
-    this.#afterMoves.forEach(([pieceSelector, fn]) => {
+    this.afterMoves.forEach(([pieceSelector, fn]) => {
       elements.forEach(el => {
         if (el.matches(pieceSelector)) fn(el);
       });
@@ -419,7 +406,7 @@ class GameInterface {
     if (this.currentPlayerPosition !== undefined && player !== this.currentPlayerPosition) return {};
     return this.currentActions.reduce((choices, action) => {
       // console.time('choicesFromActions:' + action);
-      const { key } = this.#actions[action] || {};
+      const { key } = this.actions[action] || {};
       try {
         const { prompt } = this.testAction(action, player);
         choices[action] = { prompt, key };
@@ -453,9 +440,9 @@ class GameInterface {
       ([interactivePiece, actionName, ...args] = args);
       action = interactivePiece.actions[actionName];
     } else {
-      if (typeof actionIdentifier === 'string' && this.#actions[actionIdentifier]) {
+      if (typeof actionIdentifier === 'string' && this.actions[actionIdentifier]) {
         actionName = actionIdentifier;
-        action = this.#actions[actionIdentifier];
+        action = this.actions[actionIdentifier];
       } else {
         actionName = action.prompt;
       }
@@ -592,7 +579,7 @@ class GameInterface {
   }
 
   ontoSelector(action) {
-    let { onto, toPlayer } = this.#actions[action]; // eslint-disable-line prefer-const
+    let { onto, toPlayer } = this.actions[action]; // eslint-disable-line prefer-const
     if (toPlayer) {
       onto = onto || '';
       if (toPlayer === 'other') {
@@ -611,7 +598,7 @@ class GameInterface {
   async replay(actions) {
     console.log('I: replay');
     for (let i = 0; i !== actions.length; i++) {
-      await this.processAction(...actions[i]);
+      await this.processAction(actions[i][0], actions[i][1], actions[i][2], ...actions[i].slice(3));
     }
   }
 
@@ -654,7 +641,7 @@ class GameInterface {
   logEntry(action, ...args) {
     if (action.drag) args = args.slice(0, 2);
     const name = this.currentPlayer() && this.currentPlayer().colorEncodedName();
-    return this.#players.reduce((entry, { position, userId }) => {
+    return this.players.reduce((entry, { position, userId }) => {
       position -= 1;
       if (action.log) {
         let { log } = action;
@@ -688,7 +675,7 @@ class GameInterface {
   }
 
   set currentPlayerPosition(player) {
-    if (player > this.#players.length || player < 1) {
+    if (player > this.players.length || player < 1) {
       throw new Error(`No such player ${player}`);
     }
     this.#currentPlayerPosition = player;
@@ -699,7 +686,7 @@ class GameInterface {
   }
 
   player(position) {
-    return this.#players.find(p => p.position === position);
+    return this.players.find(p => p.position === position);
   }
 
   currentPlayer() {
@@ -734,22 +721,22 @@ class GameInterface {
 
   inScopeAsPlayer(player, fn) {
     const tmpPlayer = this.currentPlayerPosition;
-    this.currentPlayerPosition = player;
+    this.#currentPlayerPosition = player;
     try {
       return fn();
     } finally {
-      this.currentPlayerPosition = tmpPlayer;
+      this.#currentPlayerPosition = tmpPlayer;
     }
   }
 
   playerByUserId(userId) {
-    const player = this.#players.find(p => p.userId === userId);
+    const player = this.players.find(p => p.userId === userId);
     if (!player) throw Error(`No such player ${userId}`);
     return player.position;
   }
 
   endTurn() {
-    this.currentPlayerPosition = this.players[(this.turnOrderOf(this.currentPlayerPosition) + 1) % this.#players.length].position;
+    this.#currentPlayerPosition = this.players[(this.turnOrderOf(this.currentPlayerPosition) + 1) % this.players.length].position;
   }
 
   moveElement(el, positioning) {
@@ -765,5 +752,3 @@ class GameInterface {
     }
   }
 }
-
-module.exports = { GameInterface, InvalidChoiceError, IncompleteActionError, InvalidActionError };

@@ -1,7 +1,7 @@
-const GameElement = require('./element');
-const { elementClasses } = require('./utils');
+import GameElement from './element';
+import { elementClasses } from './utils';
 
-class Piece extends GameElement {
+export default class Piece extends GameElement {
   moveTo(to, position = 0) {
     return this.document.move([this], to || this.parent(), 1, position);
   }
@@ -15,6 +15,4 @@ class Piece extends GameElement {
   }
 }
 
-elementClasses.Piece = Piece;
-
-module.exports = Piece;
+elementClasses.set('Piece', Piece);

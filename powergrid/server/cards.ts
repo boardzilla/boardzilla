@@ -1,4 +1,4 @@
-module.exports = [
+export default [
   {
     id: '#oil-03',
     cost: 3,

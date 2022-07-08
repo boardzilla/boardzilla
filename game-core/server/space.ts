@@ -1,7 +1,8 @@
-const GameElement = require('./element');
-const { times, elementClasses } = require('./utils');
+import GameElement from './element';
+import { times, elementClasses } from './utils';
+import type {ElementLookup} from './types.d';
 
-class Space extends GameElement {
+export default class Space extends GameElement {
   space(q) {
     if (q instanceof Space) return q;
     return this.spaces(q)[0];
@@ -29,7 +30,7 @@ class Space extends GameElement {
   }
 
   sort(fn) {
-    Space.sort(Array.from(this.node.children).map(node => node.gameElement), fn)
+    Space.sort(Array.from(this.node.children).map(node => (node as ElementLookup).gameElement), fn)
       .map(pair => pair.node)
       .forEach(i => this.node.insertBefore(i, null));
   }
@@ -46,15 +47,13 @@ class Space extends GameElement {
     return set.sort(comp);
   }
 
-  addSpace(name, attrs) {
-    return this.addGameElement(elementClasses.Space, name, 'space', 'space', attrs);
+  addSpace(name, attrs=null) {
+    return this.addGameElement(elementClasses.get('Space'), name, 'space', 'space', attrs);
   }
 
-  addSpaces(num, name, attrs) {
+  addSpaces(num, name, attrs=null) {
     return times(num, () => this.addSpace(name, attrs));
   }
 }
 
-elementClasses.Space = Space;
-
-module.exports = Space;
+elementClasses.set('Space', Space);
