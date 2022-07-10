@@ -1,23 +1,23 @@
-import type {Argument, ActionReturn} from './types.d';
+import type {ActionReturn, QueueItem, QueueAction} from './types.d';
 
 export default class ActionQueue {
-  #queue = [];
+  private queue: QueueItem[] = [];
 
-  #queueResolution;
+  private queueResolution?: { resolve: (q: QueueItem) => void };
 
   async waitForMatchingAction(
-    matchFn,
-    processFn?: ({player, action, args}: {player: number; action: string; args: Argument[]}) => ActionReturn
-  ) {
+    matchFn: (a: QueueAction) => boolean | string,
+    processFn?: ({player, action, args}: QueueAction) => void | ActionReturn
+  ): Promise<QueueAction> {
     let item;
     let succeeded = false;
-    while (!succeeded) {
+    do {
       item = await this.waitForNext();
       try {
         const error = matchFn(item.action);
         if (error !== true) {
           console.log('Q rejecting matchFn', error);
-          item.reject(Error(error));
+          item.reject(Error(error || 'Reject match function'));
         } else {
           const result = processFn && processFn(item.action);
           item.resolve(result);
@@ -27,35 +27,35 @@ export default class ActionQueue {
         console.log('Q error from waitForMatchingAction', e, item);
         item.reject(e);
       }
-    }
+    } while (!succeeded);
 
     return item.action;
   }
 
   async waitForNext() {
-    if (this.#queueResolution) throw Error('Error during play queue with simulataneous players taking turns. Please ensure that you have \'await\' in your game loop around player actions');
-    const promise = new Promise((resolve, reject) => {
-      this.#queueResolution = { resolve, reject };
-      this.#pump();
+    if (this.queueResolution) throw Error('Error during play queue with simulataneous players taking turns. Please ensure that you have \'await\' in your game loop around player actions');
+    const promise: Promise<QueueItem> = new Promise(resolve => {
+      this.queueResolution = { resolve };
+      this.pump();
     });
     return promise;
   }
 
-  #pump() {
-    if (this.#queueResolution) {
-      const queueItem = this.#queue.shift();
+  private pump() {
+    if (this.queueResolution) {
+      const queueItem = this.queue.shift();
       if (queueItem) {
-        this.#queueResolution.resolve(queueItem);
-        this.#queueResolution = null;
+        this.queueResolution.resolve(queueItem);
+        delete this.queueResolution;
       }
     }
   }
 
   // runner calls await processAction(playerAction...)
-  async processAction(action): Promise<ActionReturn> {
+  async processAction(action: QueueAction): Promise<void | ActionReturn> {
     return new Promise((resolve, reject) => {
-      this.#queue.push({ action, resolve, reject });
-      this.#pump();
+      this.queue.push({ action, resolve, reject });
+      this.pump();
     });
   }
 }

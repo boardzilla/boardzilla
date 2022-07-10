@@ -4,8 +4,10 @@
     "allowJs": true,
     "target": "es6",
     "types": ["node", "jest"],
-    "module": "node16",
-    "sourceMap": true
+    "module": "nodenext",
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
   },
   "include": ["*/server/**/*"],
   "exclude": ["**/node_modules", "**/.*/"]

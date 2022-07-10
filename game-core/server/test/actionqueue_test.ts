@@ -6,7 +6,7 @@ import spies from 'chai-spies';
 import ActionQueue from '../actionqueue';
 
 chai.use(spies);
-const matcher = ({ player, action }) => {
+const matcher = ({player, action}: { player: number, action: string }) => {
   if (action !== 'hi') return 'can only say hi';
   if (player !== 1) return 'must be player 1';
   return true;
@@ -24,12 +24,12 @@ describe('ActionQueue', () => {
       const promise: Promise<void> = new Promise(resolve => {
         setTimeout(async () => {
           const result = await actionQueue.processAction({ player: 1, action: 'hi', args: ['"there"', '"gamer"'] });
-          assert.equal(result, true);
+          assert.deepEqual(result, {log: '', prompt: ''});
           console.log('result', result);
           resolve();
         }, 100);
       });
-      const { player, action, args } = await actionQueue.waitForMatchingAction(matcher, () => ({log: null, prompt: null}));
+      const { player, action, args } = await actionQueue.waitForMatchingAction(matcher, () => ({log: '', prompt: ''}));
       assert.equal(player, 1);
       assert.equal(action, 'hi');
       assert.deepEqual(args, ['"there"', '"gamer"']);
@@ -57,9 +57,8 @@ describe('ActionQueue', () => {
       setTimeout(() => {
         done();
       }, 200);
-      actionQueue.waitForMatchingAction(matcher, () => ({log: null, prompt: null})).then(() => {
+      actionQueue.waitForMatchingAction(matcher, () => ({log: '', prompt: ''})).then(() => {
         assert(false, 'waitForMatchingAction completed early');
-        done();
       });
     });
 
@@ -67,13 +66,13 @@ describe('ActionQueue', () => {
       const promise: Promise<void> = new Promise(resolve => {
         setTimeout(async () => {
           assert.rejects(async () => {
-            const result = await actionQueue.processAction({ player: 1, action: 'wrong action' });
+            const result = await actionQueue.processAction({ player: 1, action: 'wrong action', args: [] });
             console.log('result', result);
           }, Error);
           resolve();
         }, 100);
       });
-      actionQueue.waitForMatchingAction(matcher, () => ({log: null, prompt: null})).then(() => {
+      actionQueue.waitForMatchingAction(matcher, () => ({log: '', prompt: ''})).then(() => {
         assert(false, 'waitForMatchingAction completed early');
       });
       return promise;
@@ -83,13 +82,13 @@ describe('ActionQueue', () => {
       const promise: Promise<void> = new Promise(resolve => {
         setTimeout(async () => {
           assert.rejects(async () => {
-            const result = await actionQueue.processAction({ player: 2, action: 'hi' });
+            const result = await actionQueue.processAction({ player: 2, action: 'hi', args: [] });
             console.log('result', result);
           }, Error);
           resolve();
         }, 100);
       });
-      actionQueue.waitForMatchingAction(matcher, () => ({log: null, prompt: null})).then(() => {
+      actionQueue.waitForMatchingAction(matcher, () => ({log: '', prompt: ''})).then(() => {
         assert(false, 'waitForMatchingAction completed early');
       });
       return promise;
@@ -99,17 +98,17 @@ describe('ActionQueue', () => {
       const promise: Promise<void> = new Promise(resolve => {
         setTimeout(async () => {
           assert.rejects(async () => {
-            const result = await actionQueue.processAction({ player: 1, action: 'wrong action' });
+            const result = await actionQueue.processAction({ player: 1, action: 'wrong action', args: [] });
             console.log('result', result);
           }, Error);
         }, 100);
         setTimeout(async () => {
-          const result = await actionQueue.processAction({ player: 1, action: 'hi' });
+          const result = await actionQueue.processAction({ player: 1, action: 'hi', args: [] });
           console.log('result', result);
           resolve();
         }, 150);
       });
-      const { player, action } = await actionQueue.waitForMatchingAction(matcher, () => ({log: null, prompt: null}));
+      const { player, action } = await actionQueue.waitForMatchingAction(matcher, () => ({log: '', prompt: ''}));
       assert.equal(player, 1);
       assert.equal(action, 'hi');
       console.log(player, action);

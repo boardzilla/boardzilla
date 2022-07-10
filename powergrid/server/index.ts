@@ -1,6 +1,7 @@
 import { game, $, $$, Counter, InvalidChoiceError, IncompleteActionError } from 'game-core-server';
-import { times, range, sumBy } from 'game-core-server/utils';
-import cards from './cards';
+import { times, range, sumBy } from 'game-core-server/utils.js';
+import cards from './cards.js';
+import Piece from 'game-core-server/piece.js';
 
 game.setPlayers({
   min: 1,
@@ -12,7 +13,7 @@ const highScore = () => {
   return (highest && highest.get('score')) || 0;
 };
 
-const applyMinimumRule = () => $$('#powerplants card').forEach(card => {
+const applyMinimumRule = () => game.doc.pieces('#powerplants card').forEach(card => {
   if (card.get('cost') <= highScore()) {
     card.remove();
     $('#deck').move('card', '#powerplants', 1);

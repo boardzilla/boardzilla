@@ -13,7 +13,7 @@ export default class Counter extends InteractivePiece {
       min: 0,
       max: 99,
       log: () => `$0 set ${this.get('name') || 'counter'} to $1`,
-      action: value => {
+      action: (value: number) => {
         let newValue = value;
         newValue = Math.max(newValue, 0, this.getNumber('min'));
         if (this.getNumber('max')) newValue = Math.min(newValue, this.getNumber('max'));

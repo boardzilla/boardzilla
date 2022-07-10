@@ -1,18 +1,18 @@
 import { DOMParser } from 'linkedom/cached';
 import Space from './space';
+import type GameInterface from './interface';
 
 export default class GameDocument extends Space {
   xmlDoc: XMLDocument;
 
-  constructor(game, xmlDoc?) {
+  constructor(game: GameInterface, xmlDoc?: XMLDocument) {
     const newDoc = !xmlDoc;
     // initial call to build the base DOM
     xmlDoc = xmlDoc || (new DOMParser()).parseFromString('<game/>', 'text/xmlDoc');
-    super({ node: xmlDoc.getRootNode() });
+    super({ node: xmlDoc!.documentElement, game });
 
     this.document = this;
-    this.game = game;
-    this.xmlDoc = xmlDoc;
+    this.xmlDoc = xmlDoc!;
     this.id = 'game';
     if (newDoc) {
       this.addSpace('#board');
@@ -21,11 +21,11 @@ export default class GameDocument extends Space {
   }
 
   clone() {
-    return new GameDocument(this.game, this.xmlDoc.cloneNode(true));
+    return new GameDocument(this.game, this.xmlDoc.cloneNode(true) as XMLDocument);
   }
 
   // return element from branch
-  pieceAt(key) {
+  pieceAt(key: string) {
     return this.find(
       `game > ${key.split('-').map(index => `*:nth-child(${index})`).join(' > ')}`,
     );

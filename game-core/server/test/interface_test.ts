@@ -8,7 +8,7 @@ import Interface from '../interface';
 
 chai.use(spies);
 const { expect } = chai;
-let spendSpy;
+let spendSpy: ReturnType<typeof chai.spy>;
 let game: Interface;
 
 describe('GameInterface', () => {
@@ -44,11 +44,11 @@ describe('GameInterface', () => {
         prompt: 'add some counters',
         min: 1,
         max: 3,
-        action: (n) => game.set('tokens', game.get('tokens') + n),
+        action: (n: number) => game.set('tokens', game.get('tokens') as number + n),
       },
       takeOne: {
         prompt: 'take one counter',
-        action: () => game.set('tokens', game.get('tokens') - 1),
+        action: () => game.set('tokens', game.get('tokens') as number - 1),
       },
       hi: { prompt: 'hi' },
       spend: {
@@ -80,9 +80,9 @@ describe('GameInterface', () => {
     it('plays', async () => {
       game.startProcessing();
       await game.processHistory([
-        [2, 0, 'addSome', 2],
-        [3, 1, 'addSome', 2],
-        [3, 2, 'addSome', 200], // will be ignored
+        [2, 0, 'addSome', '2'],
+        [3, 1, 'addSome', '2'],
+        [3, 2, 'addSome', '200'], // will be ignored
         [1, 2, 'takeOne'],
         [2, 3, 'takeOne'],
         [3, 4, 'takeOne'],
@@ -102,7 +102,7 @@ describe('GameInterface', () => {
       game.startProcessing();
       await game.processPlayerStart();
       console.log('current', game.currentPlayerPosition);
-      await game.processAction(1, 0, 'spend', '"gold"', 2);
+      await game.processAction(1, 0, 'spend', '"gold"', '2');
       expect(spendSpy).to.have.been.called.with('gold', 2);
     });
   });

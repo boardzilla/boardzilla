@@ -1,5 +1,9 @@
 module.exports = {
   parser: '@typescript-eslint/parser',
+  parserOptions: {
+    project: './tsconfig.json',
+    tsconfigRootDir: __dirname,
+  },
   plugins: ['@typescript-eslint'],
   env: {
     browser: true,
@@ -11,17 +15,17 @@ module.exports = {
   ],
   rules: {
     '@typescript-eslint/no-unused-vars': [
-      'error',
-      {
+      'error', {
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
         caughtErrorsIgnorePattern: '^_',
       },
     ],
+    '@typescript-eslint/no-implicit-any': 'error',
+    '@typescript-eslint/no-explicit-any': 0,
+    '@typescript-eslint/restrict-plus-operands': 'error',
     'no-underscore-dangle': 0,
-    'new-cap': [
-      'off',
-    ],
+    'new-cap': [ 'off' ],
     'no-await-in-loop': 0,
     'arrow-parens': 0,
     'no-plusplus': 0,
