@@ -79,6 +79,8 @@ export default class GameInterface {
 
   reset(rseed: string) {
     this.playLoop = undefined;
+    this.setupBoards = [];
+    this.setupPlayerMats = [];
     this.#players = [];
     this.initialize(rseed);
     this.actionQueue = new ActionQueue();
@@ -87,6 +89,7 @@ export default class GameInterface {
     this.variables = {};
     this.allowedMoveElements = '.piece'; // piece selector that is always valid for moving
     this.alwaysAllowedPlays = []; // actions that anyone can take at any time
+    this.doc.reset();
   }
 
   async startProcessing() {
@@ -727,7 +730,7 @@ export default class GameInterface {
         const previous = previousNames[parseInt(i, 10)];
         if (previous && typeof previous !== 'string' && previous[position - 1].shown) return previous[position - 1];
         const hidden = this.inScopeAsPlayer(position, () => !!this.hiddenElements.find(([selector]) => el.matches(selector)));
-        const name = el.descrptiveName(position, hidden);
+        const name = el.descriptiveName(position, hidden);
         return { [el.id && !hidden ? 'shown' : 'hidden']: name };
       });
     });

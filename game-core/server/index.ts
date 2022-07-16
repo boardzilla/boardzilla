@@ -8,11 +8,4 @@ export {default as Die} from './die';
 import {default as GameElement} from './element';
 
 export const game = new GameInterface();
-export function $<T extends GameElement>(className: { new (...a: any[]): T }, q: string) {
-  return game.doc.find(className, q);
-}
-export function $$<T extends GameElement>(className: { new (...a: any[]): T }, q: string) {
-  return game.doc.findAll(className, q);
-}
-
 GameElement.ctx = game.doc.ctx;

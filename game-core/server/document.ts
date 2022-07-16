@@ -21,6 +21,12 @@ export default class GameDocument extends Space {
     }
   }
 
+  reset() {
+    this.board().destroyContents('*');
+    this.pile().destroyContents('*');
+    this.findAll(GameElement, ':not([id=board]):not([id=pile])').forEach(e => {console.log('eis', e.id); e.destroy()});
+  }
+
   clone() {
     return new GameDocument(this.ctx.game, this.xmlDoc.cloneNode(true) as XMLDocument);
   }

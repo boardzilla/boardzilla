@@ -4,11 +4,13 @@
 import assert from 'assert';
 import chai from 'chai';
 import spies from 'chai-spies';
-import { game } from '../';
+import { game, Space, Piece, InteractivePiece } from '../';
 
 chai.use(spies);
 const { expect } = chai;
 let spendSpy: ReturnType<typeof chai.spy>;
+
+const uuidRE = '[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}';
 
 describe('GameInterface', () => {
   beforeEach(() => {
@@ -104,6 +106,224 @@ describe('GameInterface', () => {
       console.log('current', game.currentPlayerPosition);
       await game.processAction(1, 0, 'spend', '"gold"', '2');
       expect(spendSpy).to.have.been.called.with('gold', 2);
+    });
+  });
+});
+
+describe('GameDocument', () => {
+  beforeEach(() => {
+    game.reset('test');
+    game.play(async () => {});
+  });
+
+  it('renders', () => {
+    expect(game.doc.ctx.node.outerHTML).equals(
+      '<game><Space class="space" id="board" /><Space class="space" id="pile" /></game>'
+    );
+  });
+
+  it('creates new spaces', async () => {
+    game.setupBoard(board => {
+      board.create(Space, '#map', {});
+    });
+    game.startProcessing();
+    await game.processPlayerStart();
+    expect(game.doc.ctx.node.outerHTML).equals(
+      '<game><Space class="space" id="board"><Space class="space" id="map" /></Space><Space class="space" id="pile" /></game>'
+    );
+  });
+
+  it('creates new pieces', async () => {
+    game.setupBoard(board => {
+      board.create(Piece, '#token', { player: 1 });
+    });
+    game.startProcessing();
+    await game.processPlayerStart();
+    expect(game.doc.ctx.node.outerHTML).to.match(
+      new RegExp(`<game><Space class="space" id="board"><Piece uuid="${uuidRE}" player="1" class="piece" id="token" /></Space><Space class="space" id="pile" /></game>`)
+    );
+  });
+
+  describe("Element subclasses", () => {
+    class Card extends Piece {
+      suit: string;
+      pip?: number = 1;
+      flipped?: boolean = false;
+      state?: string = 'initial'; // not ser'd
+
+      static serializable = ['suit', 'pip', 'flipped']
+    }
+
+    it('takes attrs', async () => {
+      game.setupBoard(board => {
+        board.create(Card, '#2H', { suit: 'H', pip: 2 });
+      });
+      game.startProcessing();
+      await game.processPlayerStart();
+      expect(game.doc.ctx.node.outerHTML).to.match(
+        new RegExp(`<game><Space class="space" id="board"><Card uuid="${uuidRE}" pip="2" suit="H" class="piece" id="2H" /></Space><Space class="space" id="pile" /></game>`)
+      );
+    });
+
+    it('takes base attrs', async () => {
+      game.setupBoard(board => {
+        board.create(Card, '#2H', { player: 2, suit: 'H', pip: 2 });
+      });
+      game.startProcessing();
+      await game.processPlayerStart();
+      expect(game.doc.ctx.node.outerHTML).to.match(
+        new RegExp(`<game><Space class="space" id="board"><Card uuid="${uuidRE}" player="2" pip="2" suit="H" class="piece" id="2H" /></Space><Space class="space" id="pile" /></game>`)
+      );
+    });
+
+    it('finds', async () => {
+      game.setupBoard(board => {
+        board.create(Card, '#AH', { suit: 'H', pip: 1 });
+        board.create(Card, '#2H', { suit: 'H', pip: 2 });
+        board.create(Card, '#3H', { suit: 'H', pip: 3 });
+      });
+      game.startProcessing();
+      await game.processPlayerStart();
+      const card = Card.find('[pip=2]');
+      expect(card.pip).equals(2);
+    });
+
+    it('modifies', async () => {
+      game.setupBoard(board => {
+        board.create(Card, '#AH', { suit: 'H', pip: 1 });
+        board.create(Card, '#2H', { suit: 'H', pip: 2 });
+        board.create(Card, '#3H', { suit: 'H', pip: 3 });
+      });
+      game.startProcessing();
+      await game.processPlayerStart();
+      const card = Card.find('[pip=2]');
+      card.suit = 'D';
+      expect(card.suit).equals('D');
+      expect(game.doc.ctx.node.outerHTML).to.match(
+        new RegExp(
+          `<game>` +
+            `<Space class="space" id="board">` +
+            `<Card uuid="${uuidRE}" pip="1" suit="H" class="piece" id="AH" />` +
+            `<Card uuid="${uuidRE}" pip="2" suit="D" class="piece" id="2H" />` +
+            `<Card uuid="${uuidRE}" pip="3" suit="H" class="piece" id="3H" />` +
+            `</Space><Space class="space" id="pile" />` +
+            `</game>`
+        )
+      );
+    });
+
+    it('takes from pile', async () => {
+      game.setupBoard(board => {
+        board.create(Card, '#AH', { suit: 'H', pip: 1 });
+        board.create(Card, '#2H', { suit: 'H', pip: 2 });
+        game.pile.create(Card, '#3H', { suit: 'H', pip: 3 });
+      });
+      game.startProcessing();
+      await game.processPlayerStart();
+      expect(game.doc.ctx.node.outerHTML).to.match(
+        new RegExp(
+          `<game>` +
+            `<Space class="space" id="board">` +
+            `<Card uuid="${uuidRE}" pip="1" suit="H" class="piece" id="AH" />` +
+            `<Card uuid="${uuidRE}" pip="2" suit="H" class="piece" id="2H" />` +
+            `</Space>` +
+            `<Space class="space" id="pile">` +
+            `<Card uuid="${uuidRE}" pip="3" suit="H" class="piece" id="3H" />` +
+            `</Space>` +
+            `</game>`
+        )
+      );
+      game.board.addFromPile('Card');
+      expect(game.doc.ctx.node.outerHTML).to.match(
+        new RegExp(
+          `<game>` +
+            `<Space class="space" id="board">` +
+            `<Card uuid="${uuidRE}" pip="1" suit="H" class="piece" id="AH" />` +
+            `<Card uuid="${uuidRE}" pip="2" suit="H" class="piece" id="2H" />` +
+            `<Card uuid="${uuidRE}" pip="3" suit="H" class="piece" id="3H" />` +
+            `</Space>` +
+            `<Space class="space" id="pile" />` +
+            `</game>`
+        )
+      );
+      game.board.clearIntoPile('Card[pip=1]');
+      expect(game.doc.ctx.node.outerHTML).to.match(
+        new RegExp(
+          `<game>` +
+            `<Space class="space" id="board">` +
+            `<Card uuid="${uuidRE}" pip="2" suit="H" class="piece" id="2H" />` +
+            `<Card uuid="${uuidRE}" pip="3" suit="H" class="piece" id="3H" />` +
+            `</Space>` +
+            `<Space class="space" id="pile">` +
+            `<Card uuid="${uuidRE}" pip="1" suit="H" class="piece" id="AH" />` +
+            `</Space>` +
+            `</game>`
+        )
+      );
+    });
+
+    it('moves', async () => {
+      game.setupBoard(board => {
+        const deck = board.create(Space, '#deck', { layout: 'stack' });
+        board.create(Space, '#discard', { layout: 'stack' });
+        deck.create(Card, '#AH', { suit: 'H', pip: 1 });
+        deck.create(Card, '#2H', { suit: 'H', pip: 2 });
+        deck.create(Card, '#3H', { suit: 'H', pip: 3 });
+      });
+
+      game.startProcessing();
+      await game.processPlayerStart();
+      expect(game.doc.ctx.node.outerHTML).to.match(
+        new RegExp(
+          `<game>` +
+            `<Space class="space" id="board">` +
+            `<Space layout="stack" class="space" id="deck">` +
+            `<Card pip="1" suit="H" class="piece" id="AH" />` +
+            `<Card pip="2" suit="H" class="piece" id="2H" />` +
+            `<Card pip="3" suit="H" class="piece" id="3H" />` +
+            `</Space>` +
+            `<Space layout="stack" class="space" id="discard" />` +
+            `</Space>` +
+            `<Space class="space" id="pile" />` +
+            `</game>`
+        )
+      );
+      const deck = Space.find('#deck');
+      const discard = Space.find('#discard');
+      deck.move('Card', discard, 2);
+      expect(game.doc.ctx.node.outerHTML).to.match(
+        new RegExp(
+          `<game>` +
+            `<Space class="space" id="board">` +
+            `<Space layout="stack" class="space" id="deck">` +
+            `<Card pip="1" suit="H" class="piece" id="AH" />` +
+            `</Space>` +
+            `<Space layout="stack" class="space" id="discard">` +
+            `<Card pip="3" suit="H" class="piece" id="3H" />` +
+            `<Card pip="2" suit="H" class="piece" id="2H" />` +
+            `</Space>` +
+            `</Space>` +
+            `<Space class="space" id="pile" />` +
+            `</game>`
+        )
+      );
+      discard.moveToBottom('Card', deck, 1);
+      expect(game.doc.ctx.node.outerHTML).to.match(
+        new RegExp(
+          `<game>` +
+            `<Space class="space" id="board">` +
+            `<Space layout="stack" class="space" id="deck">` +
+            `<Card pip="2" suit="H" class="piece" id="2H" />` +
+            `<Card pip="1" suit="H" class="piece" id="AH" />` +
+            `</Space>` +
+            `<Space layout="stack" class="space" id="discard">` +
+            `<Card pip="3" suit="H" class="piece" id="3H" />` +
+            `</Space>` +
+            `</Space>` +
+            `<Space class="space" id="pile" />` +
+            `</game>`
+        )
+      );
     });
   });
 });

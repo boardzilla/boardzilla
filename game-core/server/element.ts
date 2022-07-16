@@ -58,7 +58,7 @@ export default class GameElement {
   }
 
   // human readable name of this element from the perspective of player
-  descrptiveName(player: number, hidden: boolean) {
+  descriptiveName(player: number, hidden: boolean) {
     const noun = this.id && !hidden ? this.id : this.constructor.name;
     let pronoun = '';
     if (!this.id || hidden) {
@@ -171,11 +171,11 @@ export default class GameElement {
     return this.pileNode().gameElement as Space;
   }
 
-  addFromPile(pieces: string, num?: number) {
+  addFromPile(pieces: string, num?: number): Piece[] {
     return this.move(this.pile().findAll(GameElement, pieces) as Piece[], this, num);
   }
 
-  clearIntoPile(pieces: string, num?: number) {
+  clearIntoPile(pieces: string, num?: number): Piece[] {
     return this.move(pieces, this.pile(), num);
   }
 
@@ -199,22 +199,20 @@ export default class GameElement {
 
     let allAttrs: string[] = [];
     let thisClass = className;
-    const newAttrs = thisClass.serializable;
 
     do {
       if (thisClass.serializable) allAttrs = [...new Set([ ...allAttrs, ...thisClass.serializable])];
       thisClass = Object.getPrototypeOf(thisClass);
     } while (thisClass.name === 'GameElement' || thisClass.prototype instanceof GameElement);
 
+
     for (const attr of allAttrs) {
       // @ts-ignore
-      el.setAttribute(attr, el[attr]);
-      if (newAttrs && newAttrs.includes(attr) && ['GameElement', 'Space', 'Piece'].includes(className.name)) {
-        Object.defineProperty(el, attr, {
-          get: function() { return this.attrs[attr]; },
-          set: v => el.setAttribute(attr, v),
-        })
-      }
+      el.setAttribute(attr, attrs[attr] === undefined ? el[attr] : attrs[attr]);
+      Object.defineProperty(el, attr, {
+        get: function() { return this.attrs[attr]; },
+        set: v => el.setAttribute(attr, v),
+      })
     }
 
     if (el.elementType === 'piece' && this.layout !== 'stack') el.assignUUID();
