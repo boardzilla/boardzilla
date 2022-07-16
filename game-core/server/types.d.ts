@@ -1,4 +1,9 @@
 import type GameElement from './element';
+import type GameDocument from './document';
+import type Piece from './piece';
+import type Space from './space';
+import type InteractivePiece from './interactive-piece';
+import type GameInterface from './interface';
 import type Player from './player';
 declare module 'linkedom/cached';
 
@@ -9,7 +14,7 @@ interface Action {
   key?: string;
   log?: false | string | ((...a: Argument[]) => string);
   confirm?: string | [string, string];
-  select?: string | Argument[] | ((...a: Argument[]) => Argument[]);
+  select?: string | Argument[] | Record<string, Argument> | ((...a: Argument[]) => Argument[]);
   next?: Action;
   action?: (...a: Argument[]) => void;
   if?: string | ((...a: Argument[]) => boolean);
@@ -52,3 +57,26 @@ interface QueueItem {
 }
 
 type NamedArg = (string | {hidden?: string, shown?: string}[]);
+
+type ElementClass<T extends GameElement> = { new(context: {}, attrs: Record<string, any>): T, ctx: Context, serializable?: string[] }
+
+type Context = {
+  node: ElementLookup;
+  document: GameDocument;
+  game: GameInterface;
+}
+
+type GameElementSerialization = 'player' | 'uuid' | 'x' | 'y' | 'left' | 'right' | 'top' | 'bottom' | 'columns' | 'rows' | 'layout' | 'zoom';
+type PieceSerialization = GameElementSerialization | 'cell';
+type InteractivePieceSerialization = PieceSerialization | 'component';
+type SpaceSerialization = GameElementSerialization;
+type BaseType<T> = (T extends InteractivePiece ? InteractivePiece : (T extends Piece ? Piece : Space))
+
+type ElementAttributes<T extends GameElement> =
+  // required attrs are non-optional attrs added beyond the base type
+  {[K2 in Exclude<{[K in keyof T]: T extends Record<K, T[K]> ? K : never}[keyof T], undefined | keyof BaseType<T>>]: T[K2]} &
+  // optional attrs are optional attrs added beyond the base type plus the serialization attributes on the base type
+  {
+    [K2 in Exclude<{[K in keyof T]: T extends Record<K, T[K]> ? never : K}[keyof T], undefined | keyof BaseType<T>> |
+    (T extends InteractivePiece ? InteractivePieceSerialization : (T extends Piece ? PieceSerialization : SpaceSerialization))]?: T[K2]
+  }

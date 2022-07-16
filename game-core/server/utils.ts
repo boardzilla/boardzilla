@@ -5,13 +5,8 @@ export const times = (n: number, fn: (n: number) => any) => Array.from(Array(n))
 export const range = (min: number, max: number, step = 1) => times(Math.floor((max - min) / step) + 1, i => (i - 1) * step + min);
 export const asyncTimes = async (n: number, fn: (n: number) => Promise<any>) => { for (let i = 0; i < n; i++) await fn(i); };
 
-export const isSpaceNode = (node: Node) => node && node.nodeName === 'space';
-export const isPieceNode = (node: Node) => node && !isSpaceNode(node);
 export const sumBy = (items: GameElement[], fn: string | ((e: GameElement) => number)) => (
-  items.reduce((total, c) => (
-    total + (typeof fn === 'function' ? fn(c) : c.getNumber(fn))
+  items.reduce((total, e) => (
+    total + (typeof fn === 'function' ? fn(e) : e.get(fn) as number)
   ), 0)
 );
-
-export const elementClasses = new Map();
-

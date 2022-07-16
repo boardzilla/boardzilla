@@ -1,35 +1,27 @@
 import InteractivePiece from './interactive-piece';
 
 export default class Counter extends InteractivePiece {
-  initialize() {
-    this.set({
-      value: this.getNumber('initialValue'),
-      moves: 0,
-    });
-  }
+  value: number;
+  moves?: number = 0;
+  name: string;
+  min?: number = 0;
+  max?: number;
+  steps?: number[] = [-1, 1];
+
+  static component = 'Counter';
 
   actions = {
     set: {
       min: 0,
       max: 99,
-      log: () => `$0 set ${this.get('name') || 'counter'} to $1`,
+      log: () => `$0 set ${this.name || 'counter'} to $1`,
       action: (value: number) => {
         let newValue = value;
-        newValue = Math.max(newValue, 0, this.getNumber('min'));
-        if (this.getNumber('max')) newValue = Math.min(newValue, this.getNumber('max'));
-        this.set({
-          value: newValue,
-          moves: this.getNumber('moves') + 1,
-        });
+        newValue = Math.max(newValue, 0, this.min!);
+        if (this.max) newValue = Math.min(newValue, this.max);
+        this.value = newValue;
+        this.moves! += 1;
       },
     },
   };
 }
-
-Counter.defaults = {
-  initialValue: 0,
-  min: 0,
-  steps: [-1, 1],
-};
-
-Counter.component = 'Counter';

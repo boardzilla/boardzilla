@@ -1,19 +1,34 @@
 import GameElement from './element';
-import { elementClasses } from './utils';
-import type Space from './space';
+import type {ElementLookup} from './types.d';
+import type GameDocument from './document';
+import type GameInterface from './interface';
 
 export default class Piece extends GameElement {
-  moveTo(to?: GameElement, position = 0) {
-    return this.document.move([this], to || this.parent(), 1, position);
+  cell?: number;
+
+  static serializable: string[] = ['cell'];
+
+  constructor(
+    ctx: {
+      node: ElementLookup;
+      document: GameDocument;
+      game: GameInterface;
+    },
+    attrs: Record<string, any> = {}
+  ) {
+    super(ctx, attrs);
+    this.elementType = 'piece';
   }
 
-  moveToBottomOf(to: GameElement) {
-    return this.document.moveToBottom([this], to || this.parent());
+  moveTo(to?: string | GameElement, position = 0) {
+    return this.ctx.document.move([this], to || this.parent()!, 1, position);
+  }
+
+  moveToBottomOf(to: string | GameElement) {
+    return this.ctx.document.moveToBottom([this], to || this.parent()!);
   }
 
   remove() {
     return this.moveTo(this.pile());
   }
 }
-
-elementClasses.set('Piece', Piece);

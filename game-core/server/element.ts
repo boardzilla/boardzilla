@@ -1,102 +1,69 @@
 import uuid from 'uuid-random';
-import type GameDocument from './document';
-import type GameInterface from './interface';
 import type Space from './space';
 import type Piece from './piece';
-import type {ElementLookup} from './types.d';
+import type {ElementLookup, ElementAttributes, ElementClass, Context} from './types.d';
 
-import { times, isPieceNode, elementClasses } from './utils';
+import { times } from './utils';
 
+// TODO reserved attributes? class, className, id, style  & special attributes: player, layout, component, x,y,top,left,right,bottom...?
 export default class GameElement {
-  node: ElementLookup;
-  document: GameDocument;
-  game: GameInterface;
   id: string;
-  type: string;
+  elementType: string = 'none';
 
-  constructor({ node, game, document }: { node: Element, game: GameInterface, document?: GameDocument }, attrs?: Record<string, any>) {
-    this.node = Object.assign(node, { gameElement: this });
-    if (document) this.document = document;
-    this.game = game;
-    this.id = node.id; // TODO reserved id's? game, board...
-    this.type = node.nodeName.toLowerCase();
-    if (attrs) this.set(attrs);
+  player?: number;
+  uuid?: string;
+  x?: number;
+  y?: number;
+  left?: number;
+  right?: number;
+  top?: number;
+  bottom?: number;
+  columns?: number;
+  rows?: number;
+  layout?: string;
+  zoom?: number;
+
+  static serializable: string[] = [
+    'player',
+    'uuid',
+    'x',
+    'y',
+    'left',
+    'right',
+    'top',
+    'bottom',
+    'columns',
+    'rows',
+    'layout',
+    'zoom',
+  ];
+
+  constructor(
+    public ctx: Context,
+    protected attrs: Record<string, any> = {}
+  ) {
+    Object.assign(ctx.node, { gameElement: this });
+    this.id = ctx.node.id;
   }
 
-  assignUUID() {
-    this.set({ uuid: uuid() });
+  static ctx: Context;
+
+  protected assignUUID() {
+    this.uuid = uuid();
   }
 
-  enhanceQuery(q: string) {
-    return q.replace(/\.mine/g, `[player="${this.game.currentPlayerPosition}"]`)
-      .replace(/=(['"]?)([^\]'"]+)\1/g, (_m, _, a) => `="${escape(a)}"`);
-  }
-
-  /**
-   * is attribute on this element
-   */
-  has(name: string):boolean {
-    return this.node.getAttribute(name) !== null;
-  }
-
-  /**
-   * get string attribute on this element
-   */
-  get(name: string):string {
-    const attr = this.node.getAttribute(name);
-    // if (!attr) return undefined;
-    if (attr === null) throw Error(`No attribute '${name}' found on ${this.node}`);
-    return unescape(attr);
-  }
-
-  /**
-   * get numerical attribute on this element
-   */
-  getNumber(name: string):number {
-    return Number(this.get(name));
-  }
-
-  getObject(name: string):object {
-    return JSON.parse(this.get(name));
-  }
-
-  /**
-   * set attributes on this element
-   * set({ attr1: newValue, attr2: newValue,... })
-   * set(attr1, newValue)
-   */
-  set(name: (string | Record<string, any>), value?: any) { /* eslint-disable-line @typescript-eslint/no-explicit-any */
-    if (typeof name === 'object') {
-      Object.entries(name).forEach(([n, v]) => this.set(n, v));
-    } else {
-      if (value === undefined) {
-        this.set(name, true);
-      } else {
-        value = typeof value === 'object' ? JSON.stringify(value) : value;
-        this.node.setAttribute(name, escape(value)); // TODO reserved attributes? class, className, id, style  & special attributes: player, layout, component, x,y,top,left,right,bottom...?
-      }
-    }
-  }
-
-  unset(...names: string[]) {
-    names.forEach(name => this.node.removeAttribute(name));
-  }
-
-  toggle(name: string) {
-    this.set(name, !this.get(name));
-  }
-
-  increment(name: string, value: number) {
-    this.set(name, this.get(name) + value);
+  private enhanceQuery(q: string) {
+    return q.replace(/\.mine/g, `[player="${this.ctx.game.currentPlayerPosition}"]`);
+//      .replace(/=(['"]?)([^\]'"]+)\1/g, (_m, _, a) => `="${escape(a)}"`); ????
   }
 
   // human readable name of this element from the perspective of player
-  name(player: number, hidden: boolean) {
-    const noun = this.id && !hidden ? this.get('name') || this.id : this.type;
+  descrptiveName(player: number, hidden: boolean) {
+    const noun = this.id && !hidden ? this.id : this.constructor.name;
     let pronoun = '';
     if (!this.id || hidden) {
       if (this.matches('.mine *')) {
-        pronoun = this.game.currentPlayerPosition === player ? 'my' : 'their';
+        pronoun = this.ctx.game.currentPlayerPosition === player ? 'my' : 'their';
       } else {
         pronoun = 'a';
       }
@@ -105,18 +72,15 @@ export default class GameElement {
   }
 
   findNode(q = '*') {
-    if (q === null) return null;
-    return this.node.querySelector(this.enhanceQuery(q)) as ElementLookup;
+    return this.ctx.node.querySelector(this.enhanceQuery(q)) as ElementLookup;
   }
 
   findNodes(q = '*') {
-    if (q === null) return [];
-    return Array.from(this.node.querySelectorAll(this.enhanceQuery(q))) as ElementLookup[];
+    return Array.from(this.ctx.node.querySelectorAll(this.enhanceQuery(q))) as ElementLookup[];
   }
 
-  empty(q: string) {
-    const el = this.find(q);
-    return !el || el.node.children.length === 0;
+  empty() {
+    return this.ctx.node.children.length === 0;
   }
 
   count(q: string) {
@@ -127,47 +91,55 @@ export default class GameElement {
     return !!this.findNode(q);
   }
 
-  find(q: string | GameElement) {
-    if (q instanceof GameElement) return q;
+  find<T extends GameElement>(className: { new (...a: any[]): T }, q: string = '*') {
     const node = this.findNode(q);
     if (!node) throw Error(`Could not find element '${q}'`);
+    if (!(node.gameElement instanceof className)) throw Error(`query '${q}' returned a ${node.gameElement.constructor.name} instead of a ${className.name}.`)
     return node.gameElement;
   }
 
-  findAll(q: string | GameElement | GameElement[]) {
-    if (q instanceof GameElement) return [q];
-    if (q instanceof Array) return q;
-    return Array.from(this.findNodes(q)).map(node => node.gameElement);
+  findAll<T extends GameElement>(className: { new (...a: any[]): T }, q: string = '*') {
+    return Array.from(this.findNodes(q))
+      .filter(node => node.gameElement instanceof className)
+      .map(node => node.gameElement) as T[];
   }
 
-  piece(q: string | Piece): Piece | undefined {
-    if (q instanceof GameElement) return q;
-    const p = this.pieces(q)[0];
-    return p;
+  static find<T extends GameElement>(this: ElementClass<T>, q: string): T {
+    return this.ctx.document.find(this, q);
   }
 
-  pieces(q: string | Piece[]): Piece[] {
-    if (q instanceof Array) return q;
-    return this.findAll(q).filter(el => isPieceNode(el.node)) as Piece[];
+  static findAll<T extends GameElement>(this: ElementClass<T>, q: string): T[] {
+    return this.ctx.document.findAll(this, q);
   }
 
-  player(): number | null {
-    return this.getNumber('player') || (this.node.parentNode && this.parent().player());
+  static lowest<T extends GameElement>(this: ElementClass<T>, q: string, fn: ((e: GameElement) => number) | string): T {
+    return this.ctx.document.lowest(q, fn) as T;
+  }
+
+  static highest<T extends GameElement>(this: ElementClass<T>, q: string, fn: ((e: GameElement) => number) | string): T {
+    return this.ctx.document.highest(q, fn) as T;
+  }
+
+  // TODO max, min convenient call fn from above
+
+  owner(): number | undefined {
+    return this.player || this.parent()?.player;
   }
 
   parent() {
-    return (this.node?.parentNode as ElementLookup)?.gameElement;
+    if (!this.ctx.node.parentNode) return;
+    return (this.ctx.node.parentNode as ElementLookup).gameElement;
   }
 
   matches(q: string) {
-    return this.node.matches(this.enhanceQuery(q));
+    return this.ctx.node.matches(this.enhanceQuery(q));
   }
 
   hasParent(el: GameElement) {
-    let { node } = this;
+    let { node } = this.ctx;
     while (node.parentNode) {
       node = node.parentNode as ElementLookup;
-      if (node === el.node) return true;
+      if (node === el.ctx.node) return true;
     }
     return false;
   }
@@ -175,8 +147,8 @@ export default class GameElement {
   // return full path to element, e.g. "2-1-3"
   branch() {
     const branches = [];
-    let { node } = this;
-    while (node.parentNode && node.parentNode.parentNode) {
+    let { node } = this.ctx;
+    while (node.parentNode?.parentNode) {
       branches.unshift(Array.prototype.indexOf.call(node.parentNode.childNodes, node) + 1);
       node = node.parentNode as ElementLookup;
     }
@@ -184,133 +156,186 @@ export default class GameElement {
   }
 
   boardNode() {
-    return this.document.node.children[0] as ElementLookup;
+    return this.ctx.document.ctx.node.children[0] as ElementLookup;
   }
 
   board(): Space {
-    return this.boardNode().gameElement! as Space;
+    return this.boardNode().gameElement as Space;
   }
 
   pileNode() {
-    return this.document.node.children[1] as ElementLookup;
+    return this.ctx.document.ctx.node.children[1] as ElementLookup;
   }
 
   pile(): Space {
-    return this.pileNode().gameElement! as Space;
+    return this.pileNode().gameElement as Space;
   }
 
-  place(pieces: string | GameElement[], to: string | GameElement) {
-    return this.pile().move(pieces, to);
+  addFromPile(pieces: string, num?: number) {
+    return this.move(this.pile().findAll(GameElement, pieces) as Piece[], this, num);
   }
 
-  add(pieces: string | GameElement[], num?: number) {
-    return this.move(this.pile().pieces(pieces), this, num);
-  }
-
-  clear(pieces: string | GameElement[], num?: number) {
+  clearIntoPile(pieces: string, num?: number) {
     return this.move(pieces, this.pile(), num);
   }
 
   destroy() {
-    if (this.node.parentNode) this.node.parentNode.removeChild(this.node);
+    this.ctx.node.parentNode?.removeChild(this.ctx.node);
   }
 
-  destroyContents(pieces: string | GameElement | GameElement[]) {
-    this.findAll(pieces).forEach(p => p.destroy());
+  destroyContents(pieces: string) {
+    this.findAll(GameElement, pieces).forEach(p => p.destroy());
   }
 
-  addPiece(name: string, type: string, attrs: Record<string, any>) {
-    return this.addGameElement(elementClasses.get('Piece'), name, type, 'piece', attrs);
-  }
-
-  addPieces(num: number, name: string, type: string, attrs: Record<string, any>) {
-    return times(num, () => this.addPiece(name, type, attrs));
-  }
-
-  addInteractivePiece(pieceClass: typeof GameElement, attrs: Record<string, any> = {}) {
-    if (!pieceClass || !pieceClass.name) throw Error(`No interactive piece class found: ${pieceClass}`);
-    const name = pieceClass.name.toLowerCase();
-    return this.addGameElement(pieceClass, `#${this.game.registerId(name)}`, name, 'interactive-piece', attrs);
-  }
-
-  addGameElement(elementClass: typeof GameElement, id: string, type: string, className: string, attrs: Record<string, any> = {}) {
-    console.log(attrs, elementClass, elementClasses);
-    const el = this.document.xmlDoc.createElement(type);
+  create<T extends GameElement>(className: ElementClass<T>, id: string, attrs: ElementAttributes<T>): T {
+    const node: ElementLookup = this.ctx.document.xmlDoc.createElement(className.name) as any;
     if (id[0] !== '#') throw Error(`id ${id} must start with #`);
-    el.id = id.slice(1);
-    el.setAttribute('class', `${attrs.class || ''} ${className}`.trim());
-    delete attrs.class;
-    this.node.appendChild(el);
-    const gameElement = new elementClass({ node: el, game: this.game, document: this.document }, attrs);
-    if (isPieceNode(el) && this.get('layout') !== 'stack') gameElement.assignUUID();
-    return gameElement;
+    node.id = id.slice(1);
+    this.ctx.node.appendChild(node);
+
+    const ctx = { ...this.ctx, node };
+    const el = new className(ctx, attrs);
+    node.className = el.elementType;
+
+    let allAttrs: string[] = [];
+    let thisClass = className;
+    const newAttrs = thisClass.serializable;
+
+    do {
+      if (thisClass.serializable) allAttrs = [...new Set([ ...allAttrs, ...thisClass.serializable])];
+      thisClass = Object.getPrototypeOf(thisClass);
+    } while (thisClass.name === 'GameElement' || thisClass.prototype instanceof GameElement);
+
+    for (const attr of allAttrs) {
+      // @ts-ignore
+      el.setAttribute(attr, el[attr]);
+      if (newAttrs && newAttrs.includes(attr) && ['GameElement', 'Space', 'Piece'].includes(className.name)) {
+        Object.defineProperty(el, attr, {
+          get: function() { return this.attrs[attr]; },
+          set: v => el.setAttribute(attr, v),
+        })
+      }
+    }
+
+    if (el.elementType === 'piece' && this.layout !== 'stack') el.assignUUID();
+    return el;
+  }
+
+  createMany<T extends GameElement>(className: ElementClass<T>, num: number, id: string, attrs: ElementAttributes<T>): T[] {
+    return times(num, () => this.create(className, id, attrs));
+  }
+
+  set(attrs: Record<string, any>) {
+    // @ts-ignore
+    Object.entries(attrs).forEach(([attr, value]) => this[attr] = value);
+  }
+
+  get(attr: string) {
+    return this.attrs[attr];
+  }
+
+  private setAttributes(attrs: Record<string, any>) {
+    Object.entries(attrs).forEach(([k, v]) => {
+      if (!(k in this.attrs)) throw Error(`Attribute '${attrs}' does not exist on ${this.constructor.name}`);
+      this.setAttribute(k, v);
+    });
+  }
+
+  private setAttribute(attr: string, value: any) {
+    if (value === undefined || value === null || value === false) {
+      this.ctx.node.removeAttribute(attr);
+    } else {
+      value = typeof value === 'object' ? JSON.stringify(value) : value;
+      this.ctx.node.setAttribute(attr, value); // escape(value) ??
+    }
+    this.attrs[attr] = value;
   }
 
   // move pieces to a space, at end of list (on top). use num to limit the number moved. use position to control child placement (same as slice)
-  move(pieces: string | GameElement[], to: string | GameElement, num?: number, position = 0) {
-    const space = this.document.find(to);
-    if (!space) throw new Error(`No space found "${to}"`);
-    let movables = this.pieces(pieces);
-    if (num === 0) return [];
-    if (num !== undefined) movables = movables.slice(-num);
+  move(pieces: string | Piece[], to: string | GameElement, num?: number, position = 0): Piece[] {
+    const space = typeof to === 'string' ? this.ctx.document.find(GameElement, to) : to;
+    let movables = typeof pieces === 'string' ? this.findAll(GameElement, pieces) as Piece[]: pieces;
+    if (num !== undefined) {
+      if (num <= 0) return [];
+      movables = movables.slice(-num);
+    }
     if (!movables.length) return [];
+
     if (position < 0) {
       position = -1 - position;
     } else {
-      position = space.node.childElementCount - position;
+      position = space.ctx.node.childElementCount - position;
     }
-    position = Math.min(Math.max(position, 0), space.node.childElementCount);
+    position = Math.min(Math.max(position, 0), space.ctx.node.childElementCount);
+
     let outOfSplay: GameElement | false = false;
     for (const piece of movables) {
-      piece.unset('x', 'y', 'left', 'top', 'right', 'bottom');
-      if (!outOfSplay && piece.parent().get('layout') === 'splay') outOfSplay = piece.parent();
+      piece.setAttributes({
+        x: undefined,
+        y: undefined,
+        left: undefined,
+        top: undefined,
+        right: undefined,
+        bottom: undefined,
+      });
+      if (!outOfSplay && piece.parent()?.layout === 'splay') outOfSplay = piece.parent()!;
       const previousId = piece.serialize();
-      if (isPieceNode(piece.node) && !piece.hasParent(space) && space.get('layout') !== 'stack') piece.assignUUID();
-      space.node.insertBefore(piece.node, space.node.children[position]);
-      if (space.get('layout') === 'grid' && piece.get('cell') === undefined) {
-        piece.set({ cell: space.findOpenCell() });
+      if (!piece.hasParent(space) && space.layout !== 'stack') piece.assignUUID();
+      space.ctx.node.insertBefore(piece.ctx.node, space.ctx.node.children[position]);
+      if (space.layout === 'grid' && piece.attrs.cell === undefined) {
+        piece.cell = space.findOpenCell();
       }
-      this.game.changeset.push([previousId, piece.serialize()]);
+      this.ctx.game.changeset.push([previousId, piece.serialize()]);
     }
-    this.game.processAfterMoves(movables);
-    if (space.get('layout') === 'splay') {
-      for (const child of space.node.children) {
+    this.ctx.game.processAfterMoves(movables);
+    if (space.layout === 'splay') {
+      for (const child of space.ctx.node.children) {
         const nextId = (<ElementLookup>child).gameElement.serialize();
-        if (!this.game.changeset.find(cs => cs[1] === nextId)) this.game.changeset.push([nextId, nextId]);
+        if (!this.ctx.game.changeset.find(cs => cs[1] === nextId)) this.ctx.game.changeset.push([nextId, nextId]);
       }
     }
-    if (outOfSplay !== false && outOfSplay.node !== space.node) {
-      for (const child of outOfSplay.node.children) {
+    if (outOfSplay !== false && outOfSplay.ctx.node !== space.ctx.node) {
+      for (const child of outOfSplay.ctx.node.children) {
         const nextId = (<ElementLookup>child).gameElement.serialize();
-        if (!this.game.changeset.find(cs => cs[1] === nextId)) this.game.changeset.push([nextId, nextId]);
+        if (!this.ctx.game.changeset.find(cs => cs[1] === nextId)) this.ctx.game.changeset.push([nextId, nextId]);
       }
     }
     return movables;
   }
 
   // move pieces to a space, at start of list (on bottom). use num to limit the number moved
-  moveToBottom(pieces: string | GameElement[], to: string | GameElement, num?: number) {
+  moveToBottom(pieces: string | Piece[], to: string | GameElement, num?: number) {
     this.move(pieces, to, num, -1);
   }
 
   moveToTop() {
-    if (this.node.parentNode) this.node.parentNode.appendChild(this.node);
+    if (this.ctx.node.parentNode) this.ctx.node.parentNode.appendChild(this.ctx.node);
   }
 
   findOpenCell() {
-    const cells = (this.getNumber('columns') || 1) * (this.getNumber('rows') || 1);
+    const cells = (this.columns || 1) * (this.rows || 1);
     let cell = 0;
     while (this.contains(`[cell="${cell}"]`)) cell += 1;
     return cell >= cells ? 0 : cell;
   }
 
+  static sort(set: GameElement[], fn: ((e: GameElement) => number | string) | string) {
+    const val = typeof fn === 'function' ? fn : (el: GameElement) => el.attrs.fn;
+    const comp = (a: GameElement, b: GameElement) => {
+      const aVal = val(a);
+      const bVal = val(b);
+      return (aVal > bVal ? 1 : (aVal < bVal ? -1 : 0));
+    };
+    return set.sort(comp);
+  }
+
   // return string representation, e.g. "$el(2-1-3)"
   serialize() {
-    if (this.get('uuid')) return `$uuid(${this.get('uuid')})`;
+    if (this.uuid) return `$uuid(${this.uuid})`;
     return this.branch();
   }
 
   toString() {
-    return `${this.type}#${this.id}`;
+    return `${this.constructor.name}#${this.id}`;
   }
 }

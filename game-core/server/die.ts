@@ -1,22 +1,19 @@
 import InteractivePiece from './interactive-piece';
 
 export default class Die extends InteractivePiece {
-  static component = 'Die';
+  faces: number = 6;
+  rolls: number = 0;
+  number: number = 1;
 
-  initialize() {
-    this.set({
-      number: 1,
-      rolls: 0,
-    });
-  }
+  static component = 'Die';
 
   actions = {
     roll: {
       action: () => {
-        const number = this.game.random(this.getNumber('faces')) + 1;
-        this.set({ number, rolls: this.getNumber('rolls') + 1 });
+        this.number = this.ctx.game.random(this.faces) + 1;
+        this.rolls += 1;
       },
-      log: () => `$0 rolled a ${this.getNumber('number')}`,
+      log: () => `$0 rolled a ${this.number}`,
     },
   };
 }

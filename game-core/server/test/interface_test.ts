@@ -4,25 +4,17 @@
 import assert from 'assert';
 import chai from 'chai';
 import spies from 'chai-spies';
-import Interface from '../interface';
+import { game } from '../';
 
 chai.use(spies);
 const { expect } = chai;
 let spendSpy: ReturnType<typeof chai.spy>;
-let game: Interface;
 
 describe('GameInterface', () => {
   beforeEach(() => {
     spendSpy = chai.spy();
-    game = new Interface();
+    game.reset('test');
     game.setPlayers({ min: 4, max: 4 });
-    game.initialize('rseed');
-    game.addPlayers([
-      { id: 101, name: 'Joe', color: 'red' },
-      { id: 102, name: 'Jane', color: 'green' },
-      { id: 103, name: 'Jack', color: 'yellow' },
-      { id: 104, name: 'Jen', color: 'purple' },
-    ]);
 
     game.play(async () => {
       game.set('tokens', 4);
@@ -61,6 +53,14 @@ describe('GameInterface', () => {
         },
       },
     });
+
+    game.initialize('rseed');
+    game.addPlayers([
+      { id: 101, name: 'Joe', color: 'red' },
+      { id: 102, name: 'Jane', color: 'green' },
+      { id: 103, name: 'Jack', color: 'yellow' },
+      { id: 104, name: 'Jen', color: 'purple' },
+    ]);
   });
 
   describe('start', () => {

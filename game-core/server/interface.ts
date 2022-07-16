@@ -3,8 +3,9 @@ import Player from './player';
 import GameDocument from './document';
 import GameElement from './element';
 import ActionQueue from './actionqueue';
-import { asyncTimes, isSpaceNode } from './utils';
+import { asyncTimes } from './utils';
 import Space from './space';
+import PlayerMat from './player-mat';
 import Piece from './piece';
 import InteractivePiece from './interactive-piece';
 import type {Argument, Action, ActionReturn, NamedArg, Phase, PlayerView, QueueAction} from './types.d';
@@ -25,7 +26,7 @@ export default class GameInterface {
   #numberOfPlayers: number;
   #phase: Phase; // phase state machine: setup (can addPlayer) -> ready (can receive player actions)
   #currentPlayerPosition: number; // table position of current player (starts from 1) or undefined if any player can play
-  private minPlayers = 1;
+  private minPlayers = 1; // TODO whered this go?
   private maxPlayers: number;
   private setupPlayerMats: PlayerMatSetup[] = []; // list of functions for player-mat setup
   private setupBoards: BoardSetup[] = []; // list of functions for board setup
@@ -43,8 +44,8 @@ export default class GameInterface {
   changeset: [string, string][];
   random: RandomSeed;
   doc: GameDocument;
-  board: Space; 
-  pile: Space; 
+  board: Space;
+  pile: Space;
   initialVariables: Record<string, string | number | boolean>;
   idSequence: number;
   sequence: number;
@@ -59,6 +60,9 @@ export default class GameInterface {
     this.alwaysAllowedPlays = []; // actions that anyone can take at any time
     this.currentActions = [];
     this.changeset = []; // list of changes this action [[old-id, new-id],...]
+    this.doc = new GameDocument(this);
+    this.board = this.doc.board();
+    this.pile = this.doc.pile();
   }
 
   /**
@@ -67,13 +71,22 @@ export default class GameInterface {
   initialize(rseed: string) {
     console.log('I: initialize');
     this.random = random.create(rseed);
-    this.doc = new GameDocument(this);
-    this.board = this.doc.board();
-    this.pile = this.doc.pile();
     this.variables = this.initialVariables || {};
     this.idSequence = 0;
     this.sequence = 0;
     this.#phase = 'setup';
+  }
+
+  reset(rseed: string) {
+    this.playLoop = undefined;
+    this.#players = [];
+    this.initialize(rseed);
+    this.actionQueue = new ActionQueue();
+    this.hiddenKeys = [];
+    this.hiddenElements = [];
+    this.variables = {};
+    this.allowedMoveElements = '.piece'; // piece selector that is always valid for moving
+    this.alwaysAllowedPlays = []; // actions that anyone can take at any time
   }
 
   async startProcessing() {
@@ -98,7 +111,7 @@ export default class GameInterface {
   initializeBoardWithPlayers() {
     this.setupBoards.forEach(f => f(this.board));
     Object.entries(this.players).forEach(([turn, { position, color }]) => {
-      const playerMat = this.doc.addSpace(`#player-mat-${position}`, { player: position, class: 'player-mat', color });
+      const playerMat = this.doc.create(PlayerMat, `#player-mat-${position}`, { player: position, color });
       this.setupPlayerMats.forEach(f => f(playerMat, position, color, parseInt(turn, 10)));
     });
     this.#currentPlayerPosition = 1;
@@ -139,7 +152,7 @@ export default class GameInterface {
 
   playerMat(player = this.currentPlayerPosition) {
     if (!player) throw Error('playerMat called without a player');
-    return this.doc.find(`.player-mat[player="${player}"]`);
+    return this.doc.find(PlayerMat, `.player-mat[player="${player}"]`);
   }
 
   setupPlayerMat(fn: PlayerMatSetup) {
@@ -251,7 +264,7 @@ export default class GameInterface {
           deserialized = this.doc.pieceAt(value.slice(4, -1));
         }
         if (value.slice(0, 6) === '$uuid(') {
-          deserialized = this.doc.find(`[uuid="${value.slice(6, -1)}"]`);
+          deserialized = this.doc.find(GameElement, `[uuid="${value.slice(6, -1)}"]`);
         }
         if (value.slice(0, 3) === '$p(') {
           deserialized = this.player(parseInt(value.slice(3, -1), 10));
@@ -297,7 +310,6 @@ export default class GameInterface {
           (attrs || n.getAttributeNames())
             .filter(attr => !['class', 'className', 'style', 'player', 'layout', 'component', 'x', 'y', 'top', 'left', 'right', 'bottom'].includes(attr))
             .forEach(attr => n.removeAttribute(attr));
-          if (isSpaceNode(n)) n.innerHTML = ''; // space contents are hidden
         });
       });
       console.log('getPlayerView:hidden');
@@ -312,8 +324,8 @@ export default class GameInterface {
         const drag = this.actions[action].drag;
         if (drag) {
           drags[action] = {
-            pieces: this.serialize(this.doc.findAll(drag)),
-            spaces: this.serialize(this.doc.findAll(this.ontoSelector(this.actions[action]))),
+            pieces: this.serialize(this.doc.findAll(Piece, drag)),
+            spaces: this.serialize(this.doc.findAll(GameElement, this.ontoSelector(this.actions[action]))),
           };
         }
         return drags;
@@ -332,7 +344,7 @@ export default class GameInterface {
       phase: this.phase,
       players: this.players,
       sequence: this.sequence,
-      doc: playerView.node.outerHTML,
+      doc: playerView.ctx.node.outerHTML,
       changes: this.changeset,
       allowedMove: this.allowedMoveElements,
       allowedActions,
@@ -511,15 +523,16 @@ export default class GameInterface {
     let nextPrompt;
     if (action.drag) {
       nextPrompt = this.dragAction(action.drag, this.ontoSelector(action), prompt, action.promptOnto, nextAction)(args);
-      if (action.toPlayer && args[1] instanceof GameElement) {
-        const player = args[1].player();
-        if (player !== null) args[1] = this.player(player) || args[1];
+      const target = args[1];
+      if (target && action.toPlayer && target instanceof GameElement) {
+        const player = target.player;
+        if (player) args[1] = this.player(player) || args[1];
       }
     } else if (action.select) {
       if (typeof action.select === 'object') {
         nextPrompt = this.chooseAction(action.select, prompt, nextAction, argIndex)(args);
       } else if (typeof action.select === 'string') {
-        nextPrompt = this.chooseAction(this.doc.findAll(action.select), prompt, nextAction, argIndex)(args);
+        nextPrompt = this.chooseAction(this.doc.findAll(GameElement, action.select), prompt, nextAction, argIndex)(args);
       } else if (typeof action.select === 'function') {
         nextPrompt = this.chooseAction(action.select(...args), prompt, nextAction, argIndex)(args);
       } else {
@@ -556,10 +569,10 @@ export default class GameInterface {
 
   dragAction(pieceSelector: string, spaceSelector: string, prompt: string, promptOnto: string | undefined, action: (a: Argument[]) => void) {
     return this.chooseAction(
-      this.doc.findAll(pieceSelector),
+      this.doc.findAll(Piece, pieceSelector),
       prompt,
       args => this.chooseAction(
-        this.doc.findAll(spaceSelector),
+        this.doc.findAll(GameElement, spaceSelector),
         promptOnto || prompt,
         ([piece, space, positioning]) => {
           if (action) {
@@ -714,7 +727,7 @@ export default class GameInterface {
         const previous = previousNames[parseInt(i, 10)];
         if (previous && typeof previous !== 'string' && previous[position - 1].shown) return previous[position - 1];
         const hidden = this.inScopeAsPlayer(position, () => !!this.hiddenElements.find(([selector]) => el.matches(selector)));
-        const name = el.name(position, hidden);
+        const name = el.descrptiveName(position, hidden);
         return { [el.id && !hidden ? 'shown' : 'hidden']: name };
       });
     });
@@ -794,7 +807,7 @@ export default class GameInterface {
         el.set(positioning);
       }
     } else {
-      throw Error(`Illegal moveElement ${el.node.outerHTML}, ${this.allowedMoveElements}`);
+      throw Error(`Illegal moveElement ${el.ctx.node.outerHTML}, ${this.allowedMoveElements}`);
     }
   }
 }

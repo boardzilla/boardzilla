@@ -1,57 +1,41 @@
 import GameElement from './element';
-import { times, elementClasses } from './utils';
+import { times } from './utils';
 import type {ElementLookup} from './types.d';
+import type GameDocument from './document';
+import type GameInterface from './interface';
 
 export default class Space extends GameElement {
-  space(q: string | Space) {
-    if (q instanceof Space) return q;
-    return this.spaces(q)[0];
-  }
-
-  spaces(q: string | Space | Space[]) {
-    if (q instanceof Array) return q;
-    return this.findAll(q).filter(el => el instanceof Space);
+  constructor(
+    ctx: {
+      node: ElementLookup;
+      document: GameDocument;
+      game: GameInterface;
+    },
+    attrs: Record<string, any> = {}
+  ) {
+    super(ctx, attrs);
+    this.elementType = 'space';
   }
 
   shuffle() {
-    times(this.node.childElementCount - 1, i => {
-      const r = this.game.random(this.node.childElementCount + 1 - i);
-      this.node.insertBefore(this.node.children[r], null);
+    times(this.ctx.node.childElementCount - 1, i => {
+      const r = this.ctx.game.random(this.ctx.node.childElementCount + 1 - i);
+      this.ctx.node.insertBefore(this.ctx.node.children[r], null);
     });
   }
 
   lowest(q: string, fn: ((e: GameElement) => number) | string) {
-    return Space.sort(this.findAll(q), fn)[0];
+    return Space.sort(this.findAll(GameElement, q), fn)[0];
   }
 
   highest(q: string, fn: ((e: GameElement) => number) | string) {
-    const sorted = Space.sort(this.findAll(q), fn);
+    const sorted = Space.sort(this.findAll(GameElement, q), fn);
     return sorted[sorted.length - 1];
   }
 
-  sort(fn: ((e: GameElement) => number) | string) {
-    Space.sort(Array.from(this.node.children).map(node => (node as ElementLookup).gameElement), fn)
-      .map(pair => pair.node)
-      .forEach(i => this.node.insertBefore(i, null));
-  }
-
-  static sort(set: GameElement[], fn: ((e: GameElement) => number) | string) {
-    const val = typeof fn === 'function' ? fn : (el: GameElement) => el.get(fn);
-    const comp = (a: GameElement, b: GameElement) => {
-      const aVal = val(a);
-      const bVal = val(b);
-      return (aVal > bVal ? 1 : (aVal < bVal ? -1 : 0));
-    };
-    return set.sort(comp);
-  }
-
-  addSpace(name: string, attrs?: Record<string, any>) {
-    return this.addGameElement(elementClasses.get('Space'), name, 'space', 'space', attrs);
-  }
-
-  addSpaces(num: number, name: string, attrs?: Record<string, any>) {
-    return times(num, () => this.addSpace(name, attrs));
+  sort(fn: ((e: GameElement) => number | string) | string) {
+    GameElement.sort(Array.from(this.ctx.node.children).map(node => (node as ElementLookup).gameElement), fn)
+      .map(pair => pair.ctx.node)
+      .forEach(i => this.ctx.node.insertBefore(i, null));
   }
 }
-
-elementClasses.set('Space', Space);

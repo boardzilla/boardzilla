@@ -1,13 +1,15 @@
+export type ResourceType = 'coal' | 'oil' | 'garbage' | 'uranium';
+
 type Card = {
   id: string;
   image: string;
   cost?: number;
-  resourceType?: string;
+  resourceType?: ResourceType | 'hybrid';
   resources?: number;
   power?: number;
 };
 
-const cards: Card[] = [
+export const cards: Card[] = [
   {
     id: '#oil-03',
     cost: 3,
@@ -287,10 +289,6 @@ const cards: Card[] = [
     image: 'nuclear-39.webp',
   },
   {
-    id: '#plug',
-    image: 'plug.webp',
-  },
-  {
     id: '#step-3',
     image: 'step-3.webp',
   },
@@ -337,5 +335,3 @@ const cards: Card[] = [
     image: 'wind-44.webp',
   },
 ];
-
-export default cards;
