@@ -20,15 +20,27 @@ export default class Piece extends GameElement {
     this.elementType = 'piece';
   }
 
-  moveTo(to?: string | GameElement, position = 0) {
+  putInto(to?: string | GameElement, position = 0) {
     return this.ctx.document.move([this], to || this.parent()!, 1, position);
   }
 
-  moveToBottomOf(to: string | GameElement) {
-    return this.ctx.document.moveToBottom([this], to || this.parent()!);
+  putIntoBottomOf(to: string | GameElement) {
+    return this.ctx.document.moveToBottom([this], to || this.parent()!, 1);
+  }
+
+  putInPosition(position: number) {
+    return this.ctx.document.move([this], this.parent()!, 1, position);
+  }
+
+  putInTopPosition() {
+    return this.ctx.document.move([this], this.parent()!, 1);
+  }
+
+  putInBottomPosition() {
+    return this.ctx.document.moveToBottom([this], this.parent()!, 1);
   }
 
   remove() {
-    return this.moveTo(this.pile());
+    return this.putInto(this.pile());
   }
 }

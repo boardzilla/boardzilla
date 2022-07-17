@@ -8,7 +8,7 @@ import Space from './space';
 import PlayerMat from './player-mat';
 import Piece from './piece';
 import InteractivePiece from './interactive-piece';
-import type {Argument, Action, ActionReturn, NamedArg, Phase, PlayerView, QueueAction} from './types.d';
+import type {Argument, PlayerMatSetup, BoardSetup, Action, ActionReturn, NamedArg, Phase, PlayerView, QueueAction} from './types.d';
 
 export class InvalidChoiceError extends Error {}
 export class InvalidActionError extends Error {}
@@ -17,9 +17,6 @@ export class IncompleteActionError extends Error {
     super(args.prompt);
   }
 }
-
-type PlayerMatSetup = (mat: GameElement, player: number, color: string, turnOrder: number) => void;
-type BoardSetup = (e: Space) => void;
 
 export default class GameInterface {
   #players: Player[]; // list of Player objects in turn order
@@ -113,9 +110,9 @@ export default class GameInterface {
 
   initializeBoardWithPlayers() {
     this.setupBoards.forEach(f => f(this.board));
-    Object.entries(this.players).forEach(([turn, { position, color }]) => {
+    Object.entries(this.players).forEach(([_turn, { position, color }]) => {
       const playerMat = this.doc.create(PlayerMat, `#player-mat-${position}`, { player: position, color });
-      this.setupPlayerMats.forEach(f => f(playerMat, position, color, parseInt(turn, 10)));
+      this.setupPlayerMats.forEach(f => f(playerMat, position, color));
     });
     this.#currentPlayerPosition = 1;
   }
@@ -153,13 +150,14 @@ export default class GameInterface {
     this.setupBoards.push(fn);
   }
 
-  playerMat(player = this.currentPlayerPosition) {
+  playerMat(player: number | Player = this.currentPlayerPosition) {
     if (!player) throw Error('playerMat called without a player');
+    if (player instanceof Player) player = player.position;
     return this.doc.find(PlayerMat, `.player-mat[player="${player}"]`);
   }
 
   setupPlayerMat(fn: PlayerMatSetup) {
-    if (typeof fn !== 'function') throw Error('usage: setupPlayerMat((mat, player, color, turnOrder) => { ... add things to `mat` ... });');
+    if (typeof fn !== 'function') throw Error('usage: setupPlayerMat((mat, player, color) => { ... add things to `mat` ... });');
     this.setupPlayerMats.push(fn);
   }
 
@@ -401,21 +399,22 @@ export default class GameInterface {
   }
 
   // runs provided async block for each player, starting with the current
-  async playersInTurn(fn: (p: number) => Promise<void>) {
+  async playersInTurn(fn: (p: Player) => Promise<void>) {
     if (!this.currentPlayerPosition) this.#currentPlayerPosition = this.players[0].position;
     await asyncTimes(this.players.length, async () => {
       console.log('asyncTimes');
       const startedThisTurn = this.currentPlayerPosition;
       console.log('starting playersInTurn', this.currentPlayerPosition);
-      await fn(this.currentPlayerPosition);
+      await fn(this.currentPlayer());
       this.#currentPlayerPosition = startedThisTurn;
       this.endTurn();
       console.log('ending playersInTurn', this.currentPlayerPosition);
     });
   }
 
-  turnOrderOf(playerPosition: number) {
-    return this.players.findIndex(p => p.position === playerPosition);
+  turnOrderOf(player: number | Player) {
+    if (player instanceof Player) player = player.position;
+    return this.players.findIndex(p => p.position === player);
   }
 
   // allow movement of pieces within their space if match the given selector
@@ -425,6 +424,109 @@ export default class GameInterface {
 
   playersMayAlwaysPlay(actions: string[]) {
     this.alwaysAllowedPlays = actions;
+  }
+  setCurrentPlayer(player: number | Player) {
+    if (player instanceof Player) player = player.position;
+    if (player > this.players.length || player < 1) {
+      throw Error(`No such player ${player}`);
+    }
+    this.#currentPlayerPosition = player;
+  }
+
+  get currentPlayerPosition() {
+    return this.#currentPlayerPosition;
+  }
+
+  player(position: number) {
+    return this.players.find(p => p.position === position);
+  }
+
+  currentPlayer() {
+    return this.player(this.currentPlayerPosition)!;
+  }
+
+  get players() {
+    return this.#players;
+  }
+
+  get numberOfPlayers() {
+    return this.#numberOfPlayers;
+  }
+
+  playersInPositionOrder() {
+    return this.players.sort((p1, p2) => (p1.position > p2.position ? 1 : -1));
+  }
+
+  otherPlayers() {
+    return this.players.filter(p => p.position !== this.currentPlayerPosition);
+  }
+
+  setAllPlayers(attrs: Record<string, string | number | boolean>) {
+    this.#players.forEach(p => p.set(attrs));
+  }
+
+  getAllPlayers(fn: ((p: Player) => number | string | boolean) | string) {
+    const val = typeof fn === 'function' ? fn : (p: Player) => p.attrs.fn;
+    return this.playersInPositionOrder().map(val);
+  }
+
+  countPlayersBy(fn: ((p: Player) => boolean) | string) {
+    return this.getAllPlayers(fn).filter(v => v).length;
+  }
+
+  playerWithHighest(fn: ((p: Player) => number | string) | string) {
+    const ranks = this.getAllPlayers(fn);
+    return this.player(ranks.indexOf(Math.max.apply(Math, ranks)));
+  }
+
+  playerWithLowest(fn: ((p: Player) => number | string) | string) {
+    const ranks = this.getAllPlayers(fn);
+    return this.player(ranks.indexOf(Math.min.apply(Math, ranks)));
+  }
+
+  playerMax(fn: ((p: Player) => number | string) | string) {
+    return Math.max.apply(Math, this.getAllPlayers(fn));
+  }
+
+  playerMin(fn: ((p: Player) => number | string) | string) {
+    return Math.min.apply(Math, this.getAllPlayers(fn));
+  }
+
+  playerWith(q: string | GameElement): Player | undefined {
+    if (typeof q === 'string') q = this.doc.find(GameElement, q);
+    const player = q.owner();
+    if (!player) return undefined;
+    return this.player(player);
+  }
+
+  playersSortedBy(fn: ((p: Player) => number | string) | string) {
+    const ranks = this.getAllPlayers(fn);
+    return [...this.players].sort((p1, p2) => (ranks[p1.position - 1] > ranks[p2.position - 1] ? 1 : (ranks[p1.position - 1] < ranks[p2.position - 1] ? -1 : 0)));
+  }
+
+  reorderPlayersBy(fn: ((p: Player) => number | string) | string) {
+    const ranks = this.getAllPlayers(fn);
+    this.players.sort((p1, p2) => (ranks[p1.position - 1] > ranks[p2.position - 1] ? 1 : (ranks[p1.position - 1] < ranks[p2.position - 1] ? -1 : 0)));
+  }
+
+  inScopeAsPlayer<T>(player: number, fn: () => T): T {
+    const tmpPlayer = this.currentPlayerPosition;
+    this.#currentPlayerPosition = player;
+    try {
+      return fn();
+    } finally {
+      this.#currentPlayerPosition = tmpPlayer;
+    }
+  }
+
+  playerByUserId(userId: number) {
+    const player = this.players.find(p => p.userId === userId);
+    if (!player) throw Error(`No such player ${userId}`);
+    return player.position;
+  }
+
+  endTurn() {
+    this.#currentPlayerPosition = this.players[(this.turnOrderOf(this.currentPlayerPosition) + 1) % this.players.length].position;
   }
 
   processAfterMoves(elements: GameElement[]) {
@@ -583,9 +685,9 @@ export default class GameInterface {
           }
           if (positioning && typeof positioning === 'object' && !(positioning instanceof GameElement) && !(positioning instanceof Player) && piece instanceof Piece && space instanceof GameElement) {
             if (positioning && positioning.pos! !== undefined) {
-              piece.moveTo(space, -1 - (positioning.pos as number));
+              piece.putInto(space, -1 - (positioning.pos as number));
             } else {
-              piece.moveTo(space);
+              piece.putInto(space);
               if (positioning) piece.set(positioning);
             }
           }
@@ -736,77 +838,16 @@ export default class GameInterface {
     });
   }
 
-  set currentPlayerPosition(player) {
-    if (player > this.players.length || player < 1) {
-      throw Error(`No such player ${player}`);
-    }
-    this.#currentPlayerPosition = player;
-  }
-
-  get currentPlayerPosition() {
-    return this.#currentPlayerPosition;
-  }
-
-  player(position: number) {
-    return this.players.find(p => p.position === position);
-  }
-
-  currentPlayer() {
-    return this.player(this.currentPlayerPosition)!;
-  }
-
   get phase() {
     return this.#phase;
-  }
-
-  get players() {
-    return this.#players;
-  }
-
-  get numberOfPlayers() {
-    return this.#numberOfPlayers;
-  }
-
-  otherPlayers() {
-    return this.players.filter(p => p.position !== this.currentPlayerPosition);
-  }
-
-  reorderPlayersBy(fn: (p: number) => number | string) {
-    if (typeof fn !== 'function') throw Error('reorderPlayersBy must be called with a player ranking function, e.g. "reorderPlayersBy(playerNumber => getScore(playerNumber))"');
-    const ranks = this.playersInPositionOrder().map(p => fn(p.position));
-    this.players.sort((p1, p2) => (ranks[p1.position - 1] > ranks[p2.position - 1] ? 1 : (ranks[p1.position - 1] < ranks[p2.position - 1] ? -1 : 0)));
-  }
-
-  playersInPositionOrder() {
-    return this.players.sort((p1, p2) => (p1.position > p2.position ? 1 : -1));
-  }
-
-  inScopeAsPlayer<T>(player: number, fn: () => T): T {
-    const tmpPlayer = this.currentPlayerPosition;
-    this.#currentPlayerPosition = player;
-    try {
-      return fn();
-    } finally {
-      this.#currentPlayerPosition = tmpPlayer;
-    }
-  }
-
-  playerByUserId(userId: number) {
-    const player = this.players.find(p => p.userId === userId);
-    if (!player) throw Error(`No such player ${userId}`);
-    return player.position;
-  }
-
-  endTurn() {
-    this.#currentPlayerPosition = this.players[(this.turnOrderOf(this.currentPlayerPosition) + 1) % this.players.length].position;
   }
 
   moveElement(el: Piece, positioning: {pos?: number, x?: number, y?: number}) {
     if (el.matches(this.allowedMoveElements)) {
       if (positioning.pos !== undefined) {
-        el.moveTo(undefined, -1 - positioning.pos);
+        el.putInPosition(-1 - positioning.pos);
       } else {
-        el.moveToTop();
+        el.putInTopPosition();
         el.set(positioning);
       }
     } else {

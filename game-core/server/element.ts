@@ -53,7 +53,9 @@ export default class GameElement {
   }
 
   private enhanceQuery(q: string) {
-    return q.replace(/\.mine/g, `[player="${this.ctx.game.currentPlayerPosition}"]`);
+    return q.replace(/\.mine/g, `[player="${this.ctx.game.currentPlayerPosition}"]`)
+      .replace(':top', ':last-child')
+      .replace(':bottom', ':first-child');
 //      .replace(/=(['"]?)([^\]'"]+)\1/g, (_m, _, a) => `="${escape(a)}"`); ????
   }
 
@@ -98,7 +100,7 @@ export default class GameElement {
     return node.gameElement;
   }
 
-  findAll<T extends GameElement>(className: { new (...a: any[]): T }, q: string = '*') {
+  findAll<T extends GameElement>(className: { new (...a: any[]): T }, q: string = '*'): T[] {
     return Array.from(this.findNodes(q))
       .filter(node => node.gameElement instanceof className)
       .map(node => node.gameElement) as T[];
@@ -112,12 +114,26 @@ export default class GameElement {
     return this.ctx.document.findAll(this, q);
   }
 
+  static highest<T extends GameElement>(this: ElementClass<T>, q: string, fn: ((e: GameElement) => number) | string): T {
+    return this.ctx.document.highest(q, fn) as T;
+  }
+
   static lowest<T extends GameElement>(this: ElementClass<T>, q: string, fn: ((e: GameElement) => number) | string): T {
     return this.ctx.document.lowest(q, fn) as T;
   }
 
-  static highest<T extends GameElement>(this: ElementClass<T>, q: string, fn: ((e: GameElement) => number) | string): T {
-    return this.ctx.document.highest(q, fn) as T;
+  static max(q: string, fn: ((e: GameElement) => number) | string): number {
+    const val = typeof fn === 'function' ? fn : (el: GameElement) => el.attrs.fn;
+    return Math.max.apply(Math, this.forEach(q, val) as number[]);
+  }
+
+  static min(q: string, fn: ((e: GameElement) => number) | string): number {
+    const val = typeof fn === 'function' ? fn : (el: GameElement) => el.attrs.fn;
+    return Math.min.apply(Math, this.forEach(q, val) as number[]);
+  }
+
+  static forEach<T extends GameElement, F>(this: ElementClass<T>, q: string, fn: (e: T) => F): F[] {
+    return this.ctx.document.findAll(this, q).map(fn);
   }
 
   // TODO max, min convenient call fn from above
@@ -306,11 +322,7 @@ export default class GameElement {
     this.move(pieces, to, num, -1);
   }
 
-  moveToTop() {
-    if (this.ctx.node.parentNode) this.ctx.node.parentNode.appendChild(this.ctx.node);
-  }
-
-  findOpenCell() {
+  private findOpenCell() {
     const cells = (this.columns || 1) * (this.rows || 1);
     let cell = 0;
     while (this.contains(`[cell="${cell}"]`)) cell += 1;

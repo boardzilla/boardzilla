@@ -27,6 +27,8 @@ interface Action {
   min?: number | ((...a: Argument[]) => number);
 }
 
+type PlayerMatSetup = (mat: GameElement, player: number, color: string) => void;
+type BoardSetup = (e: Space) => void;
 type ActionReturn = {prompt: string, log: string | Record<string, string>};
 
 interface ElementLookup extends Element {
@@ -58,7 +60,11 @@ interface QueueItem {
 
 type NamedArg = (string | {hidden?: string, shown?: string}[]);
 
-type ElementClass<T extends GameElement> = { new(context: {}, attrs: Record<string, any>): T, ctx: Context, serializable?: string[] }
+type ElementClass<T extends GameElement> = {
+  new(context: {}, attrs: Record<string, any>): T,
+  ctx: Context,
+  serializable?: string[],
+}
 
 type Context = {
   node: ElementLookup;

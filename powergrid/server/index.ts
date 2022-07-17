@@ -1,4 +1,4 @@
-import { game, Piece, Space, Counter, InvalidChoiceError, IncompleteActionError } from 'game-core-server';
+import { game, Piece, Space, Counter, Player, InvalidChoiceError, IncompleteActionError } from 'game-core-server';
 import { times, range, sumBy } from 'game-core-server/utils.js';
 import { ResourceType, cards } from './cards.js';
 
@@ -41,16 +41,12 @@ game.setPlayers({
   max: 6,
 });
 
-let lastBid: number;
+let lastBid = 0;
 
-const highScore = () => {
-  return Building.highest('#score token', 'score').score!;
-};
-
-const applyMinimumRule = () => Card.findAll('#powerplants card').forEach(card => {
-  if (card.cost! <= highScore()) {
+const applyMinimumRule = () => Card.forEach('#powerplants card', card => {
+  if (card.cost! <= Building.max('#score token', 'score')) {
     card.remove();
-    Card.find('#deck card').moveTo('#powerplants');
+    Card.find('#deck card:top').putInto('#powerplants');
   }
 });
 
@@ -64,9 +60,9 @@ const costOf = (resource: ResourceType, amount: number) => (
 );
 
 // order players by some function and set the turn tracker
-const orderPlayers = (fn: (p: number) => number) => {
+const orderPlayers = (fn: (p: Player) => number) => {
   game.reorderPlayersBy(fn);
-  Building.findAll('#turns token').forEach(token => token.turn = game.turnOrderOf(token.player));
+  Building.forEach('#turns token', token => token.turn = game.turnOrderOf(token.player));
 };
 
 
@@ -255,7 +251,7 @@ game.defineActions({
     log: '$0 bottomed $1',
     drag: '#powerplants card',
     onto: '#deck',
-    action: (card: Card, deck: Space) => card.moveToBottomOf(deck),
+    action: (card: Card, deck: Space) => card.putIntoBottomOf(deck),
   },
   buyResource: {
     prompt: 'Buy resources',
@@ -337,7 +333,6 @@ game.playersMayAlwaysPlay(['interactWithPiece']);
 
 game.play(async () => {
   const deck = Space.find('#deck');
-  const resources = Space.find('#resources');
 
   // setup board
   sortPowerplants();
@@ -346,9 +341,9 @@ game.play(async () => {
   let removals = 0;
   if (game.numberOfPlayers === 4) removals = 4;
   if (game.numberOfPlayers < 4) removals = 8;
-  if (removals) deck.clearIntoPile('card', removals);
-  Card.find('[cost=13]').moveTo(deck);
-  Card.find('#step-3').moveToBottomOf(deck);
+  deck.clearIntoPile('card', removals);
+  Card.find('[cost=13]').putInto(deck);
+  Card.find('#step-3').putIntoBottomOf(deck);
 
   // initial resources
   ResourceSpace.findAll('#resources [resource=coal]').forEach(r => r.addFromPile('#coal', 1));
@@ -362,7 +357,7 @@ game.play(async () => {
   });
 
   // randomly order player start
-  orderPlayers(game.random);
+  orderPlayers(_p => game.random.random());
 
   /* await game.playersInTurn(async player => {
    *   console.log('wait for player', player, game.currentPlayer(), game.currentPlayerPosition);
@@ -370,24 +365,24 @@ game.play(async () => {
    *   console.log('auctionOrPass', auctionOrPass);
    * });
    */
-  const havePassedAuctionPhase: boolean[] = Array(game.players.length);
+  game.setAllPlayers({ havePassedAuctionPhase: false });
   await game.playersInTurn(async player => {
-    if (havePassedAuctionPhase[player]) return;
+    if (player.get('havePassedAuctionPhase')) return;
     const auctionOrPass = await game.currentPlayerPlay(['auction', 'pass']); // TODO only first 4 unless step 3, no pass in first turn
     if (auctionOrPass.action === 'pass') {
-      havePassedAuctionPhase[player] = true;
+      player.set({ havePassedAuctionPhase: true });
       return;
     }
 
     // start bidding
-    const passedThisAuction = [...havePassedAuctionPhase];
+    game.setAllPlayers({ passedThisAuction: false });
+
     let playerWithHighestBid = game.currentPlayerPosition;
-    while (passedThisAuction.filter(p => !p).length > 1) {
-      console.log('passedThisAuction', passedThisAuction.filter(p => !p).length, passedThisAuction.filter(p => !p));
-      if (!passedThisAuction[player]) {
+    while (game.countPlayersBy(p => !p.get('passedThisAuction') && !p.get('havePassedAuctionPhase')) > 1) {
+      if (!player.get('havePassedAuctionPhase') && !player.get('passedThisAuction')) {
         const bidOrPass = await game.currentPlayerPlay(['bid', 'pass']); // TODO opener may not pass own auction
         if (bidOrPass.action === 'pass') {
-          passedThisAuction[player] = true;
+          player.set({ passedThisAuction: true });
         } else {
           playerWithHighestBid = game.currentPlayerPosition;
         }
@@ -396,7 +391,7 @@ game.play(async () => {
     }
     Counter.find('.mine counter').value -= (lastBid || Card.find('[auction]').cost!);
     lastBid = 0;
-    Card.find('[auction]').moveTo(game.playerMat(playerWithHighestBid));
+    Card.find('[auction]').putInto(game.playerMat(playerWithHighestBid));
   });
 
   while (true) { // eslint-disable-line no-constant-condition

@@ -24,7 +24,7 @@ describe('GameInterface', () => {
         await game.anyPlayerPlay(['addSome', 'spend']);
         console.log('in turn', game.get('tokens'), game.sequence);
       } while (game.get('tokens') < 8);
-      game.currentPlayerPosition = 1;
+      game.setCurrentPlayer(1);
       do {
         await game.playersInTurn(async (turn) => {
           console.log('playersInTurn', turn, game.currentPlayer);

@@ -6,6 +6,7 @@ export {default as InteractivePiece} from './interactive-piece';
 export {default as Counter} from './counter';
 export {default as Die} from './die';
 import {default as GameElement} from './element';
+export {default as Player} from './player';
 
 export const game = new GameInterface();
 GameElement.ctx = game.doc.ctx;
