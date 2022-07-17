@@ -1,5 +1,6 @@
 import GameInterface from './interface';
 export { InvalidChoiceError, IncompleteActionError, InvalidActionError } from './interface';
+export * from './utils';
 export {default as Space} from './space';
 export {default as Piece} from './piece';
 export {default as InteractivePiece} from './interactive-piece';

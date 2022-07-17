@@ -3,11 +3,11 @@ import Player from './player';
 import GameDocument from './document';
 import GameElement from './element';
 import ActionQueue from './actionqueue';
-import { asyncTimes } from './utils';
-import Space from './space';
-import PlayerMat from './player-mat';
-import Piece from './piece';
-import InteractivePiece from './interactive-piece';
+import { asyncTimes } from './utils.js';
+import Space from './space.js';
+import PlayerMat from './player-mat.js';
+import Piece from './piece.js';
+import InteractivePiece from './interactive-piece.js';
 import type {Argument, PlayerMatSetup, BoardSetup, Action, ActionReturn, NamedArg, Phase, PlayerView, QueueAction} from './types.d';
 
 export class InvalidChoiceError extends Error {}
@@ -153,7 +153,7 @@ export default class GameInterface {
   playerMat(player: number | Player = this.currentPlayerPosition) {
     if (!player) throw Error('playerMat called without a player');
     if (player instanceof Player) player = player.position;
-    return this.doc.find(PlayerMat, `.player-mat[player="${player}"]`);
+    return this.doc.find(PlayerMat, `PlayerMat[player="${player}"]`);
   }
 
   setupPlayerMat(fn: PlayerMatSetup) {
@@ -746,13 +746,13 @@ export default class GameInterface {
     if (toPlayer) {
       onto = onto || '';
       if (toPlayer === 'other') {
-        onto = `.player-mat:not(.mine) ${onto}`;
+        onto = `PlayerMat:not(.mine) ${onto}`;
       }
       if (toPlayer === 'all') {
-        onto = `.player-mat ${onto}`;
+        onto = `PlayerMat ${onto}`;
       }
       if (toPlayer === 'me') {
-        onto = `.player-mat.mine ${onto}`;
+        onto = `PlayerMat.mine ${onto}`;
       }
     }
     return onto || '*';

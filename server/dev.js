@@ -45,7 +45,7 @@ function modifyBuild(config) {
 }
 
 async function build() {
-  const serverConfig = require(path.join(gamePath, 'server', 'webpack.config.js'));
+  const serverConfig = require(path.join(gamePath, 'server', 'webpack.config.cjs'));
   const clientConfig = require(path.join(gamePath, 'client', 'webpack.config.cjs'));
 
   modifyBuild(serverConfig);

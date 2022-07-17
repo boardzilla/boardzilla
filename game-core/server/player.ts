@@ -1,5 +1,5 @@
 export default class Player {
-  attrs: Record<string, string | number | boolean>;
+  attrs: Record<string, string | number | boolean> = {};
 
   constructor(
     public name: string,

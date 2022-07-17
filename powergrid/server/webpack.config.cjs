@@ -21,6 +21,19 @@ module.exports = {
       perf_hooks: path.resolve(__dirname, '../../game-core/server/ext/perf_hooks.js'),
     },
     extensions: ['.ts', '.js', '.json', '.cjs'],
+
+    alias: {
+      './utils.js': './utils',
+      './space.js': './space',
+      './piece.js': './piece',
+      './interactive-piece.js': './interactive-piece',
+      './player-mat.js': './player-mat',
+      './cards.js': './cards',
+    },
+    // uncomment for newer webpack version and remove hard-coded alias's ^^
+    // extensionAlias: {
+    //   ".js": [".ts", ".js"],
+    // },
   },
   module: {
     rules: [

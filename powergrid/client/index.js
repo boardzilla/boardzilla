@@ -10,18 +10,18 @@ render({
   ),
   
   pieces: {
-    card: ({ id, image, children }) => ( // doc must indicate that children should be included at top level if piece needs to be able to hold other pieces
+    Card: ({ id, image, children }) => ( // doc must indicate that children should be included at top level if piece needs to be able to hold other pieces
       <>
         <img title={image} src={assets[`cards/${id ? image : 'plug.webp'}`]} />
         {children}
       </>
     ),
 
-    token: ({ player, color }) => <img src={assets[`${color}-token.png`]} player={player}/>,
+    Building: ({ player, color }) => <img src={assets[`${color}-token.png`]} player={player}/>,
 
-    hammer: () => <img src={assets['gavel.png']}/>,
+    Hammer: () => <img src={assets['gavel.png']}/>,
 
-    resource: ({ type }) => {
+    Resource: ({ type }) => {
       if (type === 'coal') return '▲';
       if (type === 'oil') return '■';
       if (type === 'garbage') return '■';

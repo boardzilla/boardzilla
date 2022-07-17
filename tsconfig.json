@@ -9,6 +9,6 @@
     "noImplicitAny": true,
     "strictNullChecks": true,
   },
-  "include": ["*/server/**/*"],
+  "include": ["powergrid/server/test*"],
   "exclude": ["**/node_modules", "**/.*/"]
 }

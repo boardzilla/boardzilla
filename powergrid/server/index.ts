@@ -1,5 +1,4 @@
-import { game, Piece, Space, Counter, Player, InvalidChoiceError, IncompleteActionError } from 'game-core-server';
-import { times, range, sumBy } from 'game-core-server/utils.js';
+import { game, Piece, Space, Counter, Player, times, range, sumBy, InvalidChoiceError, IncompleteActionError } from 'game-core-server';
 import { ResourceType, cards } from './cards.js';
 
 const resourceTypes = ['coal', 'oil', 'garbage', 'uranium'];
@@ -44,7 +43,7 @@ game.setPlayers({
 let lastBid = 0;
 
 const applyMinimumRule = () => Card.forEach('#powerplants card', card => {
-  if (card.cost! <= Building.max('#score token', 'score')) {
+  if (card.cost! <= Building.max('#score Building', 'score')) {
     card.remove();
     Card.find('#deck card:top').putInto('#powerplants');
   }
@@ -62,7 +61,7 @@ const costOf = (resource: ResourceType, amount: number) => (
 // order players by some function and set the turn tracker
 const orderPlayers = (fn: (p: Player) => number) => {
   game.reorderPlayersBy(fn);
-  Building.forEach('#turns token', token => token.turn = game.turnOrderOf(token.player));
+  Building.forEach('#turns Building', token => token.turn = game.turnOrderOf(token.player));
 };
 
 
@@ -103,8 +102,8 @@ const refill: Record<string, number[][]> = {
 
 const income = [10, 22, 33, 44, 54, 64, 73, 82, 90, 98, 105, 112, 118, 124, 129, 134, 138, 142, 145, 148, 150];
 
-game.afterMove('#powerplants card', sortPowerplants);
-game.afterMove('card', (card: Card) => card.auction = false);
+game.afterMove('#powerplants Card', sortPowerplants);
+game.afterMove('Card', (card: Card) => card.auction = false);
 
 game.setupPlayerMat((mat, player, color) => {
   mat.createMany(Building, 22, '#building', { player, color, zoom: 2, left: 15, bottom: 15 });
@@ -144,21 +143,21 @@ game.setupBoard(board => {
   game.pile.createMany(Resource, 12, '#uranium', { type: 'uranium', zoom: 1 });
 });
 
-game.hideBoard('#deck card');
+game.hideBoard('#deck Card');
 
 game.defineActions({
   play: {
     prompt: 'Play',
     key: 'p',
     log: false,
-    drag: '#deck card',
+    drag: '#deck Card',
     onto: '#powerplants',
   },
   /* buy: {
    *   prompt: 'Buy',
    *   key: 'b',
    *   log: '$0 bought $1',
-   *   drag: '#powerplants card',
+   *   drag: '#powerplants Card',
    *   toPlayer: 'all',
    *   next: {
    *     prompt: card => `Buy ${card} for ${priceOf(card)}?`,
@@ -173,7 +172,7 @@ game.defineActions({
     prompt: 'Build',
     key: 'b',
     log: '$0 built a house',
-    drag: '.mine token',
+    drag: '.mine Building',
     onto: '#map',
     action: () => {
       Building.find('#score .mine').score = game.board.count('#map #building.mine');
@@ -183,7 +182,7 @@ game.defineActions({
   bid: {
     prompt: 'Bid',
     key: 'c',
-    if: 'card[auction]',
+    if: 'Card[auction]',
     log: '$0 bid $1',
     min: () => (lastBid ? lastBid + 1 : Card.find('[auction]').cost!),
     max: 999,
@@ -196,7 +195,7 @@ game.defineActions({
   },
   power: {
     prompt: 'Power this plant',
-    select: '.mine card:not([powered])',
+    select: '.mine Card:not([powered])',
     log: '$0 powered $1',
     key: 'p',
     action: (card: Card, oilChoice: number) => {
@@ -235,21 +234,21 @@ game.defineActions({
       const rev = income[Math.min(income.length - 1, game.board.count('#building.mine[powered]'))];
       Counter.find('.mine counter').value += rev;
       Building.findAll('#building.mine[powered]').forEach(b => b.powered = false);
-      Card.findAll('.mine card[powered]').forEach(b => b.powered = false);
+      Card.findAll('.mine Card[powered]').forEach(b => b.powered = false);
     },
   },
   remove: {
     prompt: 'Remove',
     key: 'r',
     log: '$0 removed $1',
-    select: '#powerplants card',
+    select: '#powerplants Card',
     action: (card: Card) => card.remove(),
   },
   bottom: {
     prompt: 'Bottom of deck',
     key: 'd',
     log: '$0 bottomed $1',
-    drag: '#powerplants card',
+    drag: '#powerplants Card',
     onto: '#deck',
     action: (card: Card, deck: Space) => card.putIntoBottomOf(deck),
   },
@@ -270,15 +269,15 @@ game.defineActions({
           const elektro = Counter.find('.mine counter');
           if (elektro.value < cost) throw new InvalidChoiceError('Not enough Elektro');
           let freeSpaces = 0;
-          Card.findAll('.mine card[resources]').forEach(card => {
+          Card.findAll('.mine Card[resources]').forEach(card => {
             if (card.resourceType === resource || (card.resourceType === 'hybrid' && ['oil', 'coal'].includes(resource))) {
-              freeSpaces += card.resources! * 2 - card.count('resource');
+              freeSpaces += card.resources! * 2 - card.count('Resource');
             }
           });
           if (freeSpaces < amount) throw new InvalidChoiceError(`Not enough storage space for ${amount} ${resource}`);
           times(amount, () => {
-            const cardWithSpace = Card.findAll('.mine card').find((card: Card) => (
-              card.resources && card.resources * 2 > card.count('resource')
+            const cardWithSpace = Card.findAll('.mine Card').find((card: Card) => (
+              card.resources && card.resources * 2 > card.count('Resource')
                 && (card.resourceType === resource || (card.resourceType === 'hybrid' && ['oil', 'coal'].includes(resource)))
             ))!;
             game.board.move(`#resources #${resource}`, cardWithSpace, 1);
@@ -290,9 +289,9 @@ game.defineActions({
   },
   moveResource: {
     prompt: 'Move',
-    drag: '.mine resource',
+    drag: '.mine Resource',
     log: false,
-    onto: '.mine card',
+    onto: '.mine Card',
   },
   refill: {
     select: { '1': 'Step 1', '2': 'Step 2', '3': 'Step 3' },
@@ -319,16 +318,16 @@ game.defineActions({
     },
   },
   auction: {
-    select: '#powerplants card',
+    select: '#powerplants Card',
     prompt: 'Put up for auction',
-    unless: 'card[auction]',
+    unless: 'Card[auction]',
     log: '$0 puts $1 up for auction',
     key: 'a',
     action: (card: Card) => card.auction = true,
   },
 });
 
-game.playersMayAlwaysMove('.mine *, #powerplants card, #map token.mine');
+game.playersMayAlwaysMove('.mine *, #powerplants Card, #map Building.mine');
 game.playersMayAlwaysPlay(['interactWithPiece']);
 
 game.play(async () => {
@@ -341,7 +340,7 @@ game.play(async () => {
   let removals = 0;
   if (game.numberOfPlayers === 4) removals = 4;
   if (game.numberOfPlayers < 4) removals = 8;
-  deck.clearIntoPile('card', removals);
+  deck.clearIntoPile('Card', removals);
   Card.find('[cost=13]').putInto(deck);
   Card.find('#step-3').putIntoBottomOf(deck);
 
@@ -352,8 +351,8 @@ game.play(async () => {
   ResourceSpace.findAll('#resources [resource=uranium][cost=14], [resource=uranium][cost=16]').forEach(r => r.addFromPile('#uranium', 1));
 
   game.players.forEach(player => {
-    game.playerMat(player.position).move('token', '#score', 1);
-    game.playerMat(player.position).move('token', '#turns', 1);
+    game.playerMat(player.position).move('Building', '#score', 1);
+    game.playerMat(player.position).move('Building', '#turns', 1);
   });
 
   // randomly order player start
