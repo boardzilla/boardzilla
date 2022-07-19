@@ -136,8 +136,6 @@ export default class GameElement {
     return this.ctx.document.findAll(this, q).map(fn);
   }
 
-  // TODO max, min convenient call fn from above
-
   owner(): number | undefined {
     return this.player || this.parent()?.player;
   }
@@ -217,7 +215,7 @@ export default class GameElement {
     let thisClass = className;
 
     do {
-      if (thisClass.serializable) allAttrs = [...new Set([ ...allAttrs, ...thisClass.serializable])];
+      if (thisClass.serializable) allAttrs = Array.from(new Set([ ...allAttrs, ...thisClass.serializable ]));
       thisClass = Object.getPrototypeOf(thisClass);
     } while (thisClass.name === 'GameElement' || thisClass.prototype instanceof GameElement);
 

@@ -649,14 +649,14 @@ export default class Page extends Component {
     return choice;
   }
 
-  renderBoard(board) {
+  renderBoard(boardXml) {
     return (
       <div id="game-dom">
-        {[...board.querySelectorAll('.PlayerMat:not(.mine)')].map(
+      {[...boardXml.querySelectorAll('PlayerMat:not(.mine)')].map(
           mat => this.renderGameElement(mat, mat.getAttribute('player-after-me') === '1' || mat.getAttribute('player-after-me') === '2' || (mat.getAttribute('player-after-me') === '3' && this.state.data.players.length > 4))
         )}
-        {this.renderGameElement(board.querySelector('#board'))}
-        {this.renderGameElement(board.querySelector(`.PlayerMat.mine`))}
+        {this.renderGameElement(boardXml.querySelector('#board'))}
+        {this.renderGameElement(boardXml.querySelector(`PlayerMat.mine`))}
       </div>
     );
   }
@@ -798,6 +798,7 @@ export default class Page extends Component {
     } else if (this.props.spaces[`#${props.id}`]) {
       contents = React.createElement(this.props.spaces[`#${props.id}`], {...props}, frozen || contents);
     } else if (!isSpace) {
+      console.log('unstyled-piece', attributes);
       contents = <div className="unstyled-piece">{props.id}{contents}</div>;
     }
 

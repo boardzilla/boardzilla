@@ -2,13 +2,13 @@
   "compilerOptions": {
     "outDir": "./built",
     "allowJs": true,
-    "target": "es6",
+    "target": "esnext",
     "types": ["node", "jest"],
     "module": "nodenext",
     "sourceMap": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
   },
-  "include": ["powergrid/server/test*"],
+  "include": ["*/server/**/*"],
   "exclude": ["**/node_modules", "**/.*/"]
 }

@@ -3,10 +3,12 @@ import InteractivePiece from './interactive-piece';
 export default class Counter extends InteractivePiece {
   value: number;
   moves?: number = 0;
-  name: string;
+  name?: string;
   min?: number = 0;
   max?: number;
   steps?: number[] = [-1, 1];
+
+  static serializable = ['value', 'moves', 'min', 'max', 'steps'];
 
   static component = 'Counter';
 

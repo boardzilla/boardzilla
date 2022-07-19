@@ -4,7 +4,6 @@ import { ResourceType, cards } from './cards.js';
 const resourceTypes = ['coal', 'oil', 'garbage', 'uranium'];
 
 class Card extends Piece {
-  id: string;
   image: string;
   cost?: number;
   resourceType?: ResourceType | 'hybrid';
@@ -12,7 +11,7 @@ class Card extends Piece {
   power?: number;
   auction?: boolean;
   powered?: boolean;
-  static serializable = ['id', 'image', 'cost', 'resourceType', 'resources', 'power', 'auction', 'powered'];
+  static serializable = ['image', 'cost', 'resourceType', 'resources', 'power', 'auction', 'powered'];
 }
 
 class Resource extends Piece {
@@ -28,11 +27,10 @@ class ResourceSpace extends Space {
 
 class Building extends Piece {
   color: string;
-  player: number;
   score?: number;
   turn?: number;
   powered?: boolean;
-  static serializable = ['color', 'player', 'score', 'turn', 'powered'];
+  static serializable = ['color', 'score', 'turn', 'powered'];
 }
 
 game.setPlayers({
@@ -61,7 +59,7 @@ const costOf = (resource: ResourceType, amount: number) => (
 // order players by some function and set the turn tracker
 const orderPlayers = (fn: (p: Player) => number) => {
   game.reorderPlayersBy(fn);
-  Building.forEach('#turns Building', token => token.turn = game.turnOrderOf(token.player));
+  Building.forEach('#turns Building', token => token.turn = game.turnOrderOf(token.player!));
 };
 
 
@@ -232,7 +230,7 @@ game.defineActions({
     log: '$0 collected income',
     action: () => {
       const rev = income[Math.min(income.length - 1, game.board.count('#building.mine[powered]'))];
-      Counter.find('.mine counter').value += rev;
+      Counter.find('.mine Counter').value += rev;
       Building.findAll('#building.mine[powered]').forEach(b => b.powered = false);
       Card.findAll('.mine Card[powered]').forEach(b => b.powered = false);
     },
@@ -266,7 +264,7 @@ game.defineActions({
         confirm: ['Buy', 'Cancel'],
         action: (resource: ResourceType, amount: number) => {
           const cost = costOf(resource, amount);
-          const elektro = Counter.find('.mine counter');
+          const elektro = Counter.find('.mine Counter');
           if (elektro.value < cost) throw new InvalidChoiceError('Not enough Elektro');
           let freeSpaces = 0;
           Card.findAll('.mine Card[resources]').forEach(card => {
@@ -308,7 +306,7 @@ game.defineActions({
   adjustElektro: {
     prompt: 'Elektro +/-',
     key: 'e',
-    select: '.mine counter',
+    select: '.mine Counter',
     log: (_elektro, amount: number) => `$0 ${amount >= 0 ? 'gained' : 'spent'} ${Math.abs(amount)} Elektro`,
     next: {
       prompt: 'Add or subtract how much Elektro?',
@@ -388,9 +386,10 @@ game.play(async () => {
       }
       game.endTurn();
     }
-    Counter.find('.mine counter').value -= (lastBid || Card.find('[auction]').cost!);
+    Counter.find('.mine Counter').value -= (lastBid || Card.find('[auction]').cost!);
     lastBid = 0;
     Card.find('[auction]').putInto(game.playerMat(playerWithHighestBid));
+    player.set({ havePassedAuctionPhase: true });
   });
 
   while (true) { // eslint-disable-line no-constant-condition

@@ -264,27 +264,27 @@ div.nametag {
   position: absolute;
   width: 100%;
   text-align: center;
-  .player-mat[color="red"] & {
+  .PlayerMat[color="red"] & {
     color: #600;
     text-shadow: 1px 1px #fcc, -1px 1px #fcc, -1px -1px #fcc, 1px -1px #fcc;
   }
-  .player-mat[color="green"] & {
+  .PlayerMat[color="green"] & {
     color: #060;
     text-shadow: 1px 1px #cfc, -1px 1px #cfc, -1px -1px #cfc, 1px -1px #cfc;
   }
-  .player-mat[color="blue"] & {
+  .PlayerMat[color="blue"] & {
     color: #006;
     text-shadow: 1px 1px #ccf, -1px 1px #ccf, -1px -1px #ccf, 1px -1px #ccf;
   }
-  .player-mat[color="purple"] & {
+  .PlayerMat[color="purple"] & {
     color: #406;
     text-shadow: 1px 1px #d9f, -1px 1px #d9f, -1px -1px #d9f, 1px -1px #d9f;
   }
-  .player-mat[color="cyan"] & {
+  .PlayerMat[color="cyan"] & {
     color: #066;
     text-shadow: 1px 1px #bdf, -1px 1px #bdf, -1px -1px #bdf, 1px -1px #bdf;
   }
-  .player-mat[color="yellow"] & {
+  .PlayerMat[color="yellow"] & {
     color: #880;
     text-shadow: 1px 1px #ffb, -1px 1px #ffb, -1px -1px #ffb, 1px -1px #ffb;
   }
@@ -435,7 +435,7 @@ div.nametag {
   }
 }
 
-.counter {
+.Counter {
   white-space: nowrap;
   button:first-child {
     margin-right: 4px;
@@ -452,7 +452,7 @@ div.nametag {
   margin-top: 8px;
 }
 
-.die {
+.Die {
   .shake {
     transition: transform 0.25s ease-out;
   }
@@ -627,19 +627,19 @@ div.nametag {
   [number="6"] &[data-spin="down"] {
     transform: rotateX(-360deg) rotateY(-900deg) rotateZ(-360deg);
   }
-  .player-mat[color="red"] & .die-face {
+  .PlayerMat[color="red"] & .die-face {
     background-color: #f66;
   }
 
-  .player-mat[color="green"] & .die-face {
+  .PlayerMat[color="green"] & .die-face {
     background-color: #6c6;
   }
 
-  .player-mat[color="blue"] & .die-face {
+  .PlayerMat[color="blue"] & .die-face {
     background-color: #66f;
   }
 
-  .player-mat[color="purple"] & .die-face {
+  .PlayerMat[color="purple"] & .die-face {
     background-color: #b0f;
   }
 }

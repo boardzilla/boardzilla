@@ -8,6 +8,8 @@ export default abstract class InteractivePiece extends Piece {
 
   component?: string;
 
+  static serializable = ['component'];
+
   abstract actions: Record<string, {action: (a: any) => any, log: () => string}>;
 
   constructor(ctx: { node: ElementLookup, game: GameInterface, document: GameDocument }, attrs: Record<string, any>) {
