@@ -5,7 +5,6 @@ import type Space from './space';
 import type InteractivePiece from './interactive-piece';
 import type GameInterface from './interface';
 import type Player from './player';
-declare module 'linkedom/cached';
 
 type Argument = string | number | boolean | Record<string, string | number> | GameElement | Player;
 

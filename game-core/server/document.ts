@@ -1,3 +1,4 @@
+// @ts-ignore: simply does not work, partly due to https://github.com/microsoft/TypeScript/issues/33079
 import { DOMParser } from 'linkedom/cached';
 import Space from './space';
 import GameElement from './element';
@@ -9,11 +10,12 @@ export default class GameDocument extends Space {
   constructor(game: GameInterface, xmlDoc?: XMLDocument) {
     const newDoc = !xmlDoc;
     // initial call to build the base DOM
-    xmlDoc = xmlDoc || (new DOMParser()).parseFromString('<game/>', 'text/xmlDoc');
+    xmlDoc = xmlDoc || (new (DOMParser as typeof globalThis.DOMParser)()).parseFromString('<game/>', 'text/xml') as XMLDocument;
     // @ts-ignore: we will populate the correct values immediately
-    super({ node: xmlDoc!.documentElement, game });
+    super({ node: xmlDoc.documentElement, game });
+    this.ctx.node.gameElement = this;
     this.ctx.document = this;
-    this.xmlDoc = xmlDoc!;
+    this.xmlDoc = xmlDoc;
     this.id = 'game';
     if (newDoc) {
       this.create(Space, '#board', {});
@@ -28,7 +30,7 @@ export default class GameDocument extends Space {
   }
 
   clone() {
-    return new GameDocument(this.ctx.game, this.xmlDoc.cloneNode(true) as XMLDocument);
+    return new GameDocument(this.ctx.game, this.xmlDoc.cloneNode() as XMLDocument);
   }
 
   // return element from branch
