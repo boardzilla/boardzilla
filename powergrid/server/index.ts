@@ -109,8 +109,8 @@ game.setupPlayerMat((mat, player, color) => {
 });
 
 game.setupBoard(board => {
-  board.create(Space, '#map', {});
-  const resources = board.create(Space, '#resources', {});
+  board.create(Space, '#map');
+  const resources = board.create(Space, '#resources');
   resources.create(ResourceSpace, '#uranium-16', { cost: 16, resource: 'uranium', top: 14, left: 42 });
   resources.create(ResourceSpace, '#uranium-14', { cost: 14, resource: 'uranium', top: 40, left: 42 });
   resources.create(ResourceSpace, '#uranium-12', { cost: 12, resource: 'uranium', top: 14, left: 15 });
@@ -128,8 +128,8 @@ game.setupBoard(board => {
     resources.create(ResourceSpace, `#garbage-${cost}`, { cost, resource: 'garbage', top: 599 - cost * 62.1, left: 42 });
   });
 
-  board.create(Space, '#score', {});
-  board.create(Space, '#turns', {});
+  board.create(Space, '#score');
+  board.create(Space, '#turns');
   const powerplants = board.create(Space, '#powerplants', { layout: 'splay', columns: 4, rows: 2 });
   const deck = board.create(Space, '#deck', { layout: 'stack' });
   board.create(Space, '#discard', { layout: 'stack' });

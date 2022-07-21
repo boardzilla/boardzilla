@@ -5,6 +5,10 @@ import type GameDocument from './document';
 import type GameInterface from './interface';
 
 export default class Space extends GameElement {
+  label?: string;
+
+  static serializable: string[] = ['label'];
+
   constructor(
     ctx: {
       node: ElementLookup;

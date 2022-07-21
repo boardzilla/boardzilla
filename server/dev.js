@@ -31,6 +31,7 @@ if (!process.env.GAME) {
 
 const gameName = process.env.GAME;
 const gamePath = path.resolve(__dirname, path.join('..', gameName));
+console.log(gameName, gamePath);
 
 if (!fs.existsSync(gamePath)) {
   console.error(`expected game ${gameName} to exist at ${gamePath}`);

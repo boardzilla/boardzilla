@@ -71,10 +71,10 @@ type Context = {
   game: GameInterface;
 }
 
-type GameElementSerialization = 'player' | 'uuid' | 'x' | 'y' | 'left' | 'right' | 'top' | 'bottom' | 'columns' | 'rows' | 'layout' | 'zoom';
+type GameElementSerialization = 'player' | 'uuid' | 'x' | 'y' | 'left' | 'right' | 'top' | 'bottom' | 'columns' | 'rows' | 'layout' | 'zoom' | 'minWidth' | 'minHeight';
 type PieceSerialization = GameElementSerialization | 'cell';
 type InteractivePieceSerialization = PieceSerialization | 'component';
-type SpaceSerialization = GameElementSerialization;
+type SpaceSerialization = GameElementSerialization | 'label';
 type BaseType<T> = (T extends InteractivePiece ? InteractivePiece : (T extends Piece ? Piece : Space))
 
 type ElementAttributes<T extends GameElement> =
@@ -83,5 +83,5 @@ type ElementAttributes<T extends GameElement> =
   // optional attrs are optional attrs added beyond the base type plus the serialization attributes on the base type
   {
     [K2 in Exclude<{[K in keyof T]: T extends Record<K, T[K]> ? never : K}[keyof T], undefined | keyof BaseType<T>> |
-    (T extends InteractivePiece ? InteractivePieceSerialization : (T extends Piece ? PieceSerialization : SpaceSerialization))]?: T[K2]
-  }
+    keyof T & (T extends InteractivePiece ? InteractivePieceSerialization : (T extends Piece ? PieceSerialization : SpaceSerialization))]?: T[K2]
+  } & {className?: string}

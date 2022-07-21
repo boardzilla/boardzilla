@@ -22,6 +22,8 @@ export default class GameElement {
   rows?: number;
   layout?: string;
   zoom?: number;
+  minWidth?: number;
+  minHeight?: number;
 
   static serializable: string[] = [
     'player',
@@ -36,6 +38,8 @@ export default class GameElement {
     'rows',
     'layout',
     'zoom',
+    'minWidth',
+    'minHeight',
   ];
 
   constructor(
@@ -201,15 +205,15 @@ export default class GameElement {
     this.findAll(GameElement, pieces).forEach(p => p.destroy());
   }
 
-  create<T extends GameElement>(className: ElementClass<T>, id: string, attrs: ElementAttributes<T>): T {
+  create<T extends GameElement>(className: ElementClass<T>, id: string, attrs?: ElementAttributes<T>): T {
     const node: ElementLookup = this.ctx.document.xmlDoc.createElement(className.name) as any;
     if (id[0] !== '#') throw Error(`id ${id} must start with #`);
     node.id = id.slice(1);
     this.ctx.node.appendChild(node);
 
     const ctx = { ...this.ctx, node };
-    const el = new className(ctx, attrs);
-    node.className = el.elementType;
+    const el = new className(ctx, attrs || {});
+    node.className = el.elementType + (attrs?.className ? ` ${attrs.className}` : '');
 
     let allAttrs: string[] = [];
     let thisClass = className;

@@ -1,76 +1,100 @@
-const { game, Counter, Die } = require('game-core-server');
-const { editions, cards } = require('./data');
+import { game, Space, Piece, Counter, Die, Player } from 'game-core-server';
+import { editions, cards, CardData } from './data';
+
+class Card extends Piece {
+  name: string;
+  type: 'character' | 'eternal' | 'loot' | 'treasure' | 'monster' | 'bonus' | 'room';
+  edition: string;
+  front: string;
+  back: string;
+  eternal?: string;
+  p3?: boolean;
+  active?: boolean;
+  flipped?: boolean;
+  static serializable = ['name', 'type', 'front', 'back', 'active', 'flipped'];
+}
+
+class Deck extends Space {
+  bonus?: boolean;
+  layout = 'stack';
+}
+
+class Hand extends Space {
+  showTo?: string;
+
+  static serializable = ['showTo'];
+}
 
 game.setPlayers({
   min: 1,
   max: 4,
 });
 
-const findCards = type => Object.entries(cards).filter(c => c[1].type === type);
+const findCards = (type: string) => Object.entries(cards).filter(c => c[1].type === type);
 
-const addCards = (pieces, deck) => {
+const addCards = (pieces: [string, CardData][], deck: Space) => {
   pieces.forEach(([id, card]) => {
     Object.entries(card.edition).forEach(([edition, count]) => {
-      deck.addPieces(count, `#${id}`, 'card', { ...card, edition });
+      deck.createMany(Card, count, `#${id}`, { ...card, edition });
     });
   });
 };
 
-const addAllCards = (type, deck) => addCards(findCards(type), deck);
+const addAllCards = (type: string, deck: Space) => addCards(findCards(type), deck);
 
 game.setupPlayerMat(mat => {
-  mat.addSpace('#tableau', { layout: 'splay', columns: game.players.length > 2 ? 9 : 12, rows: 2 });
-  mat.addSpace('#hand', { layout: 'splay', columns: 16, minWidth: 73 });
-  mat.addSpace('#souls', { layout: 'splay', columns: 2, rows: 2, minWidth: 73, minHeight: 100 });
-  mat.addInteractivePiece(Counter, { name: 'health', component: 'HealthCounter', initialValue: 2, max: 5, left: 20, bottom: 140 });
-  mat.addInteractivePiece(Counter, { name: 'attack', component: 'AttackCounter', initialValue: 1, max: 8, left: 140, bottom: 140 });
-  mat.addInteractivePiece(Counter, { name: 'coins', component: 'CoinCounter', initialValue: 3, max: 50, right: 170, bottom: 140 });
-  mat.addInteractivePiece(Die, { faces: 6, right: 200, top: 20 });
+  mat.create(Space, '#tableau', { layout: 'splay', columns: game.players.length > 2 ? 9 : 12, rows: 2 });
+  mat.create(Hand, '#hand', { layout: 'splay', columns: 16, minWidth: 73 });
+  mat.create(Space, '#souls', { layout: 'splay', columns: 2, rows: 2, minWidth: 73, minHeight: 100 });
+  mat.create(Counter, '#hp', { name: 'health', component: 'HealthCounter', value: 2, max: 5, left: 20, bottom: 140 });
+  mat.create(Counter, '#attack', { name: 'attack', component: 'AttackCounter', value: 1, max: 8, left: 140, bottom: 140 });
+  mat.create(Counter, '#coins', { name: 'coins', component: 'CoinCounter', value: 3, max: 50, right: 170, bottom: 140 });
+  mat.create(Die, '#d6', { faces: 6, right: 200, top: 20 });
 });
 
 game.setupBoard(board => {
-  const charactersDeck = board.addSpace('#characters', { layout: 'stack', class: 'deck' });
+  const charactersDeck = board.create(Deck, '#characters');
   addAllCards('character', charactersDeck);
   charactersDeck.shuffle();
-  const eternalsDeck = board.addSpace('#eternals', { layout: 'stack', class: 'deck' });
+  const eternalsDeck = board.create(Deck, '#eternals');
   addAllCards('eternal', eternalsDeck);
   eternalsDeck.shuffle();
 
-  const lootDeck = board.addSpace('#loot', { layout: 'stack', class: 'deck', bonus: true });
-  board.addSpace('#loot-discard', { layout: 'stack', class: 'deck' });
+  const lootDeck = board.create(Deck, '#loot', { bonus: true });
+  board.create(Deck, '#loot-discard');
   addAllCards('loot', game.pile);
 
-  board.addSpace('#treasure', { layout: 'stack', class: 'deck' });
-  board.addSpace('#treasure-discard', { layout: 'stack', class: 'deck' });
-  board.addSpace('#shop', { layout: 'splay', columns: 3, rows: 2, minWidth: 73 });
+  board.create(Deck, '#treasure');
+  board.create(Deck, '#treasure-discard');
+  board.create(Space, '#shop', { layout: 'splay', columns: 3, rows: 2, minWidth: 73 });
   addAllCards('treasure', game.pile);
 
-  board.addSpace('#monsters', { layout: 'stack', class: 'deck' });
-  board.addSpace('#monsters-discard', { layout: 'stack', class: 'deck' });
-  board.addSpace('#dungeon', { layout: 'grid', columns: 3, rows: 2, minWidth: 73 });
+  board.create(Deck, '#monsters');
+  board.create(Deck, '#monsters-discard');
+  board.create(Space, '#dungeon', { layout: 'grid', columns: 3, rows: 2, minWidth: 73 });
   addAllCards('monster', game.pile);
 
-  const bonusSouls = board.addSpace('#bonus-souls', { layout: 'splay', columns: 3, minWidth: 73 });
+  const bonusSouls = board.create(Space, '#bonus-souls', { layout: 'splay', columns: 3, minWidth: 73 });
   addAllCards('bonus', lootDeck);
   lootDeck.shuffle();
-  lootDeck.move('card', bonusSouls, 3);
+  lootDeck.move('Card', bonusSouls, 3);
 
-  board.addSpace('#rooms', { layout: 'stack', class: 'deck' });
-  board.addSpace('#room', { layout: 'stack', class: 'deck' });
-  board.addSpace('#room-discard', { layout: 'stack', class: 'deck' });
+  board.create(Deck, '#rooms');
+  board.create(Deck, '#room');
+  board.create(Deck, '#room-discard');
   addAllCards('room', game.pile);
 });
 
 game.afterMove(
-  '#hand card, .deck card',
+  'Hand Card, Deck Card',
   card => {
-    card.destroyContents();
+    card.destroyContents('*');
     card.set({ active: false, flipped: false });
   },
 );
 
 game.hideBoard(
-  'card[flipped], .player-mat:not(.mine) #hand:not([showTo=$me]):not([showTo="Everyone"]) card, #loot card, #treasure card, #monsters card, #characters card, #eternals card, #rooms card',
+  'Card[flipped], PlayerMat:not(.mine) Hand:not([showTo=$me]):not([showTo="Everyone"]) Card, #loot Card, #treasure Card, #monsters Card, #characters Card, #eternals Card, #rooms Card',
   ['front', 'name', 'edition', 'p3'],
 );
 
@@ -80,80 +104,80 @@ game.defineActions({
     log: false,
   },
   activate: {
-    select: '.mine #tableau card:not([active])',
+    select: '.mine #tableau Card:not([active])',
     prompt: 'Tap',
     log: '$0 tapped $1',
     key: 'x',
-    action: card => card.set('active', true),
+    action: (card: Card) => card.active = true,
   },
   deactivate: {
     prompt: 'Untap',
     log: '$0 untapped $1',
-    select: '.mine #tableau card[active]',
+    select: '.mine #tableau Card[active]',
     key: 'x',
-    action: card => card.set('active', false),
+    action: (card: Card) => card.active = false,
   },
   deactivateAll: {
     prompt: 'Untap all',
     log: '$0 untapped all cards',
-    select: '.mine #tableau card[active]',
+    select: '.mine #tableau Card[active]',
     key: 'l',
-    action: card => card.parent().findAll('card[active]').forEach(c => c.set('active', false)),
+    action: (card: Card) => card.parent()!.findAll(Card, '[active]').forEach(c => c.active = false),
   },
   play: {
     prompt: 'Play onto board',
     log: '$0 played $1 onto the board',
     key: 'd',
-    drag: '.mine #hand card',
+    drag: '.mine Hand Card',
     onto: '.mine #tableau',
-    action: card => { if (card.get('eternal')) game.doc.find(`.mine #hand #${card.get('eternal')}`).moveTo('.mine #tableau'); },
+    action: (card: Card) => { if (card.eternal) Card.find(`.mine Hand #${card.get('eternal')}`).putInto('.mine #tableau'); },
   },
   draw: {
     prompt: 'Draw',
     log: '$0 drew $1',
-    drag: '.deck:not([bonus]):not(#characters) card:last-child, #loot-discard card:last-child',
+    drag: 'Deck:not([bonus]):not(#characters) Card:top, #loot-discard Card:top',
     key: 'd',
-    onto: '.mine #hand',
+    onto: '.mine Hand',
   },
   drawCharacter: {
     prompt: 'Draw',
     log: '$0 drew $1',
-    drag: '#characters card:last-child',
+    drag: '#characters Card:top',
     key: 'd',
     onto: '.mine #tableau',
-    action: card => { if (card.get('eternal')) game.board.move(`#${card.get('eternal')}`, '.mine #tableau'); },
+    action: (card: Card) => { if (card.get('eternal')) Card.find(`#board #${card.get('eternal')}`).putInto('.mine #tableau'); },
   },
   drawMultiple: {
     prompt: 'Draw multiple',
-    select: '.deck:not([bonus])',
+    select: 'Deck:not([bonus])',
     key: 'm',
     log: '$0 drew $2 $1',
     next: {
       prompt: 'How many?',
       min: 2,
       max: 6,
-      action: (deck, n) => deck.move('card', '.mine #hand', n),
+      action: (deck: Deck, n: number) => deck.move('Card', '.mine Hand', n),
     },
   },
   purchase: {
     prompt: 'Purchase',
     log: '$0 purchased $1',
-    drag: '#shop card, #treasure card:last-child',
+    drag: '#shop Card, #treasure Card:top',
     key: 'p',
     onto: '.mine #tableau',
   },
   drawOne: {
     prompt: 'Draw specific card',
     log: '$0 drew $2 out of the deck',
-    select: '.deck:not([bonus])',
+    select: 'Deck:not([bonus])',
     key: 'i',
     next: {
       prompt: 'Select card',
-      select: deck => deck.findAll('card').map(c => c.get('name')).sort(),
-      action: (deck, name) => {
-        const card = deck.find(`card[name="${name}"]`);
-        card.moveTo('.mine #hand');
-        if (card.get('eternal')) game.board.move(`#${card.get('eternal')}`, '.mine #hand');
+      select: (deck: Deck) => deck.findAll(Card, '*').map(c => c.get('name')).sort(),
+      action: (deck: Deck, name: string) => {
+        const card = deck.find(Card, `Card[name="${name}"]`);
+        card.putInto('.mine Hand');
+        if (card.get('eternal')) Card.find(`#board #${card.get('eternal')}`).putInto('.mine Hand');
       },
     },
   },
@@ -161,145 +185,145 @@ game.defineActions({
     prompt: 'Discard',
     log: '$0 discarded $1',
     key: 'f',
-    drag: '#loot card:last-child, .mine card[type="loot"], #dungeon card[type="loot"]',
+    drag: '#loot Card:top, .mine Card[type="loot"], #dungeon Card[type="loot"]',
     onto: '#loot-discard',
   },
   playLoot: {
     prompt: 'Play',
     log: '$0 played $1',
     key: 'p',
-    drag: '.mine card[type="loot"]',
+    drag: '.mine Card[type="loot"]',
     onto: '#loot-discard',
   },
   intoLootDeckTop: {
     prompt: 'Put on top of deck',
     log: '$0 put $1 on top of the deck',
     key: 't',
-    drag: '.mine card[type="loot"], #loot-discard card:last-child',
+    drag: '.mine Card[type="loot"], #loot-discard Card:top',
     onto: '#loot',
   },
   intoLootDeckBottom: {
     prompt: 'Put bottom of deck',
     log: '$0 put $1 on the bottom of the deck',
     key: 'b',
-    select: '.mine card[type="loot"]',
-    action: card => card.moveToBottomOf('#loot'),
+    select: '.mine Card[type="loot"]',
+    action: (card: Card) => card.putIntoBottomOf('#loot'),
   },
   intoShop: {
     prompt: 'Put into shop',
     log: false,
     key: 's',
-    drag: '#treasure card:last-child, #treasure-discard card:last-child, .mine card[type="treasure"]',
+    drag: '#treasure Card:top, #treasure-discard Card:top, .mine Card[type="treasure"]',
     onto: '#shop',
   },
   discardTreasure: {
     prompt: 'Discard',
     log: '$0 discarded $1',
     key: 'f',
-    drag: '#treasure card:last-child, #shop card, .mine card[type="treasure"]',
+    drag: '#treasure Card:top, #shop Card, .mine Card[type="treasure"]',
     onto: '#treasure-discard',
   },
   intoTreasureDeck: {
     prompt: 'Put top of deck',
     log: '$0 put $1 on top of the deck',
     key: 't',
-    drag: '#treasure-discard card:last-child, #shop card, .mine card[type="treasure"]',
+    drag: '#treasure-discard Card:top, #shop Card, .mine Card[type="treasure"]',
     onto: '#treasure',
   },
   intoTreasureDeckBottom: {
     prompt: 'Put bottom of deck',
     log: '$0 put $1 on the bottom of the deck',
     key: 'b',
-    select: '#treasure-discard card:last-child, #shop card, .mine card[type="treasure"]',
-    action: card => card.moveToBottomOf('#treasure'),
+    select: '#treasure-discard Card:top, #shop Card, .mine Card[type="treasure"]',
+    action: (card: Card) => card.putIntoBottomOf('#treasure'),
   },
   intoDungeon: {
     prompt: 'Put into dungeon',
     log: false,
     key: 's',
-    drag: '#monsters card:last-child, #monsters-discard card:last-child, .mine card[type="monster"], .mine card[type="loot"], #loot-discard card:last-child',
+    drag: '#monsters Card:top, #monsters-discard Card:top, .mine Card[type="monster"], .mine Card[type="loot"], #loot-discard Card:top',
     onto: '#dungeon',
   },
   takeMonster: {
     prompt: 'Play onto board',
     log: '$0 played $1 onto the board',
     key: 'p',
-    drag: '#dungeon card, #monsters card:last-child, #monsters-discard card:last-child',
+    drag: '#dungeon Card, #monsters Card:top, #monsters-discard Card:top',
     onto: '.mine #tableau',
   },
   discardMonster: {
     prompt: 'Discard',
     log: '$0 discarded $1',
     key: 'f',
-    drag: '#dungeon card[type="monster"], #monsters card:last-child, .mine card[type="monster"]',
+    drag: '#dungeon Card[type="monster"], #monsters Card:top, .mine Card[type="monster"]',
     onto: '#monsters-discard',
   },
   intoMonsterDeck: {
     prompt: 'Put top of deck',
     log: '$0 put $1 in the top of the deck',
     key: 't',
-    drag: '#dungeon card[type="monster"], #monsters-discard card:last-child, .mine card[type="monster"]',
+    drag: '#dungeon Card[type="monster"], #monsters-discard Card:top, .mine Card[type="monster"]',
     onto: '#monsters',
   },
   intoMonsterDeckBottom: {
     prompt: 'Put bottom of deck',
     log: '$0 put $1 in the bottom of the deck',
     key: 'b',
-    select: '#dungeon card[type="monster"], #monsters-discard card:last-child, .mine card[type="monster"]',
-    action: card => card.moveToBottomOf('#monsters'),
+    select: '#dungeon Card[type="monster"], #monsters-discard Card:top, .mine Card[type="monster"]',
+    action: (card: Card) => card.putIntoBottomOf('#monsters'),
   },
   intoMonsterDeckAt: {
     prompt: 'Put nth card down in deck',
     log: '$0 put $1 in the deck at position $2',
     key: 'n',
-    select: '#dungeon card[type="monster"], #monsters-discard card:last-child, .mine card[type="monster"]',
+    select: '#dungeon Card[type="monster"], #monsters-discard Card:top, .mine Card[type="monster"]',
     next: {
       prompt: 'How far down into deck?',
       min: 2,
       max: 6,
-      action: (card, position) => card.moveTo('#monsters', position - 1),
+      action: (card: Card, position: number) => card.putInto('#monsters', position - 1),
     },
   },
   replaceBonus: {
     prompt: 'Replace with random',
     log: false,
-    drag: '#bonus-souls card',
+    drag: '#bonus-souls Card',
     onto: '#loot',
-    action: card => { card.moveToBottomOf('#loot'); game.board.find('#loot card:last-child').moveTo('#bonus-souls'); },
+    action: (card: Card) => { card.putIntoBottomOf('#loot'); Card.find('#loot Card:top').putInto('#bonus-souls'); },
   },
   discardBonus: {
     prompt: 'Discard',
     log: '$0 discarded $1',
     key: 'f',
-    drag: '.mine card[type=bonus]',
+    drag: '.mine Card[type=bonus]',
     onto: '#bonus-souls',
   },
   takeSoul: {
     prompt: 'Take soul',
     log: '$0 won soul of $1',
     key: 'w',
-    drag: '#bonus-souls card, #dungeon card, #monsters-discard card, .mine card',
+    drag: '#bonus-souls Card, #dungeon Card, #monsters-discard Card, .mine Card',
     onto: '.mine #souls',
   },
   playRoom: {
     prompt: 'Play',
     log: '$0 played $1',
     key: 'p',
-    drag: '#rooms card:last-child, .mine card[type=room]',
+    drag: '#rooms Card:top, .mine Card[type=room]',
     onto: '#room',
   },
   discardRoom: {
     prompt: 'Discard',
     log: '$0 discarded $1',
     key: 'f',
-    drag: '#rooms card:last-child, #room card:last-child, .mine card[type=room]',
+    drag: '#rooms Card:top, #room Card:top, .mine Card[type=room]',
     onto: '#room-discard',
   },
   inRoomDeck: {
     prompt: 'Put back in deck',
     log: '$0 put $1 back into deck',
     key: 't',
-    drag: '#room-discard card:last-child, #room card:last-child, .mine card[type=room]',
+    drag: '#room-discard Card:top, #room Card:top, .mine Card[type=room]',
     onto: '#rooms',
   },
   giveCard: {
@@ -307,7 +331,7 @@ game.defineActions({
     promptOnto: 'Which player',
     log: '$0 gave $1 to $2',
     key: 'g',
-    drag: '.mine #tableau card, .mine card[type=monster]',
+    drag: '.mine #tableau Card, .mine Card[type=monster]',
     toPlayer: 'other',
     onto: '#tableau',
   },
@@ -316,7 +340,7 @@ game.defineActions({
     promptOnto: 'Which player',
     log: '$0 gave $1 to $2',
     key: 'g',
-    drag: '.mine #souls card',
+    drag: '.mine #souls Card',
     toPlayer: 'other',
     onto: '#souls',
   },
@@ -325,85 +349,93 @@ game.defineActions({
     promptOnto: 'Which player',
     log: '$0 gave $1',
     key: 'g',
-    drag: '.mine #hand card[type=\'loot\']',
+    drag: '.mine Hand Card[type=\'loot\']',
     toPlayer: 'all',
-    onto: '#hand',
+    onto: 'Hand',
   },
   giveAllLoot: {
     prompt: 'Give all cards to player',
-    select: '.mine #hand card',
+    select: '.mine Hand Card',
     log: '$0 gave all',
     next: {
       prompt: 'Which player?',
-      select: '.player-mat:not(.mine) #hand',
-      action: (from, to) => from.parent().move('card', to),
+      select: 'PlayerMat:not(.mine) Hand',
+      action: (_, hand: Space) => game.board.move('.mine Hand Card', hand),
     },
   },
   addCounter: {
     prompt: 'Add counter',
     log: '$0 added counter to $1',
     key: 'c',
-    select: '.mine card, #board card',
-    action: card => card.addInteractivePiece(Counter, { max: 99 }),
+    select: '.mine Card, #board Card',
+    action: (card: Card) => card.create(Counter, '#counter', { value: 0, max: 99 }),
   },
   removeCounter: {
     prompt: 'Remove counter',
     log: '$0 removed counter from $1',
     key: 'c',
-    select: '.mine card:not(:empty), #board card:not(:empty)',
-    action: card => card.destroyContents(),
+    select: '.mine Card:not(:empty), #board Card:not(:empty)',
+    action: (card: Card) => card.destroyContents('Counter'),
   },
   intoCharDeckTop: {
     prompt: 'Put back in deck',
     log: '$0 put $1 back into deck',
     key: 'f',
-    drag: '.mine card[type=character]',
+    drag: '.mine Card[type=character]',
     onto: '#characters',
-    action: card => { if (card.get('eternal')) game.doc.move(`.mine #${card.get('eternal')}`, '#eternals'); },
+    action: (card: Card) => { if (card.get('eternal')) Card.find(`.mine #${card.get('eternal')}`).putInto('#eternals'); },
   },
   intoEternalDeckTop: {
     prompt: 'Put back in deck',
     log: '$0 put $1 back into deck',
     key: 'f',
-    drag: '.mine card[type=eternal]',
+    drag: '.mine Card[type=eternal]',
     onto: '#eternals',
   },
   removeP3: {
     prompt: 'Remove 3+ player cards',
-    if: () => game.doc.find('card[p3]'),
-    action: () => game.doc.destroyContents('card[p3]'),
+    if: () => game.doc.contains('Card[p3]'),
+    action: () => game.doc.destroyContents('Card[p3]'),
   },
   remove: {
     prompt: 'Put back in your hand',
-    drag: '.mine #tableau card',
-    onto: '.mine #hand',
+    drag: '.mine #tableau Card',
+    onto: '.mine Hand',
   },
   shuffle: {
-    select: '.deck',
+    select: 'Deck',
     prompt: 'Shuffle',
-    action: deck => deck.shuffle(),
+    action: (deck: Deck) => deck.shuffle(),
   },
   flip: {
-    select: '.mine card, #dungeon card',
+    select: '.mine Card, #dungeon Card',
     prompt: 'Flip',
-    action: card => card.set('flipped', !card.get('flipped')),
+    action: (card: Card) => card.flipped = !card.flipped,
   },
   showHand: {
     prompt: 'Show hand',
     log: '$0 showed hand to $1',
-    if: '.mine #hand:not([showTo])',
+    if: '.mine Hand:not([showTo])',
     select: () => {
-      const players = game.otherPlayers();
+      const players: (Player | string)[] = game.otherPlayers();
       if (players.length > 1) players.push('Everyone');
       return players;
     },
-    action: player => game.doc.find('.mine #hand').set({ showTo: player.position || player, label: `Showing to ${player.name || player}` }),
+    action: (player: Player | string) => {
+      const hand = Hand.find('.mine Hand');
+      hand.showTo = player instanceof Player ? String(player.position) : player
+      hand.label = `Showing to ${player instanceof Player ? player.name : player}`;
+    },
   },
   hideHand: {
     prompt: 'Stop showing hand',
-    if: '.mine #hand[showTo]',
+    if: '.mine Hand[showTo]',
     log: '$0 stopped showing hand',
-    action: () => game.doc.find('.mine #hand').unset('showTo', 'label'),
+    action: () => {
+      const hand = Hand.find('.mine Hand');
+      hand.showTo = undefined;
+      hand.label = undefined;
+    }
   },
 });
 
@@ -418,8 +450,8 @@ Object.entries(editions).forEach(([i, edition]) => {
 
   game.defineAction(`excludeEdition-${i}`, {
     prompt: `Remove ${edition}`,
-    if: () => game.doc.find(`#board card[edition="${edition}"], .player-mat card[edition="${edition}"]`),
-    action: () => game.doc.clear(`#board card[edition="${edition}"], .player-mat card[edition="${edition}"]`),
+    if: () => game.doc.contains(`#board Card[edition="${edition}"], PlayerMat Card[edition="${edition}"]`),
+    action: () => game.doc.clearIntoPile(`#board Card[edition="${edition}"], PlayerMat Card[edition="${edition}"]`),
   });
 });
 
@@ -444,22 +476,22 @@ game.play(async () => {
     console.log('G', action);
   } while (action !== 'start');
 
-  const lootDeck = game.board.find('#loot');
-  lootDeck.clear();
-  lootDeck.unset('bonus');
-  lootDeck.add('card[type=loot]');
+  const lootDeck = Deck.find('#loot');
+  lootDeck.clearIntoPile('Card');
+  lootDeck.bonus = false;
+  lootDeck.addFromPile('Card[type=loot]');
   lootDeck.shuffle();
-  const treasureDeck = game.board.find('#treasure');
-  treasureDeck.add('card[type=treasure]');
+  const treasureDeck = Deck.find('#treasure');
+  treasureDeck.addFromPile('Card[type=treasure]');
   treasureDeck.shuffle();
-  const monsterDeck = game.board.find('#monsters');
-  monsterDeck.add('card[type=monster]');
+  const monsterDeck = Deck.find('#monsters');
+  monsterDeck.addFromPile('Card[type=monster]');
   monsterDeck.shuffle();
-  game.board.addInteractivePiece(Counter, { name: 'boss health', component: 'HealthCounter', initialValue: 1, max: 8, left: game.players.length > 2 ? 1290 : 990, top: 110 });
-  const roomDeck = game.board.find('#rooms');
-  roomDeck.add('card[type=room]');
+  game.board.create(Counter, '#bosshp', { name: 'boss health', component: 'HealthCounter', value: 1, max: 8, left: game.players.length > 2 ? 1290 : 990, top: 110 });
+  const roomDeck = Deck.find('#rooms');
+  roomDeck.addFromPile('Card[type=room]');
   roomDeck.shuffle();
-  game.prompt(null);
+  game.prompt('');
 
   console.log('G starting while-true loop');
   while (true) { // eslint-disable-line no-constant-condition
