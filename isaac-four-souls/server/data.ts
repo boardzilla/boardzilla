@@ -1,4 +1,4 @@
-const editions = [
+export const editions = [
   'Four Souls+ V2',
   'Alt Art',
   'Requiem',
@@ -12,7 +12,17 @@ const editions = [
   'Dick Knots',
 ];
 
-const cards = {
+export type CardData = {
+  name: string;
+  type: 'character' | 'eternal' | 'loot' | 'treasure' | 'monster' | 'bonus' | 'room';
+  edition: Record<string, number>;
+  front: string;
+  back: string;
+  eternal?: string;
+  p3?: boolean;
+};
+
+export const cards: Record<string, CardData> = {
   Isaac: {
     name: 'Isaac',
     type: 'character',
@@ -24,14 +34,10 @@ const cards = {
   'The-D6': {
     name: 'The D6',
     type: 'eternal',
-    edition: { 'Base Game V2': 1 },
-    front: 'b2-the_d6-308x420.webp',
-    back: 'EternalCardBack-308x420.webp',
-  },
-  'The-D6': {
-    name: 'The D6',
-    type: 'eternal',
-    edition: { 'Base Game V2': 1 },
+    edition: {
+      'Base Game V2': 1,
+      'Alt Art': 1
+    },
     front: 'b2-the_d6-308x420.webp',
     back: 'EternalCardBack-308x420.webp',
   },
@@ -76,14 +82,10 @@ const cards = {
   'Book-Of-Belial': {
     name: 'Book Of Belial',
     type: 'eternal',
-    edition: { 'Base Game V2': 1 },
-    front: 'b2-book_of_belial-308x420.webp',
-    back: 'EternalCardBack-308x420.webp',
-  },
-  'Book-Of-Belial': {
-    name: 'Book Of Belial',
-    type: 'eternal',
-    edition: { 'Base Game V2': 1 },
+    edition: {
+      'Base Game V2': 1,
+      'Alt Art': 1
+    },
     front: 'b2-book_of_belial-308x420.webp',
     back: 'EternalCardBack-308x420.webp',
   },
@@ -98,14 +100,10 @@ const cards = {
   'Forever-Alone': {
     name: 'Forever Alone',
     type: 'eternal',
-    edition: { 'Base Game V2': 1 },
-    front: 'b2-forever_alone-308x420.webp',
-    back: 'EternalCardBack-308x420.webp',
-  },
-  'Forever-Alone': {
-    name: 'Forever Alone',
-    type: 'eternal',
-    edition: { 'Base Game V2': 1 },
+    edition: {
+      'Base Game V2': 1,
+      'Alt Art': 1
+    },
     front: 'b2-forever_alone-308x420.webp',
     back: 'EternalCardBack-308x420.webp',
   },
@@ -165,14 +163,10 @@ const cards = {
   Incubus: {
     name: 'Incubus',
     type: 'eternal',
-    edition: { 'Base Game V2': 1 },
-    front: 'b2-incubus-308x420.webp',
-    back: 'EternalCardBack-308x420.webp',
-  },
-  Incubus: {
-    name: 'Incubus',
-    type: 'eternal',
-    edition: { 'Base Game V2': 1 },
+    edition: {
+      'Base Game V2': 1,
+      'Alt Art': 1
+    },
     front: 'b2-incubus-308x420.webp',
     back: 'EternalCardBack-308x420.webp',
   },
@@ -187,14 +181,10 @@ const cards = {
   'The-Bone': {
     name: 'The Bone',
     type: 'eternal',
-    edition: { 'Base Game V2': 1 },
-    front: 'b2-the_bone-308x420.webp',
-    back: 'EternalCardBack-308x420.webp',
-  },
-  'The-Bone': {
-    name: 'The Bone',
-    type: 'eternal',
-    edition: { 'Base Game V2': 1 },
+    edition: {
+      'Base Game V2': 1,
+      'Alt Art': 1
+    },
     front: 'b2-the_bone-308x420.webp',
     back: 'EternalCardBack-308x420.webp',
   },
@@ -2108,14 +2098,10 @@ const cards = {
   'Lord-Of-The-Pit': {
     name: 'Lord Of The Pit',
     type: 'eternal',
-    edition: { 'Gold Box V2': 1 },
-    front: 'g2-lord_of_the_pit-308x420.webp',
-    back: 'EternalCardBack-308x420.webp',
-  },
-  'Lord-Of-The-Pit': {
-    name: 'Lord Of The Pit',
-    type: 'eternal',
-    edition: { 'Gold Box V2': 1 },
+    edition: {
+      'Gold Box V2': 1,
+      'Alt Art': 1
+    },
     front: 'g2-lord_of_the_pit-308x420.webp',
     back: 'EternalCardBack-308x420.webp',
   },
@@ -2130,14 +2116,10 @@ const cards = {
   'Holy-Mantle': {
     name: 'Holy Mantle',
     type: 'eternal',
-    edition: { 'Gold Box V2': 1 },
-    front: 'g2-holy_mantle-308x420.webp',
-    back: 'EternalCardBack-308x420.webp',
-  },
-  'Holy-Mantle': {
-    name: 'Holy Mantle',
-    type: 'eternal',
-    edition: { 'Gold Box V2': 1 },
+    edition: {
+      'Gold Box V2': 1,
+      'Alt Art': 1
+    },
     front: 'g2-holy_mantle-308x420.webp',
     back: 'EternalCardBack-308x420.webp',
   },
@@ -2152,14 +2134,10 @@ const cards = {
   'Wooden-Nickel': {
     name: 'Wooden Nickel',
     type: 'eternal',
-    edition: { 'Gold Box V2': 1 },
-    front: 'g2-wooden_nickel-308x420.webp',
-    back: 'EternalCardBack-308x420.webp',
-  },
-  'Wooden-Nickel': {
-    name: 'Wooden Nickel',
-    type: 'eternal',
-    edition: { 'Gold Box V2': 1 },
+    edition: {
+      'Gold Box V2': 1,
+      'Alt Art': 1
+    },
     front: 'g2-wooden_nickel-308x420.webp',
     back: 'EternalCardBack-308x420.webp',
   },
@@ -2569,14 +2547,10 @@ const cards = {
   Infestation: {
     name: 'Infestation',
     type: 'eternal',
-    edition: { 'Four Souls+ V2': 1 },
-    front: 'fsp2-infestation-308x420.webp',
-    back: 'EternalCardBack-308x420.webp',
-  },
-  Infestation: {
-    name: 'Infestation',
-    type: 'eternal',
-    edition: { 'Four Souls+ V2': 1 },
+    edition: {
+      'Four Souls+ V2': 1,
+      'Alt Art': 1
+    },
     front: 'fsp2-infestation-308x420.webp',
     back: 'EternalCardBack-308x420.webp',
   },
@@ -3132,7 +3106,7 @@ const cards = {
     back: 'EternalCardBack-308x420.webp',
   },
   'Jacob-Esau': {
-    name: 'Jacob & Esau',
+    name: 'Jacob and Esau',
     type: 'character',
     p3: true,
     edition: { Requiem: 1 },
@@ -3251,14 +3225,10 @@ const cards = {
   Berserk: {
     name: 'Berserk',
     type: 'eternal',
-    edition: { Requiem: 1 },
-    front: 'r-berserk-308x420.webp',
-    back: 'EternalCardBack-308x420.webp',
-  },
-  Berserk: {
-    name: 'Berserk',
-    type: 'eternal',
-    edition: { Requiem: 1 },
+    edition: {
+      Requiem: 1,
+      'Alt Art': 1
+    },
     front: 'r-berserk-308x420.webp',
     back: 'EternalCardBack-308x420.webp',
   },
@@ -3303,14 +3273,10 @@ const cards = {
   Glitch: {
     name: 'Glitch',
     type: 'eternal',
-    edition: { Requiem: 1 },
-    front: 'r-glitch-308x420.webp',
-    back: 'EternalCardBack-308x420.webp',
-  },
-  Glitch: {
-    name: 'Glitch',
-    type: 'eternal',
-    edition: { Requiem: 1 },
+    edition: {
+      Requiem: 1,
+      'Alt Art': 1
+    },
     front: 'r-glitch-308x420.webp',
     back: 'EternalCardBack-308x420.webp',
   },
@@ -3342,14 +3308,10 @@ const cards = {
   Gello: {
     name: 'Gello',
     type: 'eternal',
-    edition: { Requiem: 1 },
-    front: 'r-gello-308x420.webp',
-    back: 'EternalCardBack-308x420.webp',
-  },
-  Gello: {
-    name: 'Gello',
-    type: 'eternal',
-    edition: { Requiem: 1 },
+    edition: {
+      Requiem: 1,
+      'Alt Art': 1
+    },
     front: 'r-gello-308x420.webp',
     back: 'EternalCardBack-308x420.webp',
   },
@@ -6203,5 +6165,3 @@ const cards = {
     back: 'TreasureCardBack-308x420.webp',
   },
 };
-
-module.exports = { editions, cards };

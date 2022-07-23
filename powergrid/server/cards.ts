@@ -1,4 +1,15 @@
-module.exports = [
+export type ResourceType = 'coal' | 'oil' | 'garbage' | 'uranium';
+
+type Card = {
+  id: string;
+  image: string;
+  cost?: number;
+  resourceType?: ResourceType | 'hybrid';
+  resources?: number;
+  power?: number;
+};
+
+export const cards: Card[] = [
   {
     id: '#oil-03',
     cost: 3,
@@ -276,10 +287,6 @@ module.exports = [
     resources: 1,
     power: 6,
     image: 'nuclear-39.webp',
-  },
-  {
-    id: '#plug',
-    image: 'plug.webp',
   },
   {
     id: '#step-3',

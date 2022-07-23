@@ -198,7 +198,7 @@ export default class Page extends Component {
       let el = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
       if (!this.state.touchMoving) this.setState({ touchMoving: true });
       if (el && this.state.dragging) {
-        while (el.classList && !el.classList.contains("space") && el.parentNode) el = el.parentNode;
+        while (el.classList && !el.classList.contains("space-type") && el.parentNode) el = el.parentNode;
         this.setState({dragOver: choiceByEl(el)});
       }
     });
@@ -210,7 +210,7 @@ export default class Page extends Component {
     });
     document.addEventListener('keydown', e => {
       if (e.key == "z") {
-        const zoomKey = choiceAtPoint(mouse.x, mouse.y, el => el.matches('.piece'));
+        const zoomKey = choiceAtPoint(mouse.x, mouse.y, el => el.matches('.piece-type'));
         zoomKey && this.handleClick(zoomKey, e);
       }
       if (e.key == "Escape") this.cancel();
@@ -452,8 +452,8 @@ export default class Page extends Component {
       this.setPieceAt(choice, {x: dragging.x, y: dragging.y});
       this.send('drag', {key: choice});
     };
-      if (dragging && dragging.key === choice && Math.abs(dragging.x - x) + Math.abs(dragging.y - y) > DRAG_TOLERANCE) {
-        const dragAction = this.allowedDragSpaces(choice)[dragOver];
+    if (dragging && dragging.key === choice && Math.abs(dragging.x - x) + Math.abs(dragging.y - y) > DRAG_TOLERANCE) {
+      const dragAction = this.allowedDragSpaces(choice)[dragOver];
       const parent = elByChoice(dragOver);
       const el = elByChoice(choice);
       const ontoXY = dragOver && parent.getBoundingClientRect();
@@ -534,7 +534,7 @@ export default class Page extends Component {
         this.setState({action: null, args: [], prompt: null, choices: null, min: null, max: null});
       }
       let zooming = false;
-      if (isEl(choice) && elByChoice(choice).classList.contains('piece')) {
+      if (isEl(choice) && elByChoice(choice).classList.contains('piece-type')) {
         this.zoomOnPiece(elByChoice(choice));
         event.stopPropagation();
         zooming = true;
@@ -649,14 +649,14 @@ export default class Page extends Component {
     return choice;
   }
 
-  renderBoard(board) {
+  renderBoard(boardXml) {
     return (
       <div id="game-dom">
-        {[...board.querySelectorAll('.player-mat:not(.mine)')].map(
+      {[...boardXml.querySelectorAll('PlayerMat:not(.mine)')].map(
           mat => this.renderGameElement(mat, mat.getAttribute('player-after-me') === '1' || mat.getAttribute('player-after-me') === '2' || (mat.getAttribute('player-after-me') === '3' && this.state.data.players.length > 4))
         )}
-        {this.renderGameElement(board.querySelector('#board'))}
-        {this.renderGameElement(board.querySelector(`.player-mat.mine`))}
+        {this.renderGameElement(boardXml.querySelector('#board'))}
+        {this.renderGameElement(boardXml.querySelector(`PlayerMat.mine`))}
       </div>
     );
   }
@@ -670,14 +670,14 @@ export default class Page extends Component {
                                if (['[', '{'].includes(value[0])) value = JSON.parse(value);
                                return Object.assign(attrs, { [attr.name.toLowerCase()]: value });
                              }, {});
-
-    const type = node.nodeName.toLowerCase();
+    const type = node.nodeName;
+    const isSpace = node.classList.contains('space-type');
     const key = choiceForXmlNode(node);
     let label;
     if (attributes.label !== undefined) {
       label = unescape(attributes.label);
       delete attributes.label;
-    } else if (this.props.debug && type==='space') {
+    } else if (this.props.debug && isSpace) {
       //label = `#${node.id}`;
     }
 
@@ -696,10 +696,10 @@ export default class Page extends Component {
     const gridItem = ['splay', 'grid'].includes(node.parentNode.getAttribute('layout'));
 
     if (!frozen) {
-      props.onClick = e => this.handleClick(key, e);
+      if (!props.unclickable) props.onClick = e => this.handleClick(key, e);
       props.onContextMenu = e => {
         e.preventDefault();
-        this.handleClick(key, e);
+        if (!props.unclickable) this.handleClick(key, e);
       };
       props.className = classNames(props.className, {
         flipped,
@@ -723,17 +723,17 @@ export default class Page extends Component {
 
       ['left', 'right', 'top', 'bottom'].forEach(p => {
         if (props[p] !== undefined) {
-          (type === 'space' ? props.style : wrappedStyle)[p] = props[p];
+          (isSpace ? props.style : wrappedStyle)[p] = props[p];
           delete props[p];
         }
       });
 
       if (this.state.dragging && key === this.state.dragging.moveAnchor) {
         // elevate drag parent to help the drag item be higher than it's cousins (grand-cousins?)
-        (type === 'space' ? props.style : wrappedStyle).zIndex = 200;
+        (isSpace ? props.style : wrappedStyle).zIndex = 200;
       }
 
-      if (type !== 'space') {
+      if (!isSpace) {
         if (externallyControlled && this.state.positions[key]) {
           position = this.state.positions[key];
         } else if (node.parentNode.getAttribute('layout') === 'stack' && !attributes.moved) {
@@ -743,7 +743,7 @@ export default class Page extends Component {
           const y = attributes.y;
           if (!position && !isNaN(x) && !isNaN(y) && !isNaN(parseFloat(x)) && !isNaN(parseFloat(y))) {
             position = {x, y};
-          } else if (node.parentNode.nodeName === 'space') {
+          } else if (node.parentNode.classList.contains('space-type')) {
             position = {x: 0, y: 0};
           }
         }
@@ -775,7 +775,7 @@ export default class Page extends Component {
     } else {
       contents = Array.from(node.children).map(child => this.renderGameElement(child, false, flipped || parentFlipped));
     }
-    if (node.classList.contains('player-mat')) {
+    if (type === 'PlayerMat') {
       const player = attributes.player && this.state.data.players[attributes.player - 1];
       if (player) contents.push(
         <div key="nametag"
@@ -796,7 +796,8 @@ export default class Page extends Component {
       contents = React.createElement(this.props.pieces[type], {...props}, frozen || contents);
     } else if (this.props.spaces[`#${props.id}`]) {
       contents = React.createElement(this.props.spaces[`#${props.id}`], {...props}, frozen || contents);
-    } else if (type !== 'space') {
+    } else if (!isSpace) {
+      console.log('unstyled-piece', attributes);
       contents = <div className="unstyled-piece">{props.id}{contents}</div>;
     }
 
@@ -804,7 +805,7 @@ export default class Page extends Component {
       wrappedStyle.pointerEvents = "none";
     }
 
-    const draggable = !frozen && !node.classList.contains('space') && (this.isAllowedMove(node) || this.isAllowedDrag(key)) && (this.state.zoomPiece == key || !IS_MOBILE_PORTRAIT);
+    const draggable = !frozen && !isSpace && (this.isAllowedMove(node) || this.isAllowedDrag(key)) && (this.state.zoomPiece == key || !IS_MOBILE_PORTRAIT);
 
     if (position && (position.x !== undefined && position.x !== 0 || position.y !== undefined && position.y !== 0) && !frozen && !draggable) {
       wrappedStyle.transform = `translate(${position.x}px, ${position.y}px)`;
@@ -823,12 +824,12 @@ export default class Page extends Component {
     </>;
 
     contents = <div {...props}>{contents}</div>;
-    if (position && type !== 'space' || externallyControlled || gridItem || props.moved || Object.keys(wrappedStyle).length) {
+    if (position && !isSpace || externallyControlled || gridItem || props.moved || Object.keys(wrappedStyle).length) {
       contents = (
         <div
           key={key}
           className={classNames({
-            'positioned-piece': type !== 'space' && !frozen,
+            'positioned-piece': !isSpace && !frozen,
             "external-dragging": externallyControlled || props.moved,
           })}
           style={wrappedStyle}

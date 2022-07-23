@@ -164,7 +164,7 @@ class GameRunner {
 
         if (!gameInstance) {
           log.debug(process.pid, 'IS LOADING GAME', session.state);
-          gameInstance = vm.run(serverBuffer.Body.toString());
+          gameInstance = vm.run(serverBuffer.Body.toString()).default;
           gameInstance.initialize(session.seed);
           await session.reload();
           const sessionUsers = await session.getSessionUsers({ include: 'User', order: ['position'] });

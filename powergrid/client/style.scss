@@ -86,7 +86,7 @@
       top: -125px;
       width: 52px;
       height: 280px;
-      .token {
+      .Building {
         position: absolute;
         top: 261px;
         left: 9px;
@@ -190,7 +190,7 @@
       top: 253px;
       width: 28px;
       height: 172px;
-      .token {
+      .Building {
         position: absolute;
         top: 126px;
         left: 6px;
@@ -256,7 +256,7 @@
     }
   }
 
-  .player-mat {
+  .PlayerMat {
     left: 805px;
     top: 0px;
     height: 150px;
@@ -279,7 +279,7 @@
     &[player-after-me="2"], &[player-after-me="3"], &[player-after-me="4"], &[player-after-me="5"] {
       left: 1195px;
     }
-    .counter[name=Elektro] {
+    .Counter#elektro {
       button {
         font-size: 10px;
       }
@@ -301,7 +301,7 @@
     }
   }
 
-  .resource {
+  .Resource {
     font-family: system-ui;
     line-height: 10px;
     &[type=coal] {
@@ -334,7 +334,7 @@
     width: 15px;
   }
 
-  .card {
+  .Card {
     width: 75px;
     height: 75px;
     padding: 20px 10px;

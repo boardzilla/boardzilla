@@ -15,11 +15,11 @@ set +e
 cd server
 
 # this can fail and thats okay
-rabbitmqadmin delete queue name='session-actions-1-queue'
-rabbitmqadmin delete exchange name='session-actions'
-rabbitmqadmin delete exchange name='session-events'
-rabbitmqadmin delete exchange name='session-events-1'
-./node_modules/.bin/sequelize db:drop
+# rabbitmqadmin delete queue name='session-actions-1-queue'
+# rabbitmqadmin delete exchange name='session-actions'
+# rabbitmqadmin delete exchange name='session-events'
+# rabbitmqadmin delete exchange name='session-events-1'
+# ./node_modules/.bin/sequelize db:drop
 
 # now we need to start doing things that can't fail
 set -e

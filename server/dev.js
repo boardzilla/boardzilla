@@ -31,6 +31,7 @@ if (!process.env.GAME) {
 
 const gameName = process.env.GAME;
 const gamePath = path.resolve(__dirname, path.join('..', gameName));
+console.log(gameName, gamePath);
 
 if (!fs.existsSync(gamePath)) {
   console.error(`expected game ${gameName} to exist at ${gamePath}`);
@@ -45,7 +46,7 @@ function modifyBuild(config) {
 }
 
 async function build() {
-  const serverConfig = require(path.join(gamePath, 'server', 'webpack.config.js'));
+  const serverConfig = require(path.join(gamePath, 'server', 'webpack.config.cjs'));
   const clientConfig = require(path.join(gamePath, 'client', 'webpack.config.cjs'));
 
   modifyBuild(serverConfig);

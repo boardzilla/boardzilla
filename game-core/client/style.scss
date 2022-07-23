@@ -194,17 +194,17 @@ button {
     z-index: -100;
   }
 
-  .piece .unstyled-piece {
+  .piece-type .unstyled-piece {
     background: white;
     padding: 10px;
     border: 1px solid #333;
   }
 
-  .debug .space:not(.hilited) {
+  .debug .space-type:not(.hilited) {
     outline: 1px solid red;
   }
 
-  .space {
+  .space-type {
     position: absolute;
     width: 400px;
     height: 100px;
@@ -225,7 +225,7 @@ button {
     }
     > .positioned-piece {
       position: relative;
-      > .piece, > .space {
+      > .piece-type, > .space-type {
         position: absolute;
       }
     }
@@ -264,27 +264,27 @@ div.nametag {
   position: absolute;
   width: 100%;
   text-align: center;
-  .player-mat[color="red"] & {
+  .PlayerMat[color="red"] & {
     color: #600;
     text-shadow: 1px 1px #fcc, -1px 1px #fcc, -1px -1px #fcc, 1px -1px #fcc;
   }
-  .player-mat[color="green"] & {
+  .PlayerMat[color="green"] & {
     color: #060;
     text-shadow: 1px 1px #cfc, -1px 1px #cfc, -1px -1px #cfc, 1px -1px #cfc;
   }
-  .player-mat[color="blue"] & {
+  .PlayerMat[color="blue"] & {
     color: #006;
     text-shadow: 1px 1px #ccf, -1px 1px #ccf, -1px -1px #ccf, 1px -1px #ccf;
   }
-  .player-mat[color="purple"] & {
+  .PlayerMat[color="purple"] & {
     color: #406;
     text-shadow: 1px 1px #d9f, -1px 1px #d9f, -1px -1px #d9f, 1px -1px #d9f;
   }
-  .player-mat[color="cyan"] & {
+  .PlayerMat[color="cyan"] & {
     color: #066;
     text-shadow: 1px 1px #bdf, -1px 1px #bdf, -1px -1px #bdf, 1px -1px #bdf;
   }
-  .player-mat[color="yellow"] & {
+  .PlayerMat[color="yellow"] & {
     color: #880;
     text-shadow: 1px 1px #ffb, -1px 1px #ffb, -1px -1px #ffb, 1px -1px #ffb;
   }
@@ -293,7 +293,7 @@ div.nametag {
   }
 }
 
-.space > label, .interactive-piece > label {
+.space-type > label {
   color: white;
   position: absolute;
   display: block;
@@ -304,7 +304,7 @@ div.nametag {
   border-radius: 5px;
 }
 
-.piece > label {
+.piece-type > label {
   position: absolute;
   display: inline-block;
   top: 0;
@@ -410,7 +410,7 @@ div.nametag {
     margin: 0 auto;
     transform-origin: top center;
   }
-  .piece {
+  .piece-type {
     transform: none !important;
   }
 }
@@ -425,7 +425,7 @@ div.nametag {
   z-index: 100;
   position: relative;
   #play-area.dragging & {
-    .piece, .interactive-piece {
+    .piece-type {
       transform: scale(1.2);
     }
     img {
@@ -435,7 +435,7 @@ div.nametag {
   }
 }
 
-.counter {
+.Counter {
   white-space: nowrap;
   button:first-child {
     margin-right: 4px;
@@ -452,7 +452,7 @@ div.nametag {
   margin-top: 8px;
 }
 
-.die {
+.Die {
   .shake {
     transition: transform 0.25s ease-out;
   }
@@ -627,19 +627,19 @@ div.nametag {
   [number="6"] &[data-spin="down"] {
     transform: rotateX(-360deg) rotateY(-900deg) rotateZ(-360deg);
   }
-  .player-mat[color="red"] & .die-face {
+  .PlayerMat[color="red"] & .die-face {
     background-color: #f66;
   }
 
-  .player-mat[color="green"] & .die-face {
+  .PlayerMat[color="green"] & .die-face {
     background-color: #6c6;
   }
 
-  .player-mat[color="blue"] & .die-face {
+  .PlayerMat[color="blue"] & .die-face {
     background-color: #66f;
   }
 
-  .player-mat[color="purple"] & .die-face {
+  .PlayerMat[color="purple"] & .die-face {
     background-color: #b0f;
   }
 }
