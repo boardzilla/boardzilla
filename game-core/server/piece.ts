@@ -5,8 +5,9 @@ import type GameInterface from './interface';
 
 export default class Piece extends GameElement {
   cell?: number;
+  unclickable?: boolean;
 
-  static serializable: string[] = ['cell'];
+  static serializable: string[] = ['cell', 'unclickable'];
 
   constructor(
     ctx: {
@@ -17,7 +18,7 @@ export default class Piece extends GameElement {
     attrs: Record<string, any> = {}
   ) {
     super(ctx, attrs);
-    this.elementType = 'piece';
+    this.elementType = 'piece-type';
   }
 
   putInto(to?: string | GameElement, position = 0) {
@@ -29,15 +30,18 @@ export default class Piece extends GameElement {
   }
 
   putInPosition(position: number) {
-    return this.ctx.document.move([this], this.parent()!, 1, position);
+    const parentNode = this.ctx.node.parentNode!;
+    position = parentNode.childElementCount - position;
+    parentNode!.insertBefore(this.ctx.node, parentNode.children[position]);
   }
 
   putInTopPosition() {
-    return this.ctx.document.move([this], this.parent()!, 1);
+    this.ctx.node.parentNode!.appendChild(this.ctx.node);
   }
 
   putInBottomPosition() {
-    return this.ctx.document.moveToBottom([this], this.parent()!, 1);
+    const parentNode = this.ctx.node.parentNode!;
+    parentNode!.insertBefore(this.ctx.node, parentNode.children[0]);
   }
 
   remove() {

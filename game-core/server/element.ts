@@ -1,14 +1,14 @@
 import uuid from 'uuid-random';
 import type Space from './space';
 import type Piece from './piece';
-import type {ElementLookup, ElementAttributes, ElementClass, Context} from './types.d';
+import type {ElementLookup, ElementAttributes, ElementClass, Context, Attribute} from './types.d';
 
-import { times } from './utils';
+import { times, escape } from './utils';
 
 // TODO reserved attributes? class, className, id, style  & special attributes: player, layout, component, x,y,top,left,right,bottom...?
 export default class GameElement {
   id: string;
-  elementType: string = 'none';
+  elementType: 'none' | 'piece-type' | 'space-type' = 'none';
 
   player?: number;
   uuid?: string;
@@ -44,7 +44,7 @@ export default class GameElement {
 
   constructor(
     public ctx: Context,
-    protected attrs: Record<string, any> = {}
+    protected attrs: Record<string, Attribute> = {}
   ) {
     Object.assign(ctx.node, { gameElement: this });
     this.id = ctx.node.id;
@@ -57,24 +57,22 @@ export default class GameElement {
   }
 
   private enhanceQuery(q: string) {
-    return q.replace(/\.mine/g, `[player="${this.ctx.game.currentPlayerPosition}"]`)
-      .replace(':top', ':last-child')
-      .replace(':bottom', ':first-child');
-//      .replace(/=(['"]?)([^\]'"]+)\1/g, (_m, _, a) => `="${escape(a)}"`); ????
+    return q.replace(/\.mine/g, `[player="${this.ctx.game.currentPlayerPosition}"]`).
+      replace(/\$me/g, `"${this.ctx.game.currentPlayerPosition}"`);
+//      .replace(/=(['"]?)([^\]'"]+)\1/g, (_m, _, a) => `="${escape(a)}"`); // please no
   }
 
   // human readable name of this element from the perspective of player
   descriptiveName(player: number, hidden: boolean) {
-    const noun = this.id && !hidden ? this.id : this.constructor.name;
+    if (!hidden) return this.attrs.name || this.id;
+    const noun = this.constructor.name;
     let pronoun = '';
-    if (!this.id || hidden) {
-      if (this.matches('.mine *')) {
-        pronoun = this.ctx.game.currentPlayerPosition === player ? 'my' : 'their';
-      } else {
-        pronoun = 'a';
-      }
+    if (this.matches('.mine *')) {
+      pronoun = this.ctx.game.currentPlayerPosition === player ? 'my' : 'their';
+    } else {
+      pronoun = 'a';
     }
-    return `${pronoun} ${noun}`.trim();
+    return `${pronoun} ${noun}`;
   }
 
   findNode(q = '*') {
@@ -97,14 +95,14 @@ export default class GameElement {
     return !!this.findNode(q);
   }
 
-  find<T extends GameElement>(className: { new (...a: any[]): T }, q: string = '*') {
+  find<T extends GameElement>(className: { new (...a: any[]): T }, q = '*') {
     const node = this.findNode(q);
     if (!node) throw Error(`Could not find element '${q}'`);
     if (!(node.gameElement instanceof className)) throw Error(`query '${q}' returned a ${node.gameElement.constructor.name} instead of a ${className.name}.`)
     return node.gameElement;
   }
 
-  findAll<T extends GameElement>(className: { new (...a: any[]): T }, q: string = '*'): T[] {
+  findAll<T extends GameElement>(className: { new (...a: any[]): T }, q = '*'): T[] {
     return Array.from(this.findNodes(q))
       .filter(node => node.gameElement instanceof className)
       .map(node => node.gameElement) as T[];
@@ -128,12 +126,12 @@ export default class GameElement {
 
   static max(q: string, fn: ((e: GameElement) => number) | string): number {
     const val = typeof fn === 'function' ? fn : (el: GameElement) => el.attrs.fn;
-    return Math.max.apply(Math, this.forEach(q, val) as number[]);
+    return Math.max(...this.forEach(q, val) as number[]);
   }
 
   static min(q: string, fn: ((e: GameElement) => number) | string): number {
     const val = typeof fn === 'function' ? fn : (el: GameElement) => el.attrs.fn;
-    return Math.min.apply(Math, this.forEach(q, val) as number[]);
+    return Math.min(...this.forEach(q, val) as number[]);
   }
 
   static forEach<T extends GameElement, F>(this: ElementClass<T>, q: string, fn: (e: T) => F): F[] {
@@ -167,7 +165,8 @@ export default class GameElement {
     const branches = [];
     let { node } = this.ctx;
     while (node.parentNode?.parentNode) {
-      branches.unshift(Array.prototype.indexOf.call(node.parentNode.childNodes, node) + 1);
+      branches.unshift(Array.prototype.indexOf.call(node.parentNode.childNodes, node) + 1); // eslint-disable-line @typescript-eslint/restrict-plus-operands
+      ['a'].indexOf('b') + 1;
       node = node.parentNode as ElementLookup;
     }
     return `$el(${branches.join('-')})`;
@@ -223,17 +222,20 @@ export default class GameElement {
       thisClass = Object.getPrototypeOf(thisClass);
     } while (thisClass.name === 'GameElement' || thisClass.prototype instanceof GameElement);
 
-
     for (const attr of allAttrs) {
-      // @ts-ignore
-      el.setAttribute(attr, attrs[attr] === undefined ? el[attr] : attrs[attr]);
+      el.setAttribute(
+        attr,
+        !attrs || !(attr in attrs) ?
+          // @ts-ignore
+          el[attr] : attrs[attr]
+      );
       Object.defineProperty(el, attr, {
         get: function() { return this.attrs[attr]; },
-        set: v => el.setAttribute(attr, v),
+        set: v => {el.setAttribute(attr, v)},
       })
     }
 
-    if (el.elementType === 'piece' && this.layout !== 'stack') el.assignUUID();
+    if (el.elementType === 'piece-type' && this.layout !== 'stack') el.assignUUID();
     return el;
   }
 
@@ -241,7 +243,7 @@ export default class GameElement {
     return times(num, () => this.create(className, id, attrs));
   }
 
-  set(attrs: Record<string, any>) {
+  set(attrs: Record<string, Attribute>) {
     // @ts-ignore
     Object.entries(attrs).forEach(([attr, value]) => this[attr] = value);
   }
@@ -250,19 +252,19 @@ export default class GameElement {
     return this.attrs[attr];
   }
 
-  private setAttributes(attrs: Record<string, any>) {
+  private setAttributes(attrs: Record<string, Attribute>) {
     Object.entries(attrs).forEach(([k, v]) => {
       if (!(k in this.attrs)) throw Error(`Attribute '${attrs}' does not exist on ${this.constructor.name}`);
       this.setAttribute(k, v);
     });
   }
 
-  private setAttribute(attr: string, value: any) {
+  private setAttribute(attr: string, value: Attribute) {
     if (value === undefined || value === null || value === false) {
       this.ctx.node.removeAttribute(attr);
     } else {
       value = typeof value === 'object' ? JSON.stringify(value) : value;
-      this.ctx.node.setAttribute(attr, value); // escape(value) ??
+      this.ctx.node.setAttribute(attr, escape(String(value)));
     }
     this.attrs[attr] = value;
   }
@@ -289,14 +291,14 @@ export default class GameElement {
       piece.setAttributes({
         x: undefined,
         y: undefined,
-        left: undefined,
-        top: undefined,
-        right: undefined,
-        bottom: undefined,
       });
       if (!outOfSplay && piece.parent()?.layout === 'splay') outOfSplay = piece.parent()!;
       const previousId = piece.serialize();
-      if (!piece.hasParent(space) && space.layout !== 'stack') piece.assignUUID();
+      if (!piece.hasParent(space) && space.layout !== 'stack') {
+        piece.assignUUID();
+      } else {
+        piece.uuid = undefined;
+      }
       space.ctx.node.insertBefore(piece.ctx.node, space.ctx.node.children[position]);
       if (space.layout === 'grid' && piece.attrs.cell === undefined) {
         piece.cell = space.findOpenCell();
@@ -334,8 +336,8 @@ export default class GameElement {
   static sort(set: GameElement[], fn: ((e: GameElement) => number | string) | string) {
     const val = typeof fn === 'function' ? fn : (el: GameElement) => el.attrs.fn;
     const comp = (a: GameElement, b: GameElement) => {
-      const aVal = val(a);
-      const bVal = val(b);
+      const aVal = val(a) || '';
+      const bVal = val(b) || '';
       return (aVal > bVal ? 1 : (aVal < bVal ? -1 : 0));
     };
     return set.sort(comp);

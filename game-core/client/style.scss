@@ -194,17 +194,17 @@ button {
     z-index: -100;
   }
 
-  .piece .unstyled-piece {
+  .piece-type .unstyled-piece {
     background: white;
     padding: 10px;
     border: 1px solid #333;
   }
 
-  .debug .space:not(.hilited) {
+  .debug .space-type:not(.hilited) {
     outline: 1px solid red;
   }
 
-  .space {
+  .space-type {
     position: absolute;
     width: 400px;
     height: 100px;
@@ -225,7 +225,7 @@ button {
     }
     > .positioned-piece {
       position: relative;
-      > .piece, > .space {
+      > .piece-type, > .space-type {
         position: absolute;
       }
     }
@@ -293,7 +293,7 @@ div.nametag {
   }
 }
 
-.space > label, .interactive-piece > label {
+.space-type > label {
   color: white;
   position: absolute;
   display: block;
@@ -304,7 +304,7 @@ div.nametag {
   border-radius: 5px;
 }
 
-.piece > label {
+.piece-type > label {
   position: absolute;
   display: inline-block;
   top: 0;
@@ -410,7 +410,7 @@ div.nametag {
     margin: 0 auto;
     transform-origin: top center;
   }
-  .piece {
+  .piece-type {
     transform: none !important;
   }
 }
@@ -425,7 +425,7 @@ div.nametag {
   z-index: 100;
   position: relative;
   #play-area.dragging & {
-    .piece, .interactive-piece {
+    .piece-type {
       transform: scale(1.2);
     }
     img {

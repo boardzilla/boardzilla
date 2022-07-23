@@ -4,7 +4,7 @@
 import assert from 'assert';
 import chai from 'chai';
 import spies from 'chai-spies';
-import { game, Space, Piece, InteractivePiece } from '../';
+import { game, Space, Piece } from '../';
 
 chai.use(spies);
 const { expect } = chai;
@@ -36,6 +36,7 @@ describe('GameInterface', () => {
     game.defineActions({
       addSome: {
         prompt: 'add some counters',
+        key: 'a',
         min: 1,
         max: 3,
         action: (n: number) => game.set('tokens', game.get('tokens') as number + n),
@@ -48,6 +49,7 @@ describe('GameInterface', () => {
       spend: {
         select: ['gold', 'silver'],
         prompt: 'Spend resource',
+        key: 's',
         next: {
           select: [1, 2, 3],
           prompt: 'How much?',
@@ -108,6 +110,23 @@ describe('GameInterface', () => {
       expect(spendSpy).to.have.been.called.with('gold', 2);
     });
   });
+
+  describe('getPlayerView', () => {
+    it('shows player view', async () => {
+      game.startProcessing();
+      await game.processPlayerStart();
+      const view = game.getPlayerView(1);
+      console.log(view);
+      expect(view.variables).to.deep.equal({ tokens: 4 });
+      expect(view.phase).equals('ready');
+      expect(view.players.length).equals(4);
+      expect(view.doc).equals('<game><Space class="space-type" id="board" /><Space class="space-type" id="pile" /><PlayerMat player="1" color="red" class="space-type mine" id="player-mat-1" /><PlayerMat player-after-me="1" player="2" color="green" class="space-type" id="player-mat-2" /><PlayerMat player-after-me="2" player="3" color="yellow" class="space-type" id="player-mat-3" /><PlayerMat player-after-me="3" player="4" color="purple" class="space-type" id="player-mat-4" /></game>');
+      expect(view.allowedActions).to.deep.equal({
+        addSome: { min: 1, max: 3, prompt: 'add some counters (A)', key: 'a' },
+        spend: { choices: ['"gold"', '"silver"'], prompt: 'Spend resource (S)', key: 's' }
+      });
+    });
+  });
 });
 
 describe('GameDocument', () => {
@@ -118,7 +137,7 @@ describe('GameDocument', () => {
 
   it('renders', () => {
     expect(game.doc.ctx.node.outerHTML).equals(
-      '<game><Space class="space" id="board" /><Space class="space" id="pile" /></game>'
+      '<game><Space class="space-type" id="board" /><Space class="space-type" id="pile" /></game>'
     );
   });
 
@@ -129,7 +148,7 @@ describe('GameDocument', () => {
     game.startProcessing();
     await game.processPlayerStart();
     expect(game.doc.ctx.node.outerHTML).equals(
-      '<game><Space class="space" id="board"><Space class="space" id="map" /></Space><Space class="space" id="pile" /></game>'
+      '<game><Space class="space-type" id="board"><Space class="space-type" id="map" /></Space><Space class="space-type" id="pile" /></game>'
     );
   });
 
@@ -140,7 +159,7 @@ describe('GameDocument', () => {
     game.startProcessing();
     await game.processPlayerStart();
     expect(game.doc.ctx.node.outerHTML).to.match(
-      new RegExp(`<game><Space class="space" id="board"><Piece uuid="${uuidRE}" player="1" class="piece" id="token" /></Space><Space class="space" id="pile" /></game>`)
+      new RegExp(`<game><Space class="space-type" id="board"><Piece uuid="${uuidRE}" player="1" class="piece-type" id="token" /></Space><Space class="space-type" id="pile" /></game>`)
     );
   });
 
@@ -161,7 +180,7 @@ describe('GameDocument', () => {
       game.startProcessing();
       await game.processPlayerStart();
       expect(game.doc.ctx.node.outerHTML).to.match(
-        new RegExp(`<game><Space class="space" id="board"><Card uuid="${uuidRE}" pip="2" suit="H" class="piece" id="2H" /></Space><Space class="space" id="pile" /></game>`)
+        new RegExp(`<game><Space class="space-type" id="board"><Card uuid="${uuidRE}" pip="2" suit="H" class="piece-type" id="2H" /></Space><Space class="space-type" id="pile" /></game>`)
       );
     });
 
@@ -172,7 +191,7 @@ describe('GameDocument', () => {
       game.startProcessing();
       await game.processPlayerStart();
       expect(game.doc.ctx.node.outerHTML).to.match(
-        new RegExp(`<game><Space class="space" id="board"><Card uuid="${uuidRE}" player="2" pip="2" suit="H" class="piece" id="2H" /></Space><Space class="space" id="pile" /></game>`)
+        new RegExp(`<game><Space class="space-type" id="board"><Card uuid="${uuidRE}" player="2" pip="2" suit="H" class="piece-type" id="2H" /></Space><Space class="space-type" id="pile" /></game>`)
       );
     });
 
@@ -202,11 +221,11 @@ describe('GameDocument', () => {
       expect(game.doc.ctx.node.outerHTML).to.match(
         new RegExp(
           `<game>` +
-            `<Space class="space" id="board">` +
-            `<Card uuid="${uuidRE}" pip="1" suit="H" class="piece" id="AH" />` +
-            `<Card uuid="${uuidRE}" pip="2" suit="D" class="piece" id="2H" />` +
-            `<Card uuid="${uuidRE}" pip="3" suit="H" class="piece" id="3H" />` +
-            `</Space><Space class="space" id="pile" />` +
+            `<Space class="space-type" id="board">` +
+            `<Card uuid="${uuidRE}" pip="1" suit="H" class="piece-type" id="AH" />` +
+            `<Card uuid="${uuidRE}" pip="2" suit="D" class="piece-type" id="2H" />` +
+            `<Card uuid="${uuidRE}" pip="3" suit="H" class="piece-type" id="3H" />` +
+            `</Space><Space class="space-type" id="pile" />` +
             `</game>`
         )
       );
@@ -223,12 +242,12 @@ describe('GameDocument', () => {
       expect(game.doc.ctx.node.outerHTML).to.match(
         new RegExp(
           `<game>` +
-            `<Space class="space" id="board">` +
-            `<Card uuid="${uuidRE}" pip="1" suit="H" class="piece" id="AH" />` +
-            `<Card uuid="${uuidRE}" pip="2" suit="H" class="piece" id="2H" />` +
+            `<Space class="space-type" id="board">` +
+            `<Card uuid="${uuidRE}" pip="1" suit="H" class="piece-type" id="AH" />` +
+            `<Card uuid="${uuidRE}" pip="2" suit="H" class="piece-type" id="2H" />` +
             `</Space>` +
-            `<Space class="space" id="pile">` +
-            `<Card uuid="${uuidRE}" pip="3" suit="H" class="piece" id="3H" />` +
+            `<Space class="space-type" id="pile">` +
+            `<Card uuid="${uuidRE}" pip="3" suit="H" class="piece-type" id="3H" />` +
             `</Space>` +
             `</game>`
         )
@@ -237,12 +256,12 @@ describe('GameDocument', () => {
       expect(game.doc.ctx.node.outerHTML).to.match(
         new RegExp(
           `<game>` +
-            `<Space class="space" id="board">` +
-            `<Card uuid="${uuidRE}" pip="1" suit="H" class="piece" id="AH" />` +
-            `<Card uuid="${uuidRE}" pip="2" suit="H" class="piece" id="2H" />` +
-            `<Card uuid="${uuidRE}" pip="3" suit="H" class="piece" id="3H" />` +
+            `<Space class="space-type" id="board">` +
+            `<Card uuid="${uuidRE}" pip="1" suit="H" class="piece-type" id="AH" />` +
+            `<Card uuid="${uuidRE}" pip="2" suit="H" class="piece-type" id="2H" />` +
+            `<Card uuid="${uuidRE}" pip="3" suit="H" class="piece-type" id="3H" />` +
             `</Space>` +
-            `<Space class="space" id="pile" />` +
+            `<Space class="space-type" id="pile" />` +
             `</game>`
         )
       );
@@ -250,12 +269,12 @@ describe('GameDocument', () => {
       expect(game.doc.ctx.node.outerHTML).to.match(
         new RegExp(
           `<game>` +
-            `<Space class="space" id="board">` +
-            `<Card uuid="${uuidRE}" pip="2" suit="H" class="piece" id="2H" />` +
-            `<Card uuid="${uuidRE}" pip="3" suit="H" class="piece" id="3H" />` +
+            `<Space class="space-type" id="board">` +
+            `<Card uuid="${uuidRE}" pip="2" suit="H" class="piece-type" id="2H" />` +
+            `<Card uuid="${uuidRE}" pip="3" suit="H" class="piece-type" id="3H" />` +
             `</Space>` +
-            `<Space class="space" id="pile">` +
-            `<Card uuid="${uuidRE}" pip="1" suit="H" class="piece" id="AH" />` +
+            `<Space class="space-type" id="pile">` +
+            `<Card uuid="${uuidRE}" pip="1" suit="H" class="piece-type" id="AH" />` +
             `</Space>` +
             `</game>`
         )
@@ -276,15 +295,15 @@ describe('GameDocument', () => {
       expect(game.doc.ctx.node.outerHTML).to.match(
         new RegExp(
           `<game>` +
-            `<Space class="space" id="board">` +
-            `<Space layout="stack" class="space" id="deck">` +
-            `<Card pip="1" suit="H" class="piece" id="AH" />` +
-            `<Card pip="2" suit="H" class="piece" id="2H" />` +
-            `<Card pip="3" suit="H" class="piece" id="3H" />` +
+            `<Space class="space-type" id="board">` +
+            `<Space layout="stack" class="space-type" id="deck">` +
+            `<Card pip="1" suit="H" class="piece-type" id="AH" />` +
+            `<Card pip="2" suit="H" class="piece-type" id="2H" />` +
+            `<Card pip="3" suit="H" class="piece-type" id="3H" />` +
             `</Space>` +
-            `<Space layout="stack" class="space" id="discard" />` +
+            `<Space layout="stack" class="space-type" id="discard" />` +
             `</Space>` +
-            `<Space class="space" id="pile" />` +
+            `<Space class="space-type" id="pile" />` +
             `</game>`
         )
       );
@@ -294,16 +313,16 @@ describe('GameDocument', () => {
       expect(game.doc.ctx.node.outerHTML).to.match(
         new RegExp(
           `<game>` +
-            `<Space class="space" id="board">` +
-            `<Space layout="stack" class="space" id="deck">` +
-            `<Card pip="1" suit="H" class="piece" id="AH" />` +
+            `<Space class="space-type" id="board">` +
+            `<Space layout="stack" class="space-type" id="deck">` +
+            `<Card pip="1" suit="H" class="piece-type" id="AH" />` +
             `</Space>` +
-            `<Space layout="stack" class="space" id="discard">` +
-            `<Card pip="3" suit="H" class="piece" id="3H" />` +
-            `<Card pip="2" suit="H" class="piece" id="2H" />` +
+            `<Space layout="stack" class="space-type" id="discard">` +
+            `<Card pip="3" suit="H" class="piece-type" id="3H" />` +
+            `<Card pip="2" suit="H" class="piece-type" id="2H" />` +
             `</Space>` +
             `</Space>` +
-            `<Space class="space" id="pile" />` +
+            `<Space class="space-type" id="pile" />` +
             `</game>`
         )
       );
@@ -311,16 +330,16 @@ describe('GameDocument', () => {
       expect(game.doc.ctx.node.outerHTML).to.match(
         new RegExp(
           `<game>` +
-            `<Space class="space" id="board">` +
-            `<Space layout="stack" class="space" id="deck">` +
-            `<Card pip="2" suit="H" class="piece" id="2H" />` +
-            `<Card pip="1" suit="H" class="piece" id="AH" />` +
+            `<Space class="space-type" id="board">` +
+            `<Space layout="stack" class="space-type" id="deck">` +
+            `<Card pip="2" suit="H" class="piece-type" id="2H" />` +
+            `<Card pip="1" suit="H" class="piece-type" id="AH" />` +
             `</Space>` +
-            `<Space layout="stack" class="space" id="discard">` +
-            `<Card pip="3" suit="H" class="piece" id="3H" />` +
+            `<Space layout="stack" class="space-type" id="discard">` +
+            `<Card pip="3" suit="H" class="piece-type" id="3H" />` +
             `</Space>` +
             `</Space>` +
-            `<Space class="space" id="pile" />` +
+            `<Space class="space-type" id="pile" />` +
             `</game>`
         )
       );

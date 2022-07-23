@@ -107,7 +107,7 @@
         left: 915px;
       }
     }
-    .deck {
+    .Deck {
       width: 74px;
       height: 100px;
     }
@@ -143,7 +143,7 @@
     }
   }
 
-  .player-mat {
+  .PlayerMat {
     position: absolute;
     left: 0;
     top: 0;
@@ -179,7 +179,7 @@
       top: 0px;
       right: 20px;
     }
-    #hand {
+    .Hand {
       height: 120px;
       width: 100%;
       position: absolute;
@@ -189,7 +189,7 @@
     }
   }
 
-  .counter {
+  .Counter {
     button {
       background: rgba(0,0,0,0);
       color: black;
@@ -207,13 +207,13 @@
         color: #c30;
       }
     }
-    &[name="health"] img, &[name="boss health"] img {
+    &#hp img, &#bosshp img {
       width: 24px;
       margin: 0 0px;
       position: relative;
       top: 7px;
     }
-    &[name="attack"] img {
+    &#attack img {
       width: 32px;
       margin: 0 -4px;
       position: relative;
@@ -239,7 +239,7 @@
     }
   }
 
-  .card {
+  .Card {
     width: 73.33px;
     height: 100px;
     transition: transform .2s;
@@ -254,7 +254,7 @@
       display: block;
       border-radius: 7px;
     }
-    .counter {
+    .Counter {
       top: 60px;
       left: 2px;
       color: black;

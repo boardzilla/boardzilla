@@ -8,6 +8,9 @@ module.exports = {
   env: {
     browser: true,
   },
+  "globals": {
+    "globalThis": false,
+  },
   extends: [
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
@@ -21,10 +24,14 @@ module.exports = {
         caughtErrorsIgnorePattern: '^_',
       },
     ],
-    '@typescript-eslint/no-implicit-any': 'error',
+    'no-unused-vars': 0,
     '@typescript-eslint/no-explicit-any': 0,
     '@typescript-eslint/restrict-plus-operands': 'error',
+    '@typescript-eslint/ban-ts-comment': 0,
+    '@typescript-eslint/no-non-null-assertion': 0,
+    '@typescript-eslint/no-empty-function': 0,
     'no-underscore-dangle': 0,
+    'no-dupe-class-members': 0, // covered by ts
     'new-cap': [ 'off' ],
     'no-await-in-loop': 0,
     'arrow-parens': 0,

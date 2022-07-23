@@ -3106,7 +3106,7 @@ export const cards: Record<string, CardData> = {
     back: 'EternalCardBack-308x420.webp',
   },
   'Jacob-Esau': {
-    name: 'Jacob & Esau',
+    name: 'Jacob and Esau',
     type: 'character',
     p3: true,
     edition: { Requiem: 1 },

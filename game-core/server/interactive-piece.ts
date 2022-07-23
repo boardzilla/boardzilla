@@ -4,9 +4,10 @@ import type GameInterface from './interface';
 import type {ElementLookup} from './types.d';
 
 export default abstract class InteractivePiece extends Piece {
-  static component: string;
-
+  unclickable = true;
   component?: string;
+
+  static component: string;
 
   static serializable = ['component'];
 

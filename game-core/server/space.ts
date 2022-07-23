@@ -18,7 +18,7 @@ export default class Space extends GameElement {
     attrs: Record<string, any> = {}
   ) {
     super(ctx, attrs);
-    this.elementType = 'space';
+    this.elementType = 'space-type';
   }
 
   shuffle() {

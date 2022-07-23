@@ -1,5 +1,5 @@
 import { game, Space, Piece, Counter, Die, Player } from 'game-core-server';
-import { editions, cards, CardData } from './data';
+import { editions, cards, CardData } from './data.js';
 
 class Card extends Piece {
   name: string;
@@ -11,7 +11,8 @@ class Card extends Piece {
   p3?: boolean;
   active?: boolean;
   flipped?: boolean;
-  static serializable = ['name', 'type', 'front', 'back', 'active', 'flipped'];
+
+  static serializable = ['name', 'type', 'edition', 'front', 'back', 'eternal', 'p3', 'active', 'flipped'];
 }
 
 class Deck extends Space {
@@ -95,7 +96,7 @@ game.afterMove(
 
 game.hideBoard(
   'Card[flipped], PlayerMat:not(.mine) Hand:not([showTo=$me]):not([showTo="Everyone"]) Card, #loot Card, #treasure Card, #monsters Card, #characters Card, #eternals Card, #rooms Card',
-  ['front', 'name', 'edition', 'p3'],
+  ['front', 'name', 'edition', 'p3', 'eternal'],
 );
 
 game.defineActions({
@@ -130,22 +131,22 @@ game.defineActions({
     key: 'd',
     drag: '.mine Hand Card',
     onto: '.mine #tableau',
-    action: (card: Card) => { if (card.eternal) Card.find(`.mine Hand #${card.get('eternal')}`).putInto('.mine #tableau'); },
+    action: (card: Card) => { if (card.eternal) Card.find(`.mine Hand #${card.eternal}`).putInto('.mine #tableau'); },
   },
   draw: {
     prompt: 'Draw',
     log: '$0 drew $1',
-    drag: 'Deck:not([bonus]):not(#characters) Card:top, #loot-discard Card:top',
+    drag: 'Deck:not([bonus]):not(#characters) Card:last-child, #loot-discard Card:last-child',
     key: 'd',
     onto: '.mine Hand',
   },
   drawCharacter: {
     prompt: 'Draw',
     log: '$0 drew $1',
-    drag: '#characters Card:top',
+    drag: '#characters Card:last-child',
     key: 'd',
     onto: '.mine #tableau',
-    action: (card: Card) => { if (card.get('eternal')) Card.find(`#board #${card.get('eternal')}`).putInto('.mine #tableau'); },
+    action: (card: Card) => { if (card.eternal) Card.find(`#board #${card.eternal}`).putInto('.mine #tableau'); },
   },
   drawMultiple: {
     prompt: 'Draw multiple',
@@ -162,7 +163,7 @@ game.defineActions({
   purchase: {
     prompt: 'Purchase',
     log: '$0 purchased $1',
-    drag: '#shop Card, #treasure Card:top',
+    drag: '#shop Card, #treasure Card:last-child',
     key: 'p',
     onto: '.mine #tableau',
   },
@@ -173,11 +174,11 @@ game.defineActions({
     key: 'i',
     next: {
       prompt: 'Select card',
-      select: (deck: Deck) => deck.findAll(Card, '*').map(c => c.get('name')).sort(),
+      select: (deck: Deck) => deck.findAll(Card, '*').map(c => c.name).sort(),
       action: (deck: Deck, name: string) => {
         const card = deck.find(Card, `Card[name="${name}"]`);
         card.putInto('.mine Hand');
-        if (card.get('eternal')) Card.find(`#board #${card.get('eternal')}`).putInto('.mine Hand');
+        if (card.eternal) Card.find(`#board #${card.eternal}`).putInto('.mine Hand');
       },
     },
   },
@@ -185,7 +186,7 @@ game.defineActions({
     prompt: 'Discard',
     log: '$0 discarded $1',
     key: 'f',
-    drag: '#loot Card:top, .mine Card[type="loot"], #dungeon Card[type="loot"]',
+    drag: '#loot Card:last-child, .mine Card[type="loot"], #dungeon Card[type="loot"]',
     onto: '#loot-discard',
   },
   playLoot: {
@@ -199,7 +200,7 @@ game.defineActions({
     prompt: 'Put on top of deck',
     log: '$0 put $1 on top of the deck',
     key: 't',
-    drag: '.mine Card[type="loot"], #loot-discard Card:top',
+    drag: '.mine Card[type="loot"], #loot-discard Card:last-child',
     onto: '#loot',
   },
   intoLootDeckBottom: {
@@ -213,70 +214,70 @@ game.defineActions({
     prompt: 'Put into shop',
     log: false,
     key: 's',
-    drag: '#treasure Card:top, #treasure-discard Card:top, .mine Card[type="treasure"]',
+    drag: '#treasure Card:last-child, #treasure-discard Card:last-child, .mine Card[type="treasure"]',
     onto: '#shop',
   },
   discardTreasure: {
     prompt: 'Discard',
     log: '$0 discarded $1',
     key: 'f',
-    drag: '#treasure Card:top, #shop Card, .mine Card[type="treasure"]',
+    drag: '#treasure Card:last-child, #shop Card, .mine Card[type="treasure"]',
     onto: '#treasure-discard',
   },
   intoTreasureDeck: {
     prompt: 'Put top of deck',
     log: '$0 put $1 on top of the deck',
     key: 't',
-    drag: '#treasure-discard Card:top, #shop Card, .mine Card[type="treasure"]',
+    drag: '#treasure-discard Card:last-child, #shop Card, .mine Card[type="treasure"]',
     onto: '#treasure',
   },
   intoTreasureDeckBottom: {
     prompt: 'Put bottom of deck',
     log: '$0 put $1 on the bottom of the deck',
     key: 'b',
-    select: '#treasure-discard Card:top, #shop Card, .mine Card[type="treasure"]',
+    select: '#treasure-discard Card:last-child, #shop Card, .mine Card[type="treasure"]',
     action: (card: Card) => card.putIntoBottomOf('#treasure'),
   },
   intoDungeon: {
     prompt: 'Put into dungeon',
     log: false,
     key: 's',
-    drag: '#monsters Card:top, #monsters-discard Card:top, .mine Card[type="monster"], .mine Card[type="loot"], #loot-discard Card:top',
+    drag: '#monsters Card:last-child, #monsters-discard Card:last-child, .mine Card[type="monster"], .mine Card[type="loot"], #loot-discard Card:last-child',
     onto: '#dungeon',
   },
   takeMonster: {
     prompt: 'Play onto board',
     log: '$0 played $1 onto the board',
     key: 'p',
-    drag: '#dungeon Card, #monsters Card:top, #monsters-discard Card:top',
+    drag: '#dungeon Card, #monsters Card:last-child, #monsters-discard Card:last-child',
     onto: '.mine #tableau',
   },
   discardMonster: {
     prompt: 'Discard',
     log: '$0 discarded $1',
     key: 'f',
-    drag: '#dungeon Card[type="monster"], #monsters Card:top, .mine Card[type="monster"]',
+    drag: '#dungeon Card[type="monster"], #monsters Card:last-child, .mine Card[type="monster"]',
     onto: '#monsters-discard',
   },
   intoMonsterDeck: {
     prompt: 'Put top of deck',
     log: '$0 put $1 in the top of the deck',
     key: 't',
-    drag: '#dungeon Card[type="monster"], #monsters-discard Card:top, .mine Card[type="monster"]',
+    drag: '#dungeon Card[type="monster"], #monsters-discard Card:last-child, .mine Card[type="monster"]',
     onto: '#monsters',
   },
   intoMonsterDeckBottom: {
     prompt: 'Put bottom of deck',
     log: '$0 put $1 in the bottom of the deck',
     key: 'b',
-    select: '#dungeon Card[type="monster"], #monsters-discard Card:top, .mine Card[type="monster"]',
+    select: '#dungeon Card[type="monster"], #monsters-discard Card:last-child, .mine Card[type="monster"]',
     action: (card: Card) => card.putIntoBottomOf('#monsters'),
   },
   intoMonsterDeckAt: {
     prompt: 'Put nth card down in deck',
     log: '$0 put $1 in the deck at position $2',
     key: 'n',
-    select: '#dungeon Card[type="monster"], #monsters-discard Card:top, .mine Card[type="monster"]',
+    select: '#dungeon Card[type="monster"], #monsters-discard Card:last-child, .mine Card[type="monster"]',
     next: {
       prompt: 'How far down into deck?',
       min: 2,
@@ -289,7 +290,7 @@ game.defineActions({
     log: false,
     drag: '#bonus-souls Card',
     onto: '#loot',
-    action: (card: Card) => { card.putIntoBottomOf('#loot'); Card.find('#loot Card:top').putInto('#bonus-souls'); },
+    action: (card: Card) => { card.putIntoBottomOf('#loot'); Card.find('#loot Card:last-child').putInto('#bonus-souls'); },
   },
   discardBonus: {
     prompt: 'Discard',
@@ -309,21 +310,21 @@ game.defineActions({
     prompt: 'Play',
     log: '$0 played $1',
     key: 'p',
-    drag: '#rooms Card:top, .mine Card[type=room]',
+    drag: '#rooms Card:last-child, .mine Card[type=room]',
     onto: '#room',
   },
   discardRoom: {
     prompt: 'Discard',
     log: '$0 discarded $1',
     key: 'f',
-    drag: '#rooms Card:top, #room Card:top, .mine Card[type=room]',
+    drag: '#rooms Card:last-child, #room Card:last-child, .mine Card[type=room]',
     onto: '#room-discard',
   },
   inRoomDeck: {
     prompt: 'Put back in deck',
     log: '$0 put $1 back into deck',
     key: 't',
-    drag: '#room-discard Card:top, #room Card:top, .mine Card[type=room]',
+    drag: '#room-discard Card:last-child, #room Card:last-child, .mine Card[type=room]',
     onto: '#rooms',
   },
   giveCard: {
@@ -383,7 +384,7 @@ game.defineActions({
     key: 'f',
     drag: '.mine Card[type=character]',
     onto: '#characters',
-    action: (card: Card) => { if (card.get('eternal')) Card.find(`.mine #${card.get('eternal')}`).putInto('#eternals'); },
+    action: (card: Card) => { if (card.eternal) Card.find(`.mine #${card.eternal}`).putInto('#eternals'); },
   },
   intoEternalDeckTop: {
     prompt: 'Put back in deck',
@@ -399,8 +400,10 @@ game.defineActions({
   },
   remove: {
     prompt: 'Put back in your hand',
+    log: '$0 took $1 back into hand',
     drag: '.mine #tableau Card',
     onto: '.mine Hand',
+    action: (card: Card) => { if (card.eternal) Card.find(`.mine #${card.eternal}`).putInto('.mine Hand'); },
   },
   shuffle: {
     select: 'Deck',
@@ -499,4 +502,4 @@ game.play(async () => {
   }
 });
 
-module.exports = game;
+export default game;

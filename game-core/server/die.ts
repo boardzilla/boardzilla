@@ -5,6 +5,8 @@ export default class Die extends InteractivePiece {
   rolls?: number = 0;
   number?: number = 1;
 
+  static serializable = ['faces', 'rolls', 'number'];
+
   static component = 'Die';
 
   actions = {

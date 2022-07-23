@@ -10,3 +10,5 @@ export const sumBy = (items: GameElement[], fn: string | ((e: GameElement) => nu
     total + (typeof fn === 'function' ? fn(e) : e.get(fn) as number)
   ), 0)
 );
+
+export const escape = (s: string) => s.replace(/[<>&'"]/g, c => `&${({ '<': 'lt', '>': 'gt', '&': 'amp', '\'': 'apos', '"': 'quot' })[c]};`);

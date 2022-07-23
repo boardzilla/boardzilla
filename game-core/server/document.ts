@@ -30,7 +30,7 @@ export default class GameDocument extends Space {
   }
 
   clone() {
-    return new GameDocument(this.ctx.game, this.xmlDoc.cloneNode() as XMLDocument);
+    return new GameDocument(this.ctx.game, this.xmlDoc.cloneNode(true) as XMLDocument);
   }
 
   // return element from branch

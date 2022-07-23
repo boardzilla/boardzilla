@@ -17,7 +17,7 @@ const CoinCounter = props => <Counter {...props} display={n => (
 render({
   background: <div className="table"/>,
   pieces: {
-    card: props => (
+    Card: props => (
       <>
         <img src={assets[`cards/${props.id ? props.front : props.back}`]} />
         {props.children}

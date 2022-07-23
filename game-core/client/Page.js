@@ -198,7 +198,7 @@ export default class Page extends Component {
       let el = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
       if (!this.state.touchMoving) this.setState({ touchMoving: true });
       if (el && this.state.dragging) {
-        while (el.classList && !el.classList.contains("space") && el.parentNode) el = el.parentNode;
+        while (el.classList && !el.classList.contains("space-type") && el.parentNode) el = el.parentNode;
         this.setState({dragOver: choiceByEl(el)});
       }
     });
@@ -210,7 +210,7 @@ export default class Page extends Component {
     });
     document.addEventListener('keydown', e => {
       if (e.key == "z") {
-        const zoomKey = choiceAtPoint(mouse.x, mouse.y, el => el.matches('.piece'));
+        const zoomKey = choiceAtPoint(mouse.x, mouse.y, el => el.matches('.piece-type'));
         zoomKey && this.handleClick(zoomKey, e);
       }
       if (e.key == "Escape") this.cancel();
@@ -452,8 +452,8 @@ export default class Page extends Component {
       this.setPieceAt(choice, {x: dragging.x, y: dragging.y});
       this.send('drag', {key: choice});
     };
-      if (dragging && dragging.key === choice && Math.abs(dragging.x - x) + Math.abs(dragging.y - y) > DRAG_TOLERANCE) {
-        const dragAction = this.allowedDragSpaces(choice)[dragOver];
+    if (dragging && dragging.key === choice && Math.abs(dragging.x - x) + Math.abs(dragging.y - y) > DRAG_TOLERANCE) {
+      const dragAction = this.allowedDragSpaces(choice)[dragOver];
       const parent = elByChoice(dragOver);
       const el = elByChoice(choice);
       const ontoXY = dragOver && parent.getBoundingClientRect();
@@ -534,7 +534,7 @@ export default class Page extends Component {
         this.setState({action: null, args: [], prompt: null, choices: null, min: null, max: null});
       }
       let zooming = false;
-      if (isEl(choice) && elByChoice(choice).classList.contains('piece')) {
+      if (isEl(choice) && elByChoice(choice).classList.contains('piece-type')) {
         this.zoomOnPiece(elByChoice(choice));
         event.stopPropagation();
         zooming = true;
@@ -670,9 +670,8 @@ export default class Page extends Component {
                                if (['[', '{'].includes(value[0])) value = JSON.parse(value);
                                return Object.assign(attrs, { [attr.name.toLowerCase()]: value });
                              }, {});
-
     const type = node.nodeName;
-    const isSpace = node.classList.contains('space');
+    const isSpace = node.classList.contains('space-type');
     const key = choiceForXmlNode(node);
     let label;
     if (attributes.label !== undefined) {
@@ -697,10 +696,10 @@ export default class Page extends Component {
     const gridItem = ['splay', 'grid'].includes(node.parentNode.getAttribute('layout'));
 
     if (!frozen) {
-      props.onClick = e => this.handleClick(key, e);
+      if (!props.unclickable) props.onClick = e => this.handleClick(key, e);
       props.onContextMenu = e => {
         e.preventDefault();
-        this.handleClick(key, e);
+        if (!props.unclickable) this.handleClick(key, e);
       };
       props.className = classNames(props.className, {
         flipped,
@@ -744,7 +743,7 @@ export default class Page extends Component {
           const y = attributes.y;
           if (!position && !isNaN(x) && !isNaN(y) && !isNaN(parseFloat(x)) && !isNaN(parseFloat(y))) {
             position = {x, y};
-          } else if (node.parentNode.nodeName === 'space') {
+          } else if (node.parentNode.classList.contains('space-type')) {
             position = {x: 0, y: 0};
           }
         }

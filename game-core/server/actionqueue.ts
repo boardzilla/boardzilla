@@ -7,7 +7,7 @@ export default class ActionQueue {
 
   async waitForMatchingAction(
     matchFn: (a: QueueAction) => boolean | string,
-    processFn?: ({player, action, args}: QueueAction) => void | ActionReturn
+    processFn?: ({player, action, args}: QueueAction) => ActionReturn
   ): Promise<QueueAction> {
     let item;
     let succeeded = false;

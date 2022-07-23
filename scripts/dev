@@ -21,10 +21,10 @@ cd server
 # rabbitmqadmin delete exchange name='session-events-1'
 # ./node_modules/.bin/sequelize db:drop
 
-# # now we need to start doing things that can't fail
-# set -e
-# ./node_modules/.bin/sequelize db:drop
-# ./node_modules/.bin/sequelize db:create
-# ./node_modules/.bin/sequelize db:migrate
+# now we need to start doing things that can't fail
+set -e
+./node_modules/.bin/sequelize db:drop
+./node_modules/.bin/sequelize db:create
+./node_modules/.bin/sequelize db:migrate
 
 ./node_modules/.bin/nodemon -w server --exec yarn -- --cwd server run start:dev

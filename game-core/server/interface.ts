@@ -3,11 +3,11 @@ import Player from './player';
 import GameDocument from './document';
 import GameElement from './element';
 import ActionQueue from './actionqueue';
-import { asyncTimes } from './utils.js';
-import Space from './space.js';
-import PlayerMat from './player-mat.js';
-import Piece from './piece.js';
-import InteractivePiece from './interactive-piece.js';
+import { asyncTimes } from './utils';
+import Space from './space';
+import PlayerMat from './player-mat';
+import Piece from './piece';
+import InteractivePiece from './interactive-piece';
 import type {Argument, PlayerMatSetup, BoardSetup, Action, ActionReturn, NamedArg, Phase, PlayerView, QueueAction} from './types.d';
 
 export class InvalidChoiceError extends Error {}
@@ -23,7 +23,7 @@ export default class GameInterface {
   #numberOfPlayers: number;
   #phase: Phase; // phase state machine: setup (can addPlayer) -> ready (can receive player actions)
   #currentPlayerPosition: number; // table position of current player (starts from 1) or undefined if any player can play
-  private minPlayers = 1; // TODO whered this go?
+  private minPlayers = 1;
   private maxPlayers: number;
   private setupPlayerMats: PlayerMatSetup[] = []; // list of functions for player-mat setup
   private setupBoards: BoardSetup[] = []; // list of functions for board setup
@@ -114,7 +114,6 @@ export default class GameInterface {
       const playerMat = this.doc.create(PlayerMat, `#player-mat-${position}`, { player: position, color });
       this.setupPlayerMats.forEach(f => f(playerMat, position, color));
     });
-    this.#currentPlayerPosition = 1;
   }
 
   defineAction(name: string, action: Action) {
@@ -167,6 +166,7 @@ export default class GameInterface {
   }
 
   async processPlayerStart() {
+    if (this.numberOfPlayers < this.minPlayers) throw Error('Not enough players');
     return this.actionQueue.processAction({ action: 'start', player: 1, args: [] });
   }
 
@@ -322,7 +322,7 @@ export default class GameInterface {
       ));
 
       const view = this.currentActions.reduce((drags, action) => {
-        const drag = this.actions[action].drag;
+        const { drag } = this.actions[action];
         if (drag) {
           drags[action] = {
             pieces: this.serialize(this.doc.findAll(Piece, drag)),
@@ -392,7 +392,7 @@ export default class GameInterface {
           this.deserialize(args[1]) as {pos?: number, x?: number, y?: number}
         ));
       }
-      this.inScopeAsPlayer(player, () => this.runAction(action, this.deserialize(args)));
+      return this.inScopeAsPlayer(player, () => this.runAction(action, this.deserialize(args)));
     });
     if (allowedActions.includes(completedAction.action)) return completedAction;
     return this.playerPlay(allowedActions, allowedPlayer);
@@ -476,20 +476,20 @@ export default class GameInterface {
 
   playerWithHighest(fn: ((p: Player) => number | string) | string) {
     const ranks = this.getAllPlayers(fn);
-    return this.player(ranks.indexOf(Math.max.apply(Math, ranks)));
+    return this.player(ranks.indexOf([...ranks].sort().reverse()[0]));
   }
 
   playerWithLowest(fn: ((p: Player) => number | string) | string) {
     const ranks = this.getAllPlayers(fn);
-    return this.player(ranks.indexOf(Math.min.apply(Math, ranks)));
+    return this.player(ranks.indexOf([...ranks].sort()[0]));
   }
 
   playerMax(fn: ((p: Player) => number | string) | string) {
-    return Math.max.apply(Math, this.getAllPlayers(fn));
+    this.getAllPlayers(fn).sort().reverse()[0];
   }
 
   playerMin(fn: ((p: Player) => number | string) | string) {
-    return Math.min.apply(Math, this.getAllPlayers(fn));
+    this.getAllPlayers(fn).sort()[0];
   }
 
   playerWith(q: string | GameElement): Player | undefined {
@@ -571,13 +571,13 @@ export default class GameInterface {
   }
 
   // function that tries to run an action and delegates to the various main types of actions to determine outcome, returns {prompt, log}
-  runAction(actionIdentifier: string | Action, args: Argument[] = [], argIndex = 0, test = false) {
+  runAction(actionIdentifier: string | Action, args: Argument[] = [], argIndex = 0, test = false): ActionReturn {
     let actionName: string;
     let action: Action;
 
     if (actionIdentifier === 'interactWithPiece') {
-      let interactivePiece, interactiveAction;
-      ([interactivePiece, interactiveAction, ...args] = args);
+      const [interactivePiece, interactiveAction] = args;
+      args = args.slice(2);
       if (!(interactivePiece instanceof InteractivePiece) || typeof interactiveAction !== 'string') throw Error('interactWithPiece called without Piece, action');
       actionName = interactiveAction;
       action = interactivePiece.actions[actionName];
@@ -598,7 +598,7 @@ export default class GameInterface {
     let { prompt } = action;
     if (typeof prompt === 'function') prompt = prompt(...args);
     if (!prompt) prompt = 'prompt'
-    if (action.key) prompt += ` (${action.key.toUpperCase()})`;
+    if (action.key) prompt += ` (${action.key.toUpperCase()})`; // TODO can i get rid of this now, isnt the key already in the response?
 
     if (!action) {
       throw Error(`No such action: ${actionName}`);
@@ -614,13 +614,12 @@ export default class GameInterface {
     }
 
     let nextAction: (a: Argument[]) => void | ActionReturn = () => {};
-    if (action.action) {
-      const nestedAction = action.action
-      nextAction = a => nestedAction(...a);
-    }
-    if (!test && action.next) {
-      const nestedAction = action.next;
-      nextAction = () => this.runAction(nestedAction, args, argIndex + (action.drag ? 3 : 1)); // drag uses 3 args instead of 1
+    if (!test) {
+      if (action.action) {
+        nextAction = a => action.action!(...a);
+      } else if (action.next) {
+        nextAction = () => this.runAction(action.next!, args, argIndex + (action.drag ? 3 : 1)); // drag uses 3 args instead of 1
+      }
     }
 
     let namedArgs: NamedArg[] = [];
@@ -630,7 +629,7 @@ export default class GameInterface {
       nextPrompt = this.dragAction(action.drag, this.ontoSelector(action), prompt, action.promptOnto, nextAction)(args);
       const target = args[1];
       if (target && action.toPlayer && target instanceof GameElement) {
-        const player = target.player;
+        const { player } = target;
         if (player) args[1] = this.player(player) || args[1];
       }
     } else if (action.select) {
@@ -655,8 +654,6 @@ export default class GameInterface {
       const result = nextAction(args);
       if (result) {
         nextPrompt = result.prompt;
-      } else {
-        nextPrompt = prompt;
       }
     } else {
       throw Error(`Could not determine type of action ${actionName}`);
@@ -669,7 +666,7 @@ export default class GameInterface {
     } else {
       log = '';
     }
-    return { prompt: nextPrompt, log };
+    return { prompt: nextPrompt || prompt, log };
   }
 
   dragAction(pieceSelector: string, spaceSelector: string, prompt: string, promptOnto: string | undefined, action: (a: Argument[]) => void) {
@@ -679,17 +676,15 @@ export default class GameInterface {
       args => this.chooseAction(
         this.doc.findAll(GameElement, spaceSelector),
         promptOnto || prompt,
-        ([piece, space, positioning]) => {
+        ([piece, space, positioning]: [Piece, Space, Record<string, number>]) => {
           if (action) {
             action([piece, space]);
           }
-          if (positioning && typeof positioning === 'object' && !(positioning instanceof GameElement) && !(positioning instanceof Player) && piece instanceof Piece && space instanceof GameElement) {
-            if (positioning && positioning.pos! !== undefined) {
-              piece.putInto(space, -1 - (positioning.pos as number));
-            } else {
-              piece.putInto(space);
-              if (positioning) piece.set(positioning);
-            }
+          if (positioning && positioning.pos !== undefined) {
+            piece.putInto(space, -1 - (positioning.pos));
+          } else {
+            piece.putInto(space);
+            if (positioning) piece.set(positioning);
           }
         },
         1,
@@ -781,6 +776,7 @@ export default class GameInterface {
     try {
       const normalizedArgs = this.normalize(args);
       const result = await this.actionQueue.processAction({ player, action, args: normalizedArgs });
+      console.log('========================================OK', result);
       const actionResult = {
         type: 'ok',
         player,
@@ -853,5 +849,6 @@ export default class GameInterface {
     } else {
       throw Error(`Illegal moveElement ${el.ctx.node.outerHTML}, ${this.allowedMoveElements}`);
     }
+    return { prompt: '', log: '' };
   }
 }

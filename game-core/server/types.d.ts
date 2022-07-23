@@ -6,7 +6,9 @@ import type InteractivePiece from './interactive-piece';
 import type GameInterface from './interface';
 import type Player from './player';
 
-type Argument = string | number | boolean | Record<string, string | number> | GameElement | Player;
+type Argument = string | number | boolean | Record<string, string | number | boolean> | GameElement | Player;
+type AttributeValue = string | number | boolean | undefined;
+type Attribute = AttributeValue | AttributeValue[] | Record<string, AttributeValue>
 
 interface Action {
   prompt?: string | ((...a: Argument[]) => string);
@@ -37,7 +39,7 @@ interface ElementLookup extends Element {
 type Phase = 'setup' | 'ready' | 'finished';
 
 type PlayerView = {
-  variables: Record<string, string | number | boolean>,
+  variables: Record<string, AttributeValue>,
   phase: Phase,
   players: Player[],
   sequence: number,
@@ -60,7 +62,7 @@ interface QueueItem {
 type NamedArg = (string | {hidden?: string, shown?: string}[]);
 
 type ElementClass<T extends GameElement> = {
-  new(context: {}, attrs: Record<string, any>): T,
+  new(context: Context, attrs: Record<string, any>): T,
   ctx: Context,
   serializable?: string[],
 }
@@ -84,4 +86,6 @@ type ElementAttributes<T extends GameElement> =
   {
     [K2 in Exclude<{[K in keyof T]: T extends Record<K, T[K]> ? never : K}[keyof T], undefined | keyof BaseType<T>> |
     keyof T & (T extends InteractivePiece ? InteractivePieceSerialization : (T extends Piece ? PieceSerialization : SpaceSerialization))]?: T[K2]
-  } & {className?: string}
+  } &
+  // other args that are allowed but not stored on attrs or serialized normally
+  {className?: string}
